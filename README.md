@@ -33,3 +33,9 @@ npm run build
 ```sh
 npm run lint
 ```
+
+python -m venv venv
+
+venv\Scripts\activate
+
+pip install -r requirements.txt
