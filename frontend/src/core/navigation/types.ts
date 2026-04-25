@@ -10,6 +10,7 @@ export type AuthStackParamList = {
 export type MainTabsParamList = {
   Map: undefined;
   Chat: undefined;
+  Profile: undefined;
 };
 
 export type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;

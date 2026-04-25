@@ -4,6 +4,7 @@ import type { MainTabsParamList } from './types';
 import { MapScreen } from '@features/map/screens/MapScreen';
 import { ChatScreen } from '@features/chat/screens/ChatScreen';
 import { Colors } from '@constants/colors';
+import { ProfileScreen } from '@features/profile/screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
@@ -22,6 +23,7 @@ export function MainTabs() {
     >
       <Tab.Screen name="Map" component={MapScreen} options={{ tabBarLabel: 'Mapa' }} />
       <Tab.Screen name="Chat" component={ChatScreen} options={{ tabBarLabel: 'Asistente' }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Perfil' }}/>
     </Tab.Navigator>
   );
 }
