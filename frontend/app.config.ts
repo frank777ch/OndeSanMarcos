@@ -44,5 +44,8 @@ export default {
     experiments: {
       typedRoutes: false,
     },
+    extra: {
+      mapboxPublicToken: process.env.MAPBOX_PUBLIC_TOKEN,
+    },
   },
 };

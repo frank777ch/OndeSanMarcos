@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
 import * as Location from 'expo-location';
+import Constants from 'expo-constants';
 
-MapboxGL.setAccessToken('pk.eyJ1IjoiZ3VpbGxlcm1vY3IyMjEiLCJhIjoiY21vbnd6eXVyMDVpdjJycHZtdjgwd2oybyJ9.rHJXl79QFtBLmEYJUj_l6A');
+MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
 
 // Coordenadas del centro de la UNMSM
 const UNMSM_CENTER = [-77.0842, -12.0566];
