@@ -1,8 +1,16 @@
+import * as Linking from 'expo-linking';
 import { supabase } from './client';
 
 export const authService = {
-  async signUp(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+  async signUp(email: string, password: string, name: string) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name },
+        emailRedirectTo: Linking.createURL('verified-email'),
+      },
+    });
     if (error) throw error;
     return data;
   },

@@ -5,6 +5,8 @@ export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
   Register: undefined;
+  EmailSent: { email?: string };
+  VerifiedEmail: undefined;
 };
 
 export type MainTabsParamList = {
@@ -16,5 +18,7 @@ export type MainTabsParamList = {
 export type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
 export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;
+export type EmailSentScreenProps = NativeStackScreenProps<AuthStackParamList, 'EmailSent'>;
+export type VerifiedEmailScreenProps = NativeStackScreenProps<AuthStackParamList, 'VerifiedEmail'>;
 export type MapScreenProps = BottomTabScreenProps<MainTabsParamList, 'Map'>;
 export type ChatScreenProps = BottomTabScreenProps<MainTabsParamList, 'Chat'>;

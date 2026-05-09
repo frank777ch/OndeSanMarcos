@@ -1,8 +1,23 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import { useAuthStore } from '@store/useAuthStore';
 import { AuthStack } from './AuthStack';
 import { MainTabs } from './MainTabs';
+import type { AuthStackParamList } from './types';
+
+const linking: LinkingOptions<AuthStackParamList> = {
+  prefixes: [Linking.createURL('/'), 'ondesanmarcos://'],
+  config: {
+    screens: {
+      Welcome: 'welcome',
+      Login: 'login',
+      Register: 'register',
+      EmailSent: 'email-sent',
+      VerifiedEmail: 'verified-email',
+    },
+  },
+};
 
 export function AppNavigator() {
   const { session, isGuest, isLoading } = useAuthStore();
@@ -12,7 +27,7 @@ export function AppNavigator() {
   const isAuthenticated = session !== null || isGuest;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking} fallback={null}>
       {isAuthenticated ? <MainTabs /> : <AuthStack />}
     </NavigationContainer>
   );
