@@ -1,6 +1,7 @@
 import React from 'react';
 import * as Linking from 'expo-linking';
 import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@store/useAuthStore';
 import { AuthStack } from './AuthStack';
 import { MainTabs } from './MainTabs';
@@ -27,8 +28,11 @@ export function AppNavigator() {
   const isAuthenticated = session !== null || isGuest;
 
   return (
-    <NavigationContainer linking={linking} fallback={null}>
-      {isAuthenticated ? <MainTabs /> : <AuthStack />}
-    </NavigationContainer>
+    <>
+      <StatusBar style="dark" translucent={false} />
+      <NavigationContainer linking={linking} fallback={null}>
+        {isAuthenticated ? <MainTabs /> : <AuthStack />}
+      </NavigationContainer>
+    </>
   );
 }
