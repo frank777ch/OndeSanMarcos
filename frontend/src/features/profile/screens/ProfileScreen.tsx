@@ -1,188 +1,193 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
-import { useAuthStore } from '@store/useAuthStore';
-import { authService } from '@services/supabase/auth.service';
-import { Colors } from '@constants/colors';
-import { FontSize, FontWeight } from '@constants/typography';
+import React from "react";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useAuthStore } from "@store/useAuthStore";
+import { authService } from "@services/supabase/auth.service";
+import { lightColors } from "@theme/light";
+import { Button } from "@shared/components/Button";
+import { SettingsItem } from "@shared/components/SettingsItem";
+import { HatGlasses, Palette, Bell, LogOut } from "lucide-react-native";
+import { primitive } from "@/theme/colors";
 
 export function ProfileScreen() {
   const { session, isGuest, clear } = useAuthStore();
 
+  const displayName =
+    session?.user?.user_metadata?.full_name ??
+    session?.user?.email?.split("@")[0] ??
+    "";
+  const initial = displayName.charAt(0).toUpperCase() || "?";
+  const email = session?.user?.email ?? "";
+
   async function handleLogout() {
     Alert.alert(
-      isGuest ? 'Salir' : 'Cerrar sesión',
+      isGuest ? "Salir" : "Cerrar sesión",
       isGuest
-        ? '¿Quieres volver a la pantalla de inicio?'
-        : '¿Estás seguro que quieres cerrar sesión?',
+        ? "¿Quieres volver a la pantalla de inicio?"
+        : "¿Estás seguro que quieres cerrar sesión?",
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: "Cancelar", style: "cancel" },
         {
-          text: isGuest ? 'Salir' : 'Cerrar sesión',
-          style: 'destructive',
+          text: isGuest ? "Salir" : "Cerrar sesión",
+          style: "destructive",
           onPress: async () => {
             try {
               if (!isGuest) await authService.signOut();
               clear();
             } catch {
-              clear(); // limpiar igual si falla
+              clear();
             }
           },
         },
-      ]
+      ],
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Avatar */}
-      <View style={styles.avatarCircle}>
-        <Text style={styles.avatarText}>
-          {isGuest ? '👤' : (session?.user?.email?.[0].toUpperCase() ?? '?')}
-        </Text>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.userInfoContainer}>
+        <View>
+          <View style={styles.avatarCircle}>
+            {isGuest ? (
+              <HatGlasses
+                color={lightColors.bgPrimaryBtn}
+                size={48}
+                strokeWidth={1.5}
+              />
+            ) : (
+              <Text style={styles.avatarInitial}>{initial}</Text>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.userInfoText}>
+          <Text style={styles.name}>
+            {isGuest ? "Invitado" : displayName || email}
+          </Text>
+
+          {!isGuest && <Text style={styles.email}>{email}</Text>}
+        </View>
+
+        <View style={styles.btnWrapper}>
+          <Button
+            text={isGuest ? "Iniciar sesión" : "Editar perfil"}
+            variant="primary"
+            style={styles.actionBtn}
+            onPress={() => {
+              if (isGuest) {
+                /* navegar a login */
+              } else {
+                /* navegar a editar */
+              }
+            }}
+          />
+        </View>
       </View>
 
-      {/* Info usuario */}
-      <Text style={styles.name}>
-        {isGuest ? 'Invitado' : session?.user?.email}
-      </Text>
-      <Text style={styles.badge}>
-        {isGuest ? 'Sin cuenta' : 'Estudiante UNMSM'}
-      </Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Preferencias</Text>
 
-      {/* Divider */}
-      <View style={styles.divider} />
+        <SettingsItem
+          icon={<Palette color="#1A1A2E" size={22} strokeWidth={1.8} />}
+          title="Tema"
+          description="Predeterminado del sistema"
+          onPress={() => {}}
+        />
 
-      {/* Info extra solo si está logueado */}
-      {!isGuest && (
-        <View style={styles.infoCard}>
-          <Row label="Correo" value={session?.user?.email ?? '—'} />
-          <Row label="Estado" value="Verificado ✅" />
-        </View>
-      )}
+        <SettingsItem
+          icon={<Bell color="#1A1A2E" size={22} strokeWidth={1.8} />}
+          title="Notificaciones"
+          description="Recordatorios diarios."
+          onPress={() => {}}
+        />
 
-      {/* Mensaje invitado */}
-      {isGuest && (
-        <View style={styles.guestCard}>
-          <Text style={styles.guestCardText}>
-            🔒 Crea una cuenta para guardar tu historial de rutas y acceder al asistente IA completo.
-          </Text>
-        </View>
-      )}
-
-      {/* Botón logout */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>
-          {isGuest ? '← Volver al inicio' : 'Cerrar sesión'}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
-    </View>
+        <SettingsItem
+          icon={<LogOut color="#EF4444" size={22} strokeWidth={1.8} />}
+          title={`${isGuest ? "Volver a inicio" : "Cerrar sesión"}`}
+          destructive
+          onPress={handleLogout}
+        />
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    paddingTop: 80,
-    padding: 32,
-    gap: 12,
+    backgroundColor: lightColors.bgContainer,
   },
+  container: {
+    alignItems: "center",
+    padding: 36,
+    paddingTop: 72,
+    gap: 36,
+  },
+
+  userInfoContainer: {
+    gap: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   avatarCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
+    minWidth: 120,
+    minHeight: 120,
+    borderRadius: 100,
+    borderWidth: 3,
+    borderColor: lightColors.bgPrimaryBtn,
+    backgroundColor: primitive.ghostWhite,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  avatarText: {
-    fontSize: FontSize.xxxl,
-    color: Colors.textOnPrimary,
-    fontWeight: FontWeight.bold,
+
+  avatarInitial: {
+    fontFamily: "FunnelDisplay_700Bold",
+    fontSize: 40,
+    color: lightColors.bgPrimaryBtn,
+    lineHeight: 48,
   },
+
+  userInfoText: {
+    gap: 8,
+  },
+
   name: {
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
+    fontFamily: "FunnelDisplay_700Bold",
+    fontSize: 24,
+    color: lightColors.textH1,
+    textAlign: "center",
   },
-  badge: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    backgroundColor: Colors.border,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+  email: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 16,
+    color: lightColors.textPrimaryP,
+    textAlign: "center",
+  },
+
+  btnWrapper: {
+    width: "100%",
+  },
+
+  actionBtn: {
     borderRadius: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
   },
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: Colors.border,
-    marginVertical: 8,
-  },
-  infoCard: {
-    width: '100%',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
+
+  section: {
+    width: "100%",
+    marginTop: 16,
     gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  rowLabel: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-  },
-  rowValue: {
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
-    color: Colors.textPrimary,
-  },
-  guestCard: {
-    width: '100%',
-    backgroundColor: Colors.accentLight + '33',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.accent,
-  },
-  guestCardText: {
-    fontSize: FontSize.sm,
-    color: Colors.textPrimary,
-    lineHeight: 20,
-  },
-  logoutButton: {
-    marginTop: 'auto',
-    width: '100%',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.error,
-    alignItems: 'center',
-  },
-  logoutText: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
-    color: Colors.error,
+
+  sectionTitle: {
+    fontFamily: "DMSans_500Medium",
+    fontSize: 18,
+    color: lightColors.textPrimaryP,
+    marginBottom: 12,
   },
 });
