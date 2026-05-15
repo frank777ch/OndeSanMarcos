@@ -11,12 +11,15 @@
       "@constants/*": ["src/constants/*"],
       "@store/*": ["src/core/store/*"],
       "@navigation/*": ["src/core/navigation/*"],
-      "@providers/*": ["src/core/providers/*"]
+      "@providers/*": ["src/core/providers/*"],
+      "@theme/*": ["src/theme/*"],
+      "@assets/*": ["src/assets/*"]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.d.ts"
+    ".expo/types/**/*.d.ts",
+    "src/types/**/*.d.ts"
   ]
 }
