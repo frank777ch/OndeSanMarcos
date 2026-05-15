@@ -1,107 +1,154 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { authService } from '@services/supabase/auth.service';
-import { Colors } from '@constants/colors';
-import { FontSize, FontWeight } from '@constants/typography';
-import type { LoginScreenProps } from '@navigation/types';
+import React, { useState } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { authService } from "@services/supabase/auth.service";
+import type { LoginScreenProps } from "@navigation/types";
+import { Input } from "@shared/components/Input";
+import { Button } from "@shared/components/Button";
+import { AuthHeader } from "@shared/components/AuthHeader";
+import { lightColors } from "@theme/light";
+import AccessAccountSvg from "@/shared/assets/access-account.svg";
 
 export function LoginScreen({ navigation }: LoginScreenProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  /*const { width } = useWindowDimensions();
+
+  const svgWidth = Math.min(210, width * 0.5);
+  const svgHeight = svgWidth * (230 / 210);*/
 
   async function handleLogin() {
     if (!email || !password) {
-      Alert.alert('Error', 'Completa todos los campos');
+      Alert.alert("Error", "Completa todos los campos");
       return;
     }
     try {
       setLoading(true);
       await authService.signIn(email, password);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al iniciar sesión';
-      Alert.alert('Error', message);
+      const message =
+        err instanceof Error ? err.message : "Error al iniciar sesión";
+      Alert.alert("Error", message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bienvenido</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        placeholderTextColor={Colors.textDisabled}
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor={Colors.textDisabled}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleLogin}
-        disabled={loading}
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.buttonText}>
-          {loading ? 'Ingresando...' : 'Ingresar'}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
-      </TouchableOpacity>
-    </View>
+        <AuthHeader onBack={() => navigation.navigate("Welcome")} />
+
+        <View style={styles.illustrationWrapper}>
+          <AccessAccountSvg />
+        </View>
+
+        <View style={styles.textSection}>
+          <Text style={styles.title}>
+            {"Bienvenido a\n"}
+            <Text style={styles.titleBold}>OndeSanMarcos.</Text>
+          </Text>
+          <Text style={styles.description}>
+            Ingresa tus credenciales para continuar.
+          </Text>
+        </View>
+
+        <View style={styles.form}>
+          <Input
+            label="Correo electrónico"
+            inputType="email"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Ejem. juan@example.com"
+          />
+          <Input
+            label="Contraseña"
+            inputType="password"
+            value={password}
+            onChangeText={setPassword}
+            placeholder="********"
+          />
+        </View>
+
+        <Button
+          text={loading ? "Ingresando..." : "Iniciar sesión"}
+          variant="primary"
+          style={styles.loginBtn}
+          loading={loading}
+          onPress={handleLogin}
+          textStyle={{
+            fontSize: 18,
+          }}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
-    backgroundColor: Colors.background,
-    padding: 32,
-    justifyContent: 'center',
-    gap: 12,
+    backgroundColor: lightColors.bg,
+  },
+  scroll: {
+    flexGrow: 1,
+    padding: 36,
+    gap: 36,
+  },
+
+  // ── Ilustración
+  illustrationWrapper: {
+    alignItems: "center",
+  },
+
+  // ── Texto
+  textSection: {
+    alignItems: "center",
+    gap: 16,
   },
   title: {
-    fontSize: FontSize.xxl,
-    fontWeight: FontWeight.bold,
-    color: Colors.primary,
-    marginBottom: 24,
+    fontFamily: "FunnelDisplay_400Regular",
+    fontSize: 36,
+    color: lightColors.textH1,
+    textAlign: "center",
+    lineHeight: 44,
   },
-  input: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 10,
-    padding: 14,
-    fontSize: FontSize.md,
-    color: Colors.textPrimary,
+  titleBold: {
+    fontFamily: "FunnelDisplay_700Bold",
   },
-  button: {
-    backgroundColor: Colors.primary,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 8,
+  description: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 18,
+    color: lightColors.textPrimaryP,
+    textAlign: "center",
+    lineHeight: 26,
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: Colors.textOnPrimary,
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.bold,
+
+  // ── Formulario
+  form: {
+    gap: 24,
   },
-  link: {
-    textAlign: 'center',
-    color: Colors.primary,
-    fontSize: FontSize.sm,
-    marginTop: 8,
+
+  // ── Login
+  loginBtn: {
+    width: "100%",
+    borderRadius: 16,
+    paddingVertical: 16,
   },
 });

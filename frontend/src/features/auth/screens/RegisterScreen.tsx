@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -6,37 +6,39 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
-} from 'react-native';
-import { authService } from '@services/supabase/auth.service';
-import { AuthHeader } from '@shared/components/AuthHeader';
-import { AuthTextInput } from '@shared/components/AuthTextInput';
-import { IllustrationPlaceholder } from '@shared/components/IllustrationPlaceholder';
-import { PrimaryButton } from '@shared/components/PrimaryButton';
-import { StepDots } from '@shared/components/StepDots';
-import { Colors } from '@constants/colors';
-import { FontSize, FontWeight } from '@constants/typography';
-import type { RegisterScreenProps } from '@navigation/types';
+} from "react-native";
+import { authService } from "@services/supabase/auth.service";
+import { Input } from "@shared/components/Input";
+import { Button } from "@shared/components/Button";
+import { AuthHeader } from "@shared/components/AuthHeader";
+import { lightColors } from "@theme/light";
+import type { RegisterScreenProps } from "@navigation/types";
+import EnterEmailSvg from "@shared/assets/enter-email.svg";
 
 export function RegisterScreen({ navigation }: RegisterScreenProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  /*const { width } = useWindowDimensions();
+  const svgWidth = Math.min(210, width * 0.5);
+  const svgHeight = svgWidth * (230 / 210);*/
 
   async function handleRegister() {
     if (!name.trim() || !email.trim() || !password) {
-      Alert.alert('Error', 'Completa todos los campos');
+      Alert.alert("Error", "Completa todos los campos");
       return;
     }
     try {
       setLoading(true);
       await authService.signUp(email.trim(), password, name.trim());
-      navigation.navigate('EmailSent', { email: email.trim() });
+      navigation.navigate("EmailSent", { email: email.trim() });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al registrarse';
-      Alert.alert('Error', message);
+      const message =
+        err instanceof Error ? err.message : "Error al registrarse";
+      Alert.alert("Error", message);
     } finally {
       setLoading(false);
     }
@@ -45,7 +47,7 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
         style={styles.flex}
@@ -53,53 +55,52 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <AuthHeader />
+        <AuthHeader onBack={() => navigation.navigate("Welcome")} />
 
-        <View style={styles.headerArea}>
-          <IllustrationPlaceholder label="REGISTER" size={150} />
-          <View style={styles.dotsWrap}>
-            <StepDots total={4} active={0} />
-          </View>
+        <View style={styles.illustrationWrapper}>
+          <EnterEmailSvg />
         </View>
 
-        <Text style={styles.title}>
-          Crea tu cuenta en{'\n'}
-          <Text style={styles.titleAccent}>OndeSanMarcos.</Text>
-        </Text>
-        <Text style={styles.subtitle}>Regístrate para empezar.</Text>
+        <View style={styles.textSection}>
+          <Text style={styles.title}>
+            {"Crea tu cuenta en\n"}
+            <Text style={styles.titleBold}>OndeSanMarcos.</Text>
+          </Text>
+          <Text style={styles.description}>Regístrate para empezar.</Text>
+        </View>
 
-        <View style={styles.fields}>
-          <AuthTextInput
+        <View style={styles.form}>
+          <Input
             label="Nombre"
+            inputType="text"
             value={name}
             onChangeText={setName}
-            autoCapitalize="words"
+            placeholder="Ejem. Juan"
           />
-          <AuthTextInput
+          <Input
             label="Correo electrónico"
+            inputType="email"
             value={email}
             onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            placeholder="Ejem. juan@example.com"
           />
-          <AuthTextInput
+          <Input
             label="Contraseña"
+            inputType="password"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            placeholder="********"
           />
         </View>
 
-        <PrimaryButton
-          title="Registrar"
-          onPress={handleRegister}
+        <Button
+          text={loading ? "Registrando..." : "Registrar"}
+          variant="primary"
           loading={loading}
-          style={styles.submit}
+          style={styles.submitBtn}
+          textStyle={{ fontSize: 18 }}
+          onPress={handleRegister}
         />
-
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.link}>¿Ya tienes cuenta? Inicia sesión</Text>
-        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -108,50 +109,51 @@ export function RegisterScreen({ navigation }: RegisterScreenProps) {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: lightColors.bg,
   },
   scroll: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 32,
+    flexGrow: 1,
+    padding: 36,
+    gap: 36,
   },
-  headerArea: {
-    alignItems: 'center',
-    marginTop: 8,
+
+  // ── Ilustración
+  illustrationWrapper: {
+    alignItems: "center",
+  },
+
+  // ── Texto
+  textSection: {
+    alignItems: "center",
     gap: 16,
   },
-  dotsWrap: {
-    marginTop: 4,
-  },
   title: {
-    marginTop: 24,
-    fontSize: FontSize.xxl,
-    fontWeight: FontWeight.bold,
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    lineHeight: 32,
+    fontFamily: "FunnelDisplay_400Regular",
+    fontSize: 36,
+    color: lightColors.textH1,
+    textAlign: "center",
+    lineHeight: 44,
   },
-  titleAccent: {
-    color: Colors.primary,
+  titleBold: {
+    fontFamily: "FunnelDisplay_700Bold",
   },
-  subtitle: {
-    marginTop: 8,
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    textAlign: 'center',
+  description: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 18,
+    color: lightColors.textPrimaryP,
+    textAlign: "center",
+    lineHeight: 26,
   },
-  fields: {
-    marginTop: 28,
-    gap: 14,
+
+  // ── Formulario
+  form: {
+    gap: 24,
   },
-  submit: {
-    marginTop: 24,
-  },
-  link: {
-    textAlign: 'center',
-    color: Colors.primary,
-    fontSize: FontSize.sm,
-    marginTop: 18,
-    fontWeight: FontWeight.semibold,
+
+  // ── Registrar
+  submitBtn: {
+    width: "100%",
+    borderRadius: 16,
+    paddingVertical: 16,
   },
 });

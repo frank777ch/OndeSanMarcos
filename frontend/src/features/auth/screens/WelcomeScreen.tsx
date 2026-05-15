@@ -1,35 +1,58 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useAuthStore } from '@store/useAuthStore';
-import { Colors } from '@constants/colors';
-import { FontSize, FontWeight } from '@constants/typography';
-import type { WelcomeScreenProps } from '@navigation/types';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { useAuthStore } from "@store/useAuthStore";
+import type { WelcomeScreenProps } from "@navigation/types";
+import { Button } from "@shared/components/Button";
+import { lightColors } from "@/theme/light";
 
 export function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   const { setGuest } = useAuthStore();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>OndeSanMarcos</Text>
-      <Text style={styles.subtitle}>Navega el campus de la UNMSM</Text>
+      <View style={styles.textSection}>
+        <Text style={styles.title}>¿Listo para explorar?</Text>
+        <Text style={styles.description}>
+          Accede a todas las funcionalidades y comienza a moverte por la
+          universidad sin complicaciones.
+        </Text>
+      </View>
 
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={() => navigation.navigate('Login')}
-      >
-        <Text style={styles.primaryButtonText}>Iniciar Sesión</Text>
-      </TouchableOpacity>
+      <View style={styles.actionsContainer}>
+        <View style={styles.actionsSection}>
+          <Button
+            text="Iniciar sesión"
+            variant="primary"
+            style={styles.fullWidth}
+            textStyle={{
+              fontSize: 18,
+            }}
+            onPress={() => navigation.navigate("Login")}
+          />
+          <Button
+            text="Registrarse"
+            variant="secondary"
+            style={styles.fullWidth}
+            textStyle={{
+              fontSize: 18,
+            }}
+            onPress={() => navigation.navigate("Register")}
+          />
+        </View>
 
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => navigation.navigate('Register')}
-      >
-        <Text style={styles.secondaryButtonText}>Crear Cuenta</Text>
-      </TouchableOpacity>
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>También puedes</Text>
+          <View style={styles.dividerLine} />
+        </View>
 
-      <TouchableOpacity onPress={() => setGuest(true)}>
-        <Text style={styles.guestText}>Continuar como Invitado</Text>
-      </TouchableOpacity>
+        <Button
+          text="Continuar como invitado"
+          variant="link"
+          textStyle={styles.guestLinkText}
+          onPress={() => setGuest(true)}
+        />
+      </View>
     </View>
   );
 }
@@ -37,52 +60,71 @@ export function WelcomeScreen({ navigation }: WelcomeScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-    gap: 16,
+    backgroundColor: lightColors.bg,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 36,
+    gap: 48,
+  },
+
+  textSection: {
+    alignItems: "center",
+    gap: 24,
   },
   title: {
-    fontSize: FontSize.xxxl,
-    fontWeight: FontWeight.bold,
-    color: Colors.textOnPrimary,
-    marginBottom: 8,
+    fontFamily: "FunnelDisplay_700Bold",
+    fontSize: 48,
+    color: lightColors.textH1,
+    textAlign: "center",
+    lineHeight: 56,
   },
-  subtitle: {
-    fontSize: FontSize.md,
-    color: Colors.accent,
-    marginBottom: 32,
+  description: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: 16,
+    color: lightColors.textPrimaryP,
+    textAlign: "center",
+    lineHeight: 24,
   },
-  primaryButton: {
-    width: '100%',
-    backgroundColor: Colors.accent,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+
+  actionsContainer: {
+    gap: 36,
+    width: "100%",
   },
-  primaryButtonText: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.bold,
-    color: Colors.primaryDark,
+
+  // ── Botones
+  actionsSection: {
+    width: "100%",
+    gap: 16,
   },
-  secondaryButton: {
-    width: '100%',
-    borderWidth: 2,
-    borderColor: Colors.textOnPrimary,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+  fullWidth: {
+    width: "100%",
+    height: 52,
+    borderRadius: 16,
   },
-  secondaryButtonText: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
-    color: Colors.textOnPrimary,
+
+  // ── Separador
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    gap: 36,
   },
-  guestText: {
-    marginTop: 16,
-    fontSize: FontSize.sm,
-    color: Colors.accent,
-    textDecorationLine: 'underline',
+  dividerLine: {
+    flex: 1,
+    height: 2,
+    borderRadius: 8,
+    backgroundColor: lightColors.strokeInfo,
+  },
+  dividerText: {
+    fontFamily: "DMSans_500Medium",
+    fontSize: 16,
+    color: lightColors.textInfoP,
+  },
+
+  // ── Link
+  guestLinkText: {
+    fontFamily: "DMSans_500Medium",
+    fontSize: 18,
+    color: lightColors.textLinkBtn,
   },
 });
