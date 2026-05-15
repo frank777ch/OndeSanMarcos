@@ -1,7 +1,8 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Colors } from '@constants/colors';
+import React from "react";
+import { Pressable, StyleSheet, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { ChevronLeft } from "lucide-react-native";
+import { lightColors } from "@theme/light";
 
 type Props = {
   onBack?: () => void;
@@ -13,32 +14,34 @@ export function AuthHeader({ onBack }: Props) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Pressable
         onPress={handleBack}
-        hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-        style={styles.button}
+        style={({ pressed }) => [
+          styles.button,
+          pressed && styles.buttonPressed,
+        ]}
       >
-        <Text style={styles.icon}>‹</Text>
-      </TouchableOpacity>
+        <ChevronLeft size={24} color={lightColors.textH1} />
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     height: 44,
   },
   button: {
+    marginTop: 4,
     width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
   },
-  icon: {
-    fontSize: 32,
-    color: Colors.textPrimary,
-    lineHeight: 32,
+  buttonPressed: {
+    backgroundColor: lightColors.bgContainer,
   },
 });
