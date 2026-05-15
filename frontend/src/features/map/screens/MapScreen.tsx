@@ -1,13 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '@constants/colors';
-import { FontSize, FontWeight } from '@constants/typography';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { lightColors } from "@/theme/light";
 
 export function MapScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>🗺️ Mapa 3D</Text>
-      <Text style={styles.sub}>Mapbox se integra aquí</Text>
+      <Text style={styles.text}>Mapa 3D</Text>
+      <Text style={styles.sub}>Mapbox</Text>
     </View>
   );
 }
@@ -15,18 +14,19 @@ export function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: lightColors.bgContainer,
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
   },
   text: {
-    fontSize: FontSize.xxl,
-    fontWeight: FontWeight.bold,
-    color: Colors.primary,
+    fontSize: 36,
+    fontFamily: "FunnelDisplay_700Bold",
+    color: lightColors.bgPrimaryBtn,
   },
   sub: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    fontSize: 16,
+    fontFamily: "DMSans_400Regular",
+    color: lightColors.textInfoP,
   },
 });
