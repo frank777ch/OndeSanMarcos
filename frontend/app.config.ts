@@ -45,6 +45,9 @@ export default {
       typedRoutes: false,
     },
     extra: {
+      eas: {
+        projectId: "34fb063e-d769-49f8-a41e-18ae8bfe9ead"
+      },
       mapboxPublicToken: process.env.MAPBOX_PUBLIC_TOKEN,
     },
   },
