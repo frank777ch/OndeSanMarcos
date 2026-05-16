@@ -40,17 +40,46 @@ export function MapScreen() {
         setShowAvatar(false);
         return;
       }
-      console.log('Simulación: GPS aceptado, mostrando avatar en ubicación simulada dentro del campus');
-      setUserLocation([-77.0842, -12.0500]); // Simulación de ubicación dentro del campus
-      setShowAvatar(true);
 
-      // const location = await Location.getCurrentPositionAsync({});
-      // const { latitude, longitude } = location.coords;
-      // // Criterio 2: GPS aceptado y dentro del campus, se debe mostrar avatar
-      // if (isInsideCampus(latitude, longitude)) {
-      //   setUserLocation([longitude, latitude]);
-      //   setShowAvatar(true);
-      // }
+      try {
+        // Intenta primero con la última posición conocida (respuesta inmediata)
+        const lastKnown = await Location.getLastKnownPositionAsync({});
+        if (lastKnown) {
+          const { latitude, longitude } = lastKnown.coords;
+          if (isInsideCampus(latitude, longitude)) {
+            setUserLocation([longitude, latitude]);
+            setShowAvatar(true);
+          }
+        }
+
+        // Luego obtiene posición actual con timeout de 10 segundos
+        const locationPromise = Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        const timeoutPromise = new Promise<null>((resolve) =>
+          setTimeout(() => resolve(null), 10000)
+        );
+
+        const location = await Promise.race([locationPromise, timeoutPromise]);
+        if (!location) {
+          console.warn('GPS timeout: no se pudo obtener posición en 10s. Configura las coordenadas en el emulador (Extended Controls → Location).');
+          return;
+        }
+
+        const { latitude, longitude } = location.coords;
+        // Criterio 2: GPS aceptado y dentro del campus, se debe mostrar avatar
+        if (isInsideCampus(latitude, longitude)) {
+          setUserLocation([longitude, latitude]);
+          setShowAvatar(true);
+        } else {
+          //mostrar ubicacion del usuarioo en consola
+          console.warn('Usuario fuera, posicion actual: ', latitude, longitude);
+          setUserLocation([longitude, latitude]);
+          setShowAvatar(true);
+        }
+      } catch (error) {
+        console.error('Error obteniendo ubicación:', error);
+      }
     })();
   }, []);
 
@@ -78,7 +107,7 @@ export function MapScreen() {
             <View style={{
                 width: 84,
                 height: 84,
-                borderRadius: 22,
+                borderRadius: 42,
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 2,
