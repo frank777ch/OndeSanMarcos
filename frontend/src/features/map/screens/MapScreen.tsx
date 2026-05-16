@@ -1,9 +1,10 @@
-// screens/MapScreen.jsx
-import { useEffect, useRef, useState } from "react";
+// screens/MapScreen.tsx
+import { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import Constants from "expo-constants";
+import { useMapStore } from "@store/useMapStore";
 
 MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
 
@@ -33,6 +34,9 @@ export function MapScreen() {
   );
   const [showAvatar, setShowAvatar] = useState(false);
 
+  // Lugar enviado desde el chat al tocar "Abrir" en una LocationCard.
+  const focusTarget = useMapStore((state) => state.focusTarget);
+
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -58,20 +62,35 @@ export function MapScreen() {
     })();
   }, []);
 
+  // Si el chat pidió enfocar un lugar, se centra ahí; si no, en el campus.
+  const cameraCenter: [number, number] = focusTarget
+    ? [focusTarget.longitude, focusTarget.latitude]
+    : (UNMSM_CENTER as [number, number]);
+
   return (
     <View style={styles.container}>
       <MapboxGL.MapView
         style={styles.map}
         styleURL="mapbox://styles/mapbox/streets-v12"
       >
-        {/* Criterio 1: Cámara siempre centrada en UNMSM al entrar */}
+        {/* Criterio 1: Cámara centrada en UNMSM, o en el lugar abierto desde el chat */}
         <MapboxGL.Camera
-          zoomLevel={15}
-          centerCoordinate={UNMSM_CENTER}
+          zoomLevel={focusTarget ? 17 : 15}
+          centerCoordinate={cameraCenter}
           pitch={45} // Vista 3D
           animationMode="flyTo"
           animationDuration={1500}
         />
+
+        {/* Marcador del lugar abierto desde el chat */}
+        {focusTarget && (
+          <MapboxGL.PointAnnotation
+            id="chat-focus-target"
+            coordinate={cameraCenter}
+          >
+            <View style={styles.placeMarker} />
+          </MapboxGL.PointAnnotation>
+        )}
 
         {/* Criterio 2: Avatar solo si GPS aceptado y dentro del campus */}
         {showAvatar && userLocation && (
@@ -108,5 +127,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     color: "#fff",
+  },
+  placeMarker: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#3B5BDB",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
   },
 });
