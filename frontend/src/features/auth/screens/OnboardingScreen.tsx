@@ -1,19 +1,29 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Button } from "@shared/components/Button";
+import { Button, ButtonVariant } from "@shared/components/Button";
 import { lightColors } from "@/theme/light";
 import type { OnboardingScreenProps } from "@navigation/types";
 import LocationReview from "@/shared/assets/location-review.svg";
 import ChatBot from "@/shared/assets/chat-bot.svg";
 import NavigationCuate from "@/shared/assets/navigation-cuate.svg";
 import Navigation from "@/shared/assets/navigation.svg";
+import { primitive } from "@/theme/colors";
 
-const pages = [
+const pages: {
+  title: string;
+  description: string;
+  buttonText: string;
+  buttonVariant: ButtonVariant;
+  showLogin: boolean;
+  showSkip: boolean;
+  Image: React.ComponentType<{ width: number; height: number }>;
+}[] = [
   {
     title: "Explora la UNMSM.",
     description:
       "Encuentra aulas, oficinas y servicios en segundos. Todo el campus en la palma de tu mano.",
     buttonText: "Comenzar",
+    buttonVariant: "primary",   // azul — primer slide
     showLogin: true,
     showSkip: false,
     Image: LocationReview,
@@ -23,6 +33,7 @@ const pages = [
     description:
       "Traza rutas hacia cualquier dependencia y muévete por la universidad de forma rápida y eficiente.",
     buttonText: "Siguiente",
+    buttonVariant: "secondary", // gris — igual que "Iniciar sesión"
     showLogin: false,
     showSkip: true,
     Image: Navigation,
@@ -32,6 +43,7 @@ const pages = [
     description:
       "Visualiza el camino paso a paso dentro del campus con un mapa dinámico que te guía en todo momento.",
     buttonText: "Siguiente",
+    buttonVariant: "secondary", // gris
     showLogin: false,
     showSkip: true,
     Image: NavigationCuate,
@@ -41,6 +53,7 @@ const pages = [
     description:
       "Consulta con nuestra IA horarios, ubicaciones o información de cualquier área de la universidad.",
     buttonText: "Continuar",
+    buttonVariant: "primary",   // azul — último slide
     showLogin: false,
     showSkip: false,
     Image: ChatBot,
@@ -97,9 +110,23 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
 
       {/* Footer */}
       <View style={styles.footer}>
+        {pageIndex > 0 && (
+        <View style={styles.paginationRow}>
+          {pages.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.paginationDot,
+                index === pageIndex && styles.paginationDotActive,
+              ]}
+            />
+          ))}
+        </View>
+        )}
+
         <Button
           text={page.buttonText}
-          variant="primary"
+          variant={page.buttonVariant}
           style={styles.primaryButton}
           textStyle={styles.primaryButtonText}
           onPress={goNext}
@@ -114,18 +141,6 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
             onPress={goToWelcome}
           />
         )}
-
-        <View style={styles.paginationRow}>
-          {pages.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.paginationDot,
-                index === pageIndex && styles.paginationDotActive,
-              ]}
-            />
-          ))}
-        </View>
       </View>
     </View>
   );
@@ -142,7 +157,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 16,
+    marginTop: 12,
   },
   backButton: {
     paddingVertical: 8,
@@ -185,6 +200,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     gap: 16,
+    marginBottom: 50,
   },
   primaryButton: {
     width: "100%",
@@ -206,19 +222,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: 8,
-    marginTop: 8,
+    gap: 7,
+    marginBottom: 45,
+    marginTop: 16,
   },
   paginationDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: lightColors.strokeInfo,
+    backgroundColor: primitive.alabastarGrey,
   },
   paginationDotActive: {
     width: 32,
     height: 10,
     borderRadius: 5,
-    backgroundColor: lightColors.bgPrimaryBtn,
+    backgroundColor: primitive.tertiary,
   },
 });
