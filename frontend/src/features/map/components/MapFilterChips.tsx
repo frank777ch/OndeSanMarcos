@@ -7,6 +7,7 @@ const FILTERS = [
   { id: '2', label: 'Cafeterías', icon: 'cafe-outline' },
   { id: '3', label: 'Auditorios', icon: 'mic-outline' },
   { id: '4', label: 'Deportes', icon: 'football-outline' },
+  { id: '5', label: 'Puertas', icon: 'log-in-outline' },
 ];
 
 interface MapFilterChipsProps {

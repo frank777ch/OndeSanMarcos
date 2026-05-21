@@ -9,6 +9,8 @@ import { MapFilterChips } from '../components/MapFilterChips';
 import { UNMSM, UNMSM_POIS } from '../constants/unmsm';
 import { MapLocationButton } from '../components/MapLocationButton';
 import { MapActionButtons } from '../components/MapActionButtons';
+import { useMapCamera } from '../hooks/useMapCamera';
+import { MapSpawnModal } from '../components/MapSpawnModal';
 
 MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
 
@@ -16,6 +18,30 @@ export function MapScreen() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [showAvatar, setShowAvatar] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  // --- NUEVA LÓGICA DE ESTADOS Y CÁMARA ---
+  const [appMode, setAppMode] = useState<'ninguno' | 'libre' | 'guia'>('ninguno');
+  const [isSpawnModalVisible, setIsSpawnModalVisible] = useState(false);
+  const { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode } = useMapCamera();
+
+  // Esta función reacciona cuando tocas los botones morados
+  const handleModeToggle = (modo: 'ninguno' | 'libre' | 'guia') => {
+    if (modo === 'libre') {
+      // En vez de volar directo, ¡abrimos el modal!
+      setIsSpawnModalVisible(true); 
+    } else if (modo === 'ninguno') {
+      setAppMode('ninguno');
+      goToDefaultMode();
+    } else {
+      setAppMode(modo);
+    }
+  };
+
+  const handleSpawnSelection = (coords: [number, number]) => {
+    setIsSpawnModalVisible(false); // Cerramos el modal
+    setAppMode('libre'); // Activamos el estado libre
+    goToFreeMode(coords); // ¡Volamos a la coordenada elegida!
+  };
 
   useEffect(() => {
     (async () => {
@@ -25,32 +51,38 @@ export function MapScreen() {
         setShowAvatar(false);
         return;
       }
-      // Centramos el avatar temporalmente en el centro del campus
       setUserLocation([UNMSM.center.longitude, UNMSM.center.latitude]); 
       setShowAvatar(true);
     })();
   }, []);
 
-  // Filtramos el GeoJSON según la categoría seleccionada en los Chips
-  const filteredPOIs = {
-    ...UNMSM_POIS,
-    features: activeCategory 
-      ? UNMSM_POIS.features.filter(f => f.properties.categoria === activeCategory)
-      : [] 
+  // @ts-ignore
+  const pointsFeatures = UNMSM_POIS.features.filter(f => f.geometry.type === 'Point');
+  // @ts-ignore
+  const routeFeatures = UNMSM_POIS.features.filter(f => f.geometry.type === 'LineString');
+
+  const filteredPoints = {
+    type: 'FeatureCollection',
+    // @ts-ignore
+    features: activeCategory ? pointsFeatures.filter(f => f.properties?.categoria === activeCategory) : [] 
   };
+
+  const routeData = { type: 'FeatureCollection', features: routeFeatures };
 
   return (
     <View style={styles.container}>
       <MapboxGL.MapView style={styles.map} styleURL="mapbox://styles/mapbox/streets-v12">
+        
+        {/* --- CÁMARA AHORA CONTROLADA POR EL HOOK --- */}
         <MapboxGL.Camera
-          zoomLevel={UNMSM.camera.zoomLevel}
-          centerCoordinate={[UNMSM.center.longitude, UNMSM.center.latitude]}
-          pitch={UNMSM.camera.pitch}
-          animationMode="flyTo"
-          animationDuration={1500}
+          ref={cameraRef}
+          zoomLevel={cameraConfig.zoomLevel}
+          centerCoordinate={cameraConfig.centerCoordinate}
+          pitch={cameraConfig.pitch}
+          animationMode={cameraConfig.animationMode as any}
+          animationDuration={cameraConfig.animationDuration}
         />
 
-        {/* --- MAGIA 3D --- */}
         <MapboxGL.VectorSource id="composite" url="mapbox://mapbox.mapbox-streets-v8">
           <MapboxGL.FillExtrusionLayer
             id="3d-buildings"
@@ -65,8 +97,19 @@ export function MapScreen() {
           />
         </MapboxGL.VectorSource>
 
-        {/* --- CAPA DE PUNTOS DE INTERÉS (FILTROS) --- */}
-        <MapboxGL.ShapeSource id="poi-source" shape={filteredPOIs as any}>
+        <MapboxGL.ShapeSource id="route-source" shape={routeData as any}>
+          <MapboxGL.LineLayer
+            id="route-line"
+            style={{
+              lineColor: '#512DA8', 
+              lineWidth: 5, 
+              lineJoin: 'round', 
+              lineCap: 'round', 
+            }}
+          />
+        </MapboxGL.ShapeSource>
+
+        <MapboxGL.ShapeSource id="poi-source" shape={filteredPoints as any}>
           <MapboxGL.CircleLayer
             id="poi-circles"
             style={{
@@ -90,7 +133,6 @@ export function MapScreen() {
           />
         </MapboxGL.ShapeSource>
 
-        {/* --- AVATAR --- */}
         {showAvatar && userLocation && (
           <MapboxGL.PointAnnotation id="avatar" coordinate={userLocation}>
             <View style={styles.avatarContainer}>
@@ -100,20 +142,22 @@ export function MapScreen() {
         )}
       </MapboxGL.MapView>
 
-      {/* --- UI FLOTANTE --- */}
       <MapSearchBar />
       
       <MapFilterChips 
         activeFilter={activeCategory} 
-        onFilterChange={(categoria) => {
-          setActiveCategory(prev => prev === categoria ? null : categoria);
-        }} 
+        onFilterChange={(categoria) => setActiveCategory(prev => prev === categoria ? null : categoria)} 
       />
 
-      {/* NUEVOS COMPONENTES AQUÍ */}
       <MapLocationButton />
-      <MapActionButtons />
+      {/* --- LE PASAMOS LA FUNCIÓN A TUS BOTONES MORADOS --- */}
+      <MapActionButtons onModeSelect={handleModeToggle} />
 
+      <MapSpawnModal 
+        visible={isSpawnModalVisible} 
+        onClose={() => setIsSpawnModalVisible(false)}
+        onSelectPoint={handleSpawnSelection}
+      />
     </View>
   );
 }
@@ -121,15 +165,5 @@ export function MapScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
-  avatarContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "red",
-    overflow: "hidden",
-    backgroundColor: "rgba(255, 255, 255, 0.8)"
-  }
+  avatarContainer: { width: 60, height: 60, borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "red", overflow: "hidden", backgroundColor: "rgba(255, 255, 255, 0.8)" }
 });
