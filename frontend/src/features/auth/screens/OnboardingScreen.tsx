@@ -3,60 +3,99 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Button } from "@shared/components/Button";
 import { lightColors } from "@/theme/light";
 import type { OnboardingScreenProps } from "@navigation/types";
+import LocationReview from "@/shared/assets/location-review.svg";
+import ChatBot from "@/shared/assets/chat-bot.svg";
+import NavigationCuate from "@/shared/assets/navigation-cuate.svg";
+import Navigation from "@/shared/assets/navigation.svg";
 
 const pages = [
   {
-    title: "Explora la UNMSM",
+    title: "Explora la UNMSM.",
     description:
-      "Conoce el campus, ubica servicios y descubre todo lo que la universidad tiene para ti.",
+      "Encuentra aulas, oficinas y servicios en segundos. Todo el campus en la palma de tu mano.",
     buttonText: "Comenzar",
     showLogin: true,
+    showSkip: false,
+    Image: LocationReview,
   },
   {
-    title: "Explora rutas y espacios",
+    title: "Llega sin perderte.",
     description:
-      "Encuentra los mejores recorridos y sitios importantes para moverte por la UNMSM.",
+      "Traza rutas hacia cualquier dependencia y muévete por la universidad de forma rápida y eficiente.",
     buttonText: "Siguiente",
     showLogin: false,
+    showSkip: true,
+    Image: Navigation,
   },
   {
-    title: "¿Listo para explorar?",
+    title: "Sigue tu ruta en tiempo real.",
     description:
-      "Accede a todas las funcionalidades y comienza a moverte por la universidad sin complicaciones.",
+      "Visualiza el camino paso a paso dentro del campus con un mapa dinámico que te guía en todo momento.",
+    buttonText: "Siguiente",
+    showLogin: false,
+    showSkip: true,
+    Image: NavigationCuate,
+  },
+  {
+    title: "Resuelve tus dudas al instante.",
+    description:
+      "Consulta con nuestra IA horarios, ubicaciones o información de cualquier área de la universidad.",
     buttonText: "Continuar",
     showLogin: false,
+    showSkip: false,
+    Image: ChatBot,
   },
 ];
 
 export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
   const [pageIndex, setPageIndex] = useState(0);
   const page = pages[pageIndex];
+  const PageImage = page.Image;
 
   const goToWelcome = () => navigation.navigate("Welcome");
+
+  const goBack = () => {
+    if (pageIndex > 0) {
+      setPageIndex(pageIndex - 1);
+    } else {
+      navigation.goBack();
+    }
+  };
+
   const goNext = () => {
     if (pageIndex < pages.length - 1) {
       setPageIndex(pageIndex + 1);
-      return;
+    } else {
+      goToWelcome();
     }
-    goToWelcome();
   };
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.headerRow}>
-        <View />
-        {pageIndex < pages.length - 1 ? (
+        {pageIndex > 0 ? (
+          <TouchableOpacity onPress={goBack} style={styles.backButton}>
+            <Text style={styles.backText}>←</Text>
+          </TouchableOpacity>
+        ) : (
+          <View />
+        )}
+        {page.showSkip && (
           <TouchableOpacity onPress={goToWelcome} style={styles.skipButton}>
             <Text style={styles.skipText}>Omitir</Text>
           </TouchableOpacity>
-        ) : null}
+        )}
       </View>
 
+      {/* Contenido central */}
       <View style={styles.content}>
+        <PageImage width={260} height={220} />
         <Text style={styles.title}>{page.title}</Text>
         <Text style={styles.description}>{page.description}</Text>
       </View>
 
+      {/* Footer */}
       <View style={styles.footer}>
         <Button
           text={page.buttonText}
@@ -66,7 +105,7 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
           onPress={goNext}
         />
 
-        {page.showLogin ? (
+        {page.showLogin && (
           <Button
             text="Iniciar sesión"
             variant="secondary"
@@ -74,7 +113,7 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
             textStyle={styles.secondaryButtonText}
             onPress={goToWelcome}
           />
-        ) : null}
+        )}
 
         <View style={styles.paginationRow}>
           {pages.map((_, index) => (
@@ -104,6 +143,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 16,
+  },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  backText: {
+    color: lightColors.textLinkBtn,
+    fontFamily: "DMSans_500Medium",
+    fontSize: 22,
   },
   skipButton: {
     paddingVertical: 8,
@@ -168,6 +216,9 @@ const styles = StyleSheet.create({
     backgroundColor: lightColors.strokeInfo,
   },
   paginationDotActive: {
+    width: 32,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: lightColors.bgPrimaryBtn,
   },
 });
