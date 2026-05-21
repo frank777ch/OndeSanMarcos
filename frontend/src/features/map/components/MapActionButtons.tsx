@@ -2,23 +2,28 @@ import { useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export function MapActionButtons() {
-  // Este estado controla si los botones morados están agrupados o expandidos
+// Definimos los "cables" de comunicación con el mapa principal
+interface MapActionButtonsProps {
+  onModeSelect: (modo: 'ninguno' | 'libre' | 'guia') => void;
+}
+
+export function MapActionButtons({ onModeSelect }: MapActionButtonsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <View style={styles.container}>
-      
-      {/* Botón Blanco: Iniciar Ruta (Siempre visible) */}
       <TouchableOpacity style={styles.whiteButton} activeOpacity={0.8}>
         <Ionicons name="git-network-outline" size={20} color="#4A4A4A" />
         <Text style={styles.whiteText}>Iniciar ruta</Text>
       </TouchableOpacity>
 
-      {/* Botones Morados: Controlados por el estado isExpanded */}
       {isExpanded ? (
         <>
-          <TouchableOpacity style={styles.purpleButton} activeOpacity={0.8}>
+          <TouchableOpacity 
+            style={styles.purpleButton} 
+            activeOpacity={0.8}
+            onPress={() => onModeSelect('libre')} // <--- AVISAMOS QUE QUEREMOS MODO LIBRE
+          >
             <Ionicons name="navigate-outline" size={20} color="#FFF" />
             <Text style={styles.purpleText}>Modo libre</Text>
           </TouchableOpacity>
@@ -31,7 +36,10 @@ export function MapActionButtons() {
           <TouchableOpacity 
             style={styles.purpleButton} 
             activeOpacity={0.8}
-            onPress={() => setIsExpanded(false)}
+            onPress={() => {
+              onModeSelect('ninguno'); // <--- APAGAMOS LOS MODOS
+              setIsExpanded(false);
+            }}
           >
             <Ionicons name="close" size={20} color="#FFF" />
             <Text style={styles.purpleText}>Cerrar los modos</Text>
@@ -47,7 +55,6 @@ export function MapActionButtons() {
           <Text style={styles.purpleText}>Modos de seguimiento</Text>
         </TouchableOpacity>
       )}
-
     </View>
   );
 }
