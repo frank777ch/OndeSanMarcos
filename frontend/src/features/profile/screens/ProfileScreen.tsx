@@ -90,26 +90,30 @@ export function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Preferencias</Text>
 
-        <SettingsItem
-          icon={<Palette color="#1A1A2E" size={22} strokeWidth={1.8} />}
-          title="Tema"
-          description="Predeterminado del sistema"
-          onPress={() => {}}
-        />
+        <View style={styles.settingsContainer}>
+          <SettingsItem
+            icon={<Palette color="#1A1A2E" size={22} strokeWidth={1.8} />}
+            title="Tema"
+            description="Predeterminado del sistema"
+            onPress={() => {}}
+            style={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+          />
 
-        <SettingsItem
-          icon={<Bell color="#1A1A2E" size={22} strokeWidth={1.8} />}
-          title="Notificaciones"
-          description="Recordatorios diarios."
-          onPress={() => {}}
-        />
+          <SettingsItem
+            icon={<Bell color="#1A1A2E" size={22} strokeWidth={1.8} />}
+            title="Notificaciones"
+            description="Recordatorios diarios."
+            onPress={() => {}}
+          />
 
-        <SettingsItem
-          icon={<LogOut color="#EF4444" size={22} strokeWidth={1.8} />}
-          title={`${isGuest ? "Volver a inicio" : "Cerrar sesión"}`}
-          destructive
-          onPress={handleLogout}
-        />
+          <SettingsItem
+            icon={<LogOut color="#EF4444" size={22} strokeWidth={1.8} />}
+            title={`${isGuest ? "Volver a inicio" : "Cerrar sesión"}`}
+            destructive
+            style={{ borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}
+            onPress={handleLogout}
+          />
+        </View>
       </View>
     </ScrollView>
   );
@@ -189,5 +193,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: lightColors.textPrimaryP,
     marginBottom: 12,
+  },
+  settingsContainer: {
+    gap: 1,
   },
 });
