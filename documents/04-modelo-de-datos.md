@@ -91,7 +91,7 @@ classDiagram
     CampusPlace "1" *-- "1" Coordinate : coordinate
     UNMSM "1" *-- "1" Coordinate : center
 
-    note for CampusPlace "getCampusPlaceById(id) → CampusPlace?\nCAMPUS_PLACES: CampusPlace[]\nUsado por el chat (mockChat) y la integración Chat→Mapa"
+    note for CampusPlace "Helpers: CAMPUS_PLACES (lista) y getCampusPlaceById(id). Es el puente entre el chat (mockChat) y el mapa."
 ```
 
 > `keywords` permite que `mockChat` empareje consultas sin tildes (ej. "comedor" → Comedor Universitario). `UNMSM_POIS` es un `FeatureCollection` GeoJSON aparte, usado por el render 3D del `MapScreen`.
