@@ -45,3 +45,10 @@ yarn-error.*
 
 # Mapbox
 .netrc
+
+# Local binaries / installers (no se versionan)
+*.exe
+vc_redist.x64.exe
+
+# Documentación temporal de trabajo (no se versiona)
+temp/
