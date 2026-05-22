@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+  Animated,
+} from "react-native";
 import { Button, ButtonVariant } from "@shared/components/Button";
 import { lightColors } from "@/theme/light";
 import type { OnboardingScreenProps } from "@navigation/types";
@@ -7,7 +14,7 @@ import LocationReview from "@/shared/assets/location-review.svg";
 import ChatBot from "@/shared/assets/chat-bot.svg";
 import NavigationCuate from "@/shared/assets/navigation-cuate.svg";
 import Navigation from "@/shared/assets/navigation.svg";
-import { primitive } from "@/theme/colors";
+import { ChevronLeft } from "lucide-react-native";
 
 const pages: {
   title: string;
@@ -23,7 +30,7 @@ const pages: {
     description:
       "Encuentra aulas, oficinas y servicios en segundos. Todo el campus en la palma de tu mano.",
     buttonText: "Comenzar",
-    buttonVariant: "primary",   // azul — primer slide
+    buttonVariant: "primary", // azul — primer slide
     showLogin: true,
     showSkip: false,
     Image: LocationReview,
@@ -53,12 +60,49 @@ const pages: {
     description:
       "Consulta con nuestra IA horarios, ubicaciones o información de cualquier área de la universidad.",
     buttonText: "Continuar",
-    buttonVariant: "primary",   // azul — último slide
+    buttonVariant: "primary", // azul — último slide
     showLogin: false,
     showSkip: false,
     Image: ChatBot,
   },
 ];
+
+const AnimatedDot = ({ isActive }: { isActive: boolean }) => {
+  const widthAnim = useRef(new Animated.Value(isActive ? 32 : 10)).current;
+  const colorAnim = useRef(new Animated.Value(isActive ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(widthAnim, {
+        toValue: isActive ? 32 : 10,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(colorAnim, {
+        toValue: isActive ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [isActive]);
+
+  const backgroundColor = colorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [lightColors.stepDisable, lightColors.stepEnable],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.paginationDot,
+        {
+          width: widthAnim,
+          backgroundColor,
+        },
+      ]}
+    />
+  );
+};
 
 export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
   const [pageIndex, setPageIndex] = useState(0);
@@ -88,9 +132,15 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
       {/* Header */}
       <View style={styles.headerRow}>
         {pageIndex > 0 ? (
-          <TouchableOpacity onPress={goBack} style={styles.backButton}>
-            <Text style={styles.backText}>←</Text>
-          </TouchableOpacity>
+          <Pressable
+            onPress={goBack}
+            style={({ pressed }) => [
+              styles.buttonBack,
+              pressed && styles.buttonBackPressed,
+            ]}
+          >
+            <ChevronLeft size={24} color={lightColors.textH1} />
+          </Pressable>
         ) : (
           <View />
         )}
@@ -111,17 +161,11 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
       {/* Footer */}
       <View style={styles.footer}>
         {pageIndex > 0 && (
-        <View style={styles.paginationRow}>
-          {pages.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.paginationDot,
-                index === pageIndex && styles.paginationDotActive,
-              ]}
-            />
-          ))}
-        </View>
+          <View style={styles.paginationRow}>
+            {pages.slice(1).map((_, index) => (
+              <AnimatedDot key={index} isActive={index + 1 === pageIndex} />
+            ))}
+          </View>
         )}
 
         <Button
@@ -134,7 +178,7 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
 
         {page.showLogin && (
           <Button
-            text="Iniciar sesión"
+            text="Acceder"
             variant="secondary"
             style={styles.secondaryButton}
             textStyle={styles.secondaryButtonText}
@@ -150,7 +194,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: lightColors.bg,
-    padding: 28,
+    padding: 36,
     justifyContent: "space-between",
   },
   headerRow: {
@@ -159,21 +203,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 12,
   },
-  backButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+  buttonBack: {
+    marginTop: 4,
+    width: 36,
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
   },
-  backText: {
-    color: lightColors.textLinkBtn,
-    fontFamily: "DMSans_500Medium",
-    fontSize: 22,
+  buttonBackPressed: {
+    backgroundColor: lightColors.bgContainer,
   },
   skipButton: {
     paddingVertical: 8,
     paddingHorizontal: 10,
   },
   skipText: {
-    color: lightColors.textLinkBtn,
+    color: lightColors.textGhostBtn,
     fontFamily: "DMSans_500Medium",
     fontSize: 16,
   },
@@ -185,18 +231,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: "FunnelDisplay_700Bold",
-    fontSize: 44,
+    fontSize: 48,
     color: lightColors.textH1,
-    textAlign: "center",
-    lineHeight: 50,
+    textAlign: "left",
+    lineHeight: 56,
   },
   description: {
     fontFamily: "DMSans_400Regular",
-    fontSize: 16,
+    fontSize: 20,
     color: lightColors.textPrimaryP,
-    textAlign: "center",
-    lineHeight: 24,
-    maxWidth: 320,
+    textAlign: "left",
+    lineHeight: 28,
   },
   footer: {
     gap: 16,
@@ -230,12 +275,12 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: primitive.alabastarGrey,
+    backgroundColor: lightColors.stepDisable,
   },
   paginationDotActive: {
     width: 32,
     height: 10,
     borderRadius: 5,
-    backgroundColor: primitive.tertiary,
+    backgroundColor: lightColors.stepEnable,
   },
 });
