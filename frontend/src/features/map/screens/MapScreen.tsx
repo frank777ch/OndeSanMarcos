@@ -1,117 +1,163 @@
-// screens/MapScreen.tsx
 import { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import Constants from "expo-constants";
-import { useMapStore } from "@store/useMapStore";
+
+import { MapSearchBar } from '../components/MapSearchBar';
+import { MapFilterChips } from '../components/MapFilterChips';
+import { UNMSM, UNMSM_POIS } from '../constants/unmsm';
+import { MapLocationButton } from '../components/MapLocationButton';
+import { MapActionButtons } from '../components/MapActionButtons';
+import { useMapCamera } from '../hooks/useMapCamera';
+import { MapSpawnModal } from '../components/MapSpawnModal';
 
 MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
 
-// Coordenadas del centro de la UNMSM
-const UNMSM_CENTER = [-77.0842, -12.0566];
-
-// Límites aproximados del campus (bounding box)
-const CAMPUS_BOUNDS = {
-  latMin: -12.063,
-  latMax: -12.051,
-  lngMin: -77.091,
-  lngMax: -77.078,
-};
-
-function isInsideCampus(lat: number, lng: number) {
-  return (
-    lat >= CAMPUS_BOUNDS.latMin &&
-    lat <= CAMPUS_BOUNDS.latMax &&
-    lng >= CAMPUS_BOUNDS.lngMin &&
-    lng <= CAMPUS_BOUNDS.lngMax
-  );
-}
-
 export function MapScreen() {
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(
-    null,
-  );
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [showAvatar, setShowAvatar] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  // Lugar enviado desde el chat al tocar "Abrir" en una LocationCard.
-  const focusTarget = useMapStore((state) => state.focusTarget);
+  // --- NUEVA LÓGICA DE ESTADOS Y CÁMARA ---
+  const [appMode, setAppMode] = useState<'ninguno' | 'libre' | 'guia'>('ninguno');
+  const [isSpawnModalVisible, setIsSpawnModalVisible] = useState(false);
+  const { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode } = useMapCamera();
+
+  // Esta función reacciona cuando tocas los botones morados
+  const handleModeToggle = (modo: 'ninguno' | 'libre' | 'guia') => {
+    if (modo === 'libre') {
+      // En vez de volar directo, ¡abrimos el modal!
+      setIsSpawnModalVisible(true); 
+    } else if (modo === 'ninguno') {
+      setAppMode('ninguno');
+      goToDefaultMode();
+    } else {
+      setAppMode(modo);
+    }
+  };
+
+  const handleSpawnSelection = (coords: [number, number]) => {
+    setIsSpawnModalVisible(false); // Cerramos el modal
+    setAppMode('libre'); // Activamos el estado libre
+    goToFreeMode(coords); // ¡Volamos a la coordenada elegida!
+  };
 
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
-        // Criterio 3: GPS denegado, no se muestra el avatar, pero mapa sigue funcionando
         setShowAvatar(false);
         return;
       }
-      console.log(
-        "Simulación: GPS aceptado, mostrando avatar en ubicación simulada dentro del campus",
-      );
-      setUserLocation([-77.0842, -12.05]); // Simulación de ubicación dentro del campus
+      setUserLocation([UNMSM.center.longitude, UNMSM.center.latitude]); 
       setShowAvatar(true);
-
-      // const location = await Location.getCurrentPositionAsync({});
-      // const { latitude, longitude } = location.coords;
-      // // Criterio 2: GPS aceptado y dentro del campus, se debe mostrar avatar
-      // if (isInsideCampus(latitude, longitude)) {
-      //   setUserLocation([longitude, latitude]);
-      //   setShowAvatar(true);
-      // }
     })();
   }, []);
 
-  // Si el chat pidió enfocar un lugar, se centra ahí; si no, en el campus.
-  const cameraCenter: [number, number] = focusTarget
-    ? [focusTarget.longitude, focusTarget.latitude]
-    : (UNMSM_CENTER as [number, number]);
+  // @ts-ignore
+  const pointsFeatures = UNMSM_POIS.features.filter(f => f.geometry.type === 'Point');
+  // @ts-ignore
+  const routeFeatures = UNMSM_POIS.features.filter(f => f.geometry.type === 'LineString');
+
+  const filteredPoints = {
+    type: 'FeatureCollection',
+    // @ts-ignore
+    features: activeCategory ? pointsFeatures.filter(f => f.properties?.categoria === activeCategory) : [] 
+  };
+
+  const routeData = { type: 'FeatureCollection', features: routeFeatures };
 
   return (
     <View style={styles.container}>
-      <MapboxGL.MapView
-        style={styles.map}
-        styleURL="mapbox://styles/mapbox/streets-v12"
-      >
-        {/* Criterio 1: Cámara centrada en UNMSM, o en el lugar abierto desde el chat */}
+      <MapboxGL.MapView style={styles.map} styleURL="mapbox://styles/mapbox/streets-v12">
+        
+        {/* --- CÁMARA AHORA CONTROLADA POR EL HOOK --- */}
         <MapboxGL.Camera
-          zoomLevel={focusTarget ? 17 : 15}
-          centerCoordinate={cameraCenter}
-          pitch={45} // Vista 3D
-          animationMode="flyTo"
-          animationDuration={1500}
+          ref={cameraRef}
+          zoomLevel={cameraConfig.zoomLevel}
+          centerCoordinate={cameraConfig.centerCoordinate}
+          pitch={cameraConfig.pitch}
+          animationMode={cameraConfig.animationMode as any}
+          animationDuration={cameraConfig.animationDuration}
         />
 
-        {/* Marcador del lugar abierto desde el chat */}
-        {focusTarget && (
-          <MapboxGL.PointAnnotation
-            id="chat-focus-target"
-            coordinate={cameraCenter}
-          >
-            <View style={styles.placeMarker} />
-          </MapboxGL.PointAnnotation>
-        )}
+        <MapboxGL.VectorSource id="composite" url="mapbox://mapbox.mapbox-streets-v8">
+          <MapboxGL.FillExtrusionLayer
+            id="3d-buildings"
+            sourceLayerID="building"
+            filter={['==', 'extrude', 'true']}
+            style={{
+              fillExtrusionColor: '#e0e0e0', 
+              fillExtrusionHeight: ['get', 'height'], 
+              fillExtrusionBase: ['get', 'min_height'],
+              fillExtrusionOpacity: 0.9,
+            }}
+          />
+        </MapboxGL.VectorSource>
 
-        {/* Criterio 2: Avatar solo si GPS aceptado y dentro del campus */}
+        <MapboxGL.ShapeSource id="route-source" shape={routeData as any}>
+          <MapboxGL.LineLayer
+            id="route-line"
+            style={{
+              lineColor: '#512DA8', 
+              lineWidth: 5, 
+              lineJoin: 'round', 
+              lineCap: 'round', 
+            }}
+          />
+        </MapboxGL.ShapeSource>
+
+        <MapboxGL.ShapeSource id="poi-source" shape={filteredPoints as any}>
+          <MapboxGL.CircleLayer
+            id="poi-circles"
+            style={{
+              circleRadius: 8,
+              circleColor: '#E74C3C', 
+              circleStrokeWidth: 2,
+              circleStrokeColor: '#FFFFFF',
+            }}
+          />
+          <MapboxGL.SymbolLayer
+            id="poi-text"
+            style={{
+              textField: ['get', 'nombre'],
+              textSize: 12,
+              textOffset: [0, 1.2], 
+              textAnchor: 'top',
+              textColor: '#000000',
+              textHaloColor: '#FFFFFF',
+              textHaloWidth: 1,
+            }}
+          />
+        </MapboxGL.ShapeSource>
+
         {showAvatar && userLocation && (
           <MapboxGL.PointAnnotation id="avatar" coordinate={userLocation}>
-            <View
-              style={{
-                width: 84,
-                height: 84,
-                borderRadius: 22,
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "red",
-                overflow: "hidden",
-              }}
-            >
+            <View style={styles.avatarContainer}>
               <Text style={{ fontSize: 34 }}>👨‍🏫</Text>
             </View>
           </MapboxGL.PointAnnotation>
         )}
       </MapboxGL.MapView>
+
+      <MapSearchBar />
+      
+      <MapFilterChips 
+        activeFilter={activeCategory} 
+        onFilterChange={(categoria) => setActiveCategory(prev => prev === categoria ? null : categoria)} 
+      />
+
+      <MapLocationButton />
+      {/* --- LE PASAMOS LA FUNCIÓN A TUS BOTONES MORADOS --- */}
+      <MapActionButtons onModeSelect={handleModeToggle} />
+
+      <MapSpawnModal 
+        visible={isSpawnModalVisible} 
+        onClose={() => setIsSpawnModalVisible(false)}
+        onSelectPoint={handleSpawnSelection}
+      />
     </View>
   );
 }
@@ -119,21 +165,5 @@ export function MapScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
-  avatar: {
-    width: 106,
-    height: 106,
-    borderRadius: 18,
-    backgroundColor: "#4A90E2",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#fff",
-  },
-  placeMarker: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#3B5BDB",
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
-  },
+  avatarContainer: { width: 60, height: 60, borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "red", overflow: "hidden", backgroundColor: "rgba(255, 255, 255, 0.8)" }
 });

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "OndeSanMarcos",
-    "slug": "ondesanmarcos",
+    "slug": "ondesanmarcos-kevin",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -38,11 +38,6 @@
     ],
     "experiments": {
       "typedRoutes": false
-    },
-    "extra": {
-      "eas": {
-        "projectId": "34fb063e-d769-49f8-a41e-18ae8bfe9ead"
-      }
     }
   }
 }
