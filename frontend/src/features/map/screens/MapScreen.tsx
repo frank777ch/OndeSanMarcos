@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import { Image } from "expo-image";
 import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
@@ -14,6 +14,23 @@ import { useMapCamera } from "../hooks/useMapCamera";
 import { MapSpawnModal } from "../components/MapSpawnModal";
 
 MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
+
+// Límites aproximados del campus (bounding box)
+const CAMPUS_BOUNDS = {
+  latMin: -12.063,
+  latMax: -12.051,
+  lngMin: -77.091,
+  lngMax: -77.078,
+};
+
+function isInsideCampus(lat: number, lng: number) {
+  return (
+    lat >= CAMPUS_BOUNDS.latMin &&
+    lat <= CAMPUS_BOUNDS.latMax &&
+    lng >= CAMPUS_BOUNDS.lngMin &&
+    lng <= CAMPUS_BOUNDS.lngMax
+  );
+}
 
 export function MapScreen() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
@@ -63,6 +80,8 @@ export function MapScreen() {
   const handleSpawnSelection = (coords: [number, number]) => {
     setIsSpawnModalVisible(false);
     setAppMode("libre");
+    setUserLocation(coords);
+    setShowAvatar(true);
     goToFreeMode(coords);
   };
 
