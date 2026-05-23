@@ -11,6 +11,7 @@ const linking: LinkingOptions<AuthStackParamList> = {
   prefixes: [Linking.createURL('/'), 'ondesanmarcos://'],
   config: {
     screens: {
+      Onboarding: 'onboarding',
       Welcome: 'welcome',
       Login: 'login',
       Register: 'register',
