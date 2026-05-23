@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { useState } from "react";
+import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { Route, Road, Signpost, X, Map } from "lucide-react-native";
+import { lightColors } from "@/theme/light";
 
 // Definimos los "cables" de comunicación con el mapa principal
 interface MapActionButtonsProps {
-  onModeSelect: (modo: 'ninguno' | 'libre' | 'guia') => void;
+  onModeSelect: (modo: "ninguno" | "libre" | "guia") => void;
 }
 
 export function MapActionButtons({ onModeSelect }: MapActionButtonsProps) {
@@ -13,46 +14,46 @@ export function MapActionButtons({ onModeSelect }: MapActionButtonsProps) {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.whiteButton} activeOpacity={0.8}>
-        <Ionicons name="git-network-outline" size={20} color="#4A4A4A" />
+        <Route size={20} color={lightColors.textLinkBtn} />
         <Text style={styles.whiteText}>Iniciar ruta</Text>
       </TouchableOpacity>
 
       {isExpanded ? (
         <>
-          <TouchableOpacity 
-            style={styles.purpleButton} 
+          <TouchableOpacity
+            style={styles.blueButton}
             activeOpacity={0.8}
-            onPress={() => onModeSelect('libre')} // <--- AVISAMOS QUE QUEREMOS MODO LIBRE
+            onPress={() => onModeSelect("libre")} // <--- AVISAMOS QUE QUEREMOS MODO LIBRE
           >
-            <Ionicons name="navigate-outline" size={20} color="#FFF" />
-            <Text style={styles.purpleText}>Modo libre</Text>
+            <Road size={20} color="#FFF" />
+            <Text style={styles.blueText}>Modo libre</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.purpleButton} activeOpacity={0.8}>
-            <Ionicons name="location-outline" size={20} color="#FFF" />
-            <Text style={styles.purpleText}>Modo de guía</Text>
+          <TouchableOpacity style={styles.blueButton} activeOpacity={0.8}>
+            <Signpost size={20} color="#FFF" />
+            <Text style={styles.blueText}>Modo de guía</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.purpleButton} 
+          <TouchableOpacity
+            style={styles.blueButton}
             activeOpacity={0.8}
             onPress={() => {
-              onModeSelect('ninguno'); // <--- APAGAMOS LOS MODOS
+              onModeSelect("ninguno"); // <--- APAGAMOS LOS MODOS
               setIsExpanded(false);
             }}
           >
-            <Ionicons name="close" size={20} color="#FFF" />
-            <Text style={styles.purpleText}>Cerrar los modos</Text>
+            <X size={20} color="#FFF" />
+            <Text style={styles.blueText}>Cerrar los modos</Text>
           </TouchableOpacity>
         </>
       ) : (
-        <TouchableOpacity 
-          style={styles.purpleButton} 
+        <TouchableOpacity
+          style={styles.blueButton}
           activeOpacity={0.8}
           onPress={() => setIsExpanded(true)}
         >
-          <Ionicons name="map-outline" size={20} color="#FFF" />
-          <Text style={styles.purpleText}>Modos de seguimiento</Text>
+          <Map size={20} color="#FFF" />
+          <Text style={styles.blueText}>Modos de seguimiento</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -61,23 +62,22 @@ export function MapActionButtons({ onModeSelect }: MapActionButtonsProps) {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 30, // Separación desde abajo (para no chocar con tu futuro Bottom Tab Bar)
     right: 20,
     zIndex: 10,
-    alignItems: 'flex-end', // Alinea todos los botones hacia la derecha
-    gap: 12, // Espacio entre los botones
+    alignItems: "flex-end", // Alinea todos los botones hacia la derecha
+    gap: 16, // Espacio entre los botones
   },
-  
+
   // Estilos del botón blanco
   whiteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 25,
-    shadowColor: '#000',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: lightColors.bg,
+    padding: 16,
+    borderRadius: 24,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -85,29 +85,27 @@ const styles = StyleSheet.create({
   },
   whiteText: {
     marginLeft: 8,
-    color: '#4A4A4A',
-    fontSize: 14,
-    fontWeight: '500',
+    color: lightColors.textLinkBtn,
+    fontFamily: "DMSans_500Medium",
+    fontSize: 15,
   },
 
-  // Estilos de los botones morados
-  purpleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#512DA8', // Color morado similar a tu Figma
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 25,
-    shadowColor: '#000',
+  blueButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: lightColors.bgPrimaryBtn,
+    padding: 16,
+    borderRadius: 24,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
   },
-  purpleText: {
+  blueText: {
     marginLeft: 8,
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  }
+    color: lightColors.textPrimaryBtn,
+    fontFamily: "DMSans_500Medium",
+    fontSize: 15,
+  },
 });

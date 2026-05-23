@@ -1,12 +1,29 @@
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { lightColors } from "@/theme/light";
 
 // Las opciones de lugares donde el usuario puede aparecer
 const SPAWN_POINTS = [
-  { id: 'p2', nombre: 'Puerta 2 (Universitaria)', coords: [-77.07936395135454, -12.059496369475596] as [number, number] },
-  { id: 'p3', nombre: 'Puerta 3 (Odontología)', coords: [-77.08001732406147, -12.057136012331654] as [number, number] },
-  { id: 'p7', nombre: 'Puerta 7 (Ingenierías)', coords: [-77.08454506116111, -12.053801766665373] as [number, number] },
-  { id: 'p8', nombre: 'Puerta 8 (Clínica)', coords: [-77.08761951511643, -12.051880164062666] as [number, number] },
+  {
+    id: "p2",
+    nombre: "Puerta 2 (Av. Universitaria)",
+    coords: [-77.07936395135454, -12.059496369475596] as [number, number],
+  },
+  {
+    id: "p3",
+    nombre: "Puerta 3 (Fac. de Ciencias Contables)",
+    coords: [-77.08001732406147, -12.057136012331654] as [number, number],
+  },
+  {
+    id: "p7",
+    nombre: "Puerta 7 (Fac. de Ing. de Sistemas)",
+    coords: [-77.08454506116111, -12.053801766665373] as [number, number],
+  },
+  {
+    id: "p8",
+    nombre: "Puerta 8 (Fac. de Ing. de Minas)",
+    coords: [-77.08761951511643, -12.051880164062666] as [number, number],
+  },
 ];
 
 interface MapSpawnModalProps {
@@ -15,7 +32,11 @@ interface MapSpawnModalProps {
   onSelectPoint: (coords: [number, number]) => void;
 }
 
-export function MapSpawnModal({ visible, onClose, onSelectPoint }: MapSpawnModalProps) {
+export function MapSpawnModal({
+  visible,
+  onClose,
+  onSelectPoint,
+}: MapSpawnModalProps) {
   return (
     <Modal
       animationType="slide"
@@ -24,12 +45,12 @@ export function MapSpawnModal({ visible, onClose, onSelectPoint }: MapSpawnModal
       onRequestClose={onClose}
     >
       {/* Fondo oscuro semi-transparente */}
-      <TouchableOpacity 
-        style={styles.overlay} 
-        activeOpacity={1} 
+      <TouchableOpacity
+        style={styles.overlay}
+        activeOpacity={1}
         onPress={onClose}
       />
-      
+
       {/* Panel blanco inferior */}
       <View style={styles.sheet}>
         <View style={styles.header}>
@@ -45,13 +66,17 @@ export function MapSpawnModal({ visible, onClose, onSelectPoint }: MapSpawnModal
 
         <View style={styles.optionsContainer}>
           {SPAWN_POINTS.map((point) => (
-            <TouchableOpacity 
-              key={point.id} 
+            <TouchableOpacity
+              key={point.id}
               style={styles.optionButton}
               activeOpacity={0.7}
               onPress={() => onSelectPoint(point.coords)}
             >
-              <Ionicons name="location" size={20} color="#512DA8" />
+              <Ionicons
+                name="location"
+                size={20}
+                color={lightColors.bgPrimaryBtn}
+              />
               <Text style={styles.optionText}>{point.nombre}</Text>
             </TouchableOpacity>
           ))}
@@ -64,36 +89,37 @@ export function MapSpawnModal({ visible, onClose, onSelectPoint }: MapSpawnModal
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   sheet: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 24,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
-    width: '100%',
-    shadowColor: '#000',
+    width: "100%",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -3 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 10,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   title: {
+    fontFamily: "DMSans_700Bold",
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    color: lightColors.textH1,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666',
+    fontFamily: "DMSans_400Regular",
+    fontSize: 16,
+    color: lightColors.textInfoP,
     marginBottom: 20,
   },
   optionsContainer: {
@@ -101,16 +127,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
     padding: 16,
     borderRadius: 16,
   },
   optionText: {
     marginLeft: 12,
+    fontFamily: "DMSans_500Medium",
     fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  }
+    color: lightColors.textH1,
+  },
 });
