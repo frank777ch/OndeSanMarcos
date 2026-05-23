@@ -1,13 +1,20 @@
-import { ScrollView, Text, TouchableOpacity, StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
+import {
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  View,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
+import { lightColors } from "@/theme/light";
 
 const FILTERS = [
-  { id: '1', label: 'Facultades', icon: 'business-outline' },
-  { id: '2', label: 'Cafeterías', icon: 'cafe-outline' },
-  { id: '3', label: 'Auditorios', icon: 'mic-outline' },
-  { id: '4', label: 'Deportes', icon: 'football-outline' },
-  { id: '5', label: 'Puertas', icon: 'log-in-outline' },
+  { id: "1", label: "Facultades", icon: "business-outline" },
+  { id: "2", label: "Cafeterías", icon: "cafe-outline" },
+  { id: "3", label: "Auditorios", icon: "mic-outline" },
+  { id: "4", label: "Campos deportivos", icon: "football-outline" },
+  { id: "5", label: "Puertas", icon: "log-in-outline" },
 ];
 
 interface MapFilterChipsProps {
@@ -15,29 +22,34 @@ interface MapFilterChipsProps {
   onFilterChange: (filter: string) => void;
 }
 
-export function MapFilterChips({ activeFilter, onFilterChange }: MapFilterChipsProps) {
+export function MapFilterChips({
+  activeFilter,
+  onFilterChange,
+}: MapFilterChipsProps) {
   return (
     <View style={styles.container}>
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {FILTERS.map((filter) => {
           const isActive = activeFilter === filter.label;
           return (
-            <TouchableOpacity 
-              key={filter.id} 
-              style={[styles.chip, isActive && styles.chipActive]} 
+            <TouchableOpacity
+              key={filter.id}
+              style={[styles.chip, isActive && styles.chipActive]}
               activeOpacity={0.8}
               onPress={() => onFilterChange(filter.label)}
             >
-              <Ionicons 
-                name={filter.icon as any} 
-                size={16} 
-                color={isActive ? "#FFFFFF" : "#4A4A4A"} 
+              <Ionicons
+                name={filter.icon as any}
+                size={16}
+                color={isActive ? "#FFFFFF" : "#4A4A4A"}
               />
-              <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+              <Text
+                style={[styles.chipText, isActive && styles.chipTextActive]}
+              >
                 {filter.label}
               </Text>
             </TouchableOpacity>
@@ -50,7 +62,7 @@ export function MapFilterChips({ activeFilter, onFilterChange }: MapFilterChipsP
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     top: Constants.statusBarHeight + 80,
     left: 0,
     right: 0,
@@ -61,28 +73,28 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: lightColors.bg,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
   },
   chipActive: {
-    backgroundColor: '#003087', // Azul UNMSM
+    backgroundColor: lightColors.bgPrimaryBtn, // Azul UNMSM
   },
   chipText: {
-    marginLeft: 6,
-    color: '#4A4A4A',
-    fontSize: 14,
-    fontWeight: '500',
+    marginLeft: 8,
+    color: lightColors.textGhostBtn,
+    fontFamily: "DMSans_500Medium",
+    fontSize: 15,
   },
   chipTextActive: {
-    color: '#FFFFFF',
-  }
+    color: "#FFFFFF",
+  },
 });

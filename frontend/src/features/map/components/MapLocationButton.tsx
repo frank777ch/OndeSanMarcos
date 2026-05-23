@@ -1,15 +1,16 @@
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
+import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { Locate } from "lucide-react-native";
+import Constants from "expo-constants";
+import { lightColors } from "@/theme/light";
 
 export function MapLocationButton() {
   return (
-    <TouchableOpacity 
-      style={styles.button} 
+    <TouchableOpacity
+      style={styles.button}
       activeOpacity={0.8}
-      onPress={() => console.log('Centrar en mi ubicación')}
+      onPress={() => console.log("Centrar en mi ubicación")}
     >
-      <Ionicons name="locate-outline" size={20} color="#4A4A4A" />
+      <Locate size={20} color={lightColors.textGhostBtn} />
       <Text style={styles.text}>Mi ubicación</Text>
     </TouchableOpacity>
   );
@@ -17,20 +18,19 @@ export function MapLocationButton() {
 
 const styles = StyleSheet.create({
   button: {
-    position: 'absolute',
+    position: "absolute",
     // Se coloca debajo de los chips de filtro
     top: Constants.statusBarHeight + 140,
     right: 20,
     zIndex: 10,
-    
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 25,
-    
-    shadowColor: '#000',
+
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: lightColors.bg,
+    padding: 16,
+    borderRadius: 24,
+
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -38,8 +38,8 @@ const styles = StyleSheet.create({
   },
   text: {
     marginLeft: 8,
-    color: '#4A4A4A',
-    fontSize: 14,
-    fontWeight: '500',
-  }
+    color: lightColors.textGhostBtn,
+    fontSize: 15,
+    fontFamily: "DMSans_500Medium",
+  },
 });
