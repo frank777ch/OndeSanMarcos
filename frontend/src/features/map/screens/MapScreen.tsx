@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { useEffect, useState, useRef } from "react";
+import { View, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import Constants from "expo-constants";
@@ -20,8 +21,8 @@ export function MapScreen() {
   );
   const [showAvatar, setShowAvatar] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [isWalking, setIsWalking] = useState(false);
 
-  // --- NUEVA LÓGICA DE ESTADOS Y CÁMARA ---
   const [appMode, setAppMode] = useState<"ninguno" | "libre" | "guia">(
     "ninguno",
   );
@@ -29,12 +30,29 @@ export function MapScreen() {
   const { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode } =
     useMapCamera();
 
-  // Esta función reacciona cuando tocas los botones morados
+  // Timer para detectar cuándo el usuario dejó de arrastrar el mapa
+  const walkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Se llama en cada frame mientras la cámara se mueve (usuario arrastrando)
+  const handleCameraChanged = () => {
+    if (appMode !== "libre") return;
+
+    // El usuario está moviendo el mapa → animación de caminar
+    setIsWalking(true);
+
+    // Reinicia el timer: si no hay movimiento en 600ms → vuelve a idle
+    if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
+    walkTimerRef.current = setTimeout(() => {
+      setIsWalking(false);
+    }, 600);
+  };
+
   const handleModeToggle = (modo: "ninguno" | "libre" | "guia") => {
     if (modo === "libre") {
-      // En vez de volar directo, ¡abrimos el modal!
       setIsSpawnModalVisible(true);
     } else if (modo === "ninguno") {
+      setIsWalking(false);
+      if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
       setAppMode("ninguno");
       goToDefaultMode();
     } else {
@@ -43,15 +61,14 @@ export function MapScreen() {
   };
 
   const handleSpawnSelection = (coords: [number, number]) => {
-    setIsSpawnModalVisible(false); // Cerramos el modal
-    setAppMode("libre"); // Activamos el estado libre
-    goToFreeMode(coords); // ¡Volamos a la coordenada elegida!
+    setIsSpawnModalVisible(false);
+    setAppMode("libre");
+    goToFreeMode(coords);
   };
 
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-
       if (status !== "granted") {
         setShowAvatar(false);
         return;
@@ -99,6 +116,10 @@ export function MapScreen() {
         console.error("Error obteniendo ubicación:", error);
       }
     })();
+
+    return () => {
+      if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
+    };
   }, []);
 
   // @ts-ignore
@@ -120,18 +141,30 @@ export function MapScreen() {
 
   const routeData = { type: "FeatureCollection", features: routeFeatures };
 
+  const shouldShowAvatar =
+    showAvatar && userLocation !== null && appMode === "libre";
+
+  const avatarSource = isWalking
+    ? require("../../../../assets/avatar/david_walk.webp")
+    : require("../../../../assets/avatar/david_idle.webp");
+
   return (
     <View style={styles.container}>
+      {/* ── CAPA 1: MAPA ── */}
       <MapboxGL.MapView
         style={styles.map}
         styleURL="mapbox://styles/mapbox/streets-v12"
+        zoomEnabled={appMode !== "libre"}
+        pitchEnabled={appMode !== "libre"}
+        // Detecta cualquier movimiento de cámara (arrastre del usuario)
+        onCameraChanged={handleCameraChanged}
       >
-        {/* --- CÁMARA AHORA CONTROLADA POR EL HOOK --- */}
         <MapboxGL.Camera
           ref={cameraRef}
           zoomLevel={cameraConfig.zoomLevel}
           centerCoordinate={cameraConfig.centerCoordinate}
           pitch={cameraConfig.pitch}
+          heading={cameraConfig.heading}
           animationMode={cameraConfig.animationMode as any}
           animationDuration={cameraConfig.animationDuration}
         />
@@ -209,17 +242,26 @@ export function MapScreen() {
         )}
       </MapboxGL.MapView>
 
-      <MapSearchBar />
+      {/* ── CAPA 2: AVATAR FLOTANTE ── */}
+      {shouldShowAvatar && (
+        <View style={styles.avatarOverlay} pointerEvents="none">
+          <Image
+            source={avatarSource}
+            style={styles.avatarImage}
+            contentFit="contain"
+          />
+        </View>
+      )}
 
+      {/* ── CAPA 3: UI ── */}
+      <MapSearchBar />
       <MapFilterChips
         activeFilter={activeCategory}
         onFilterChange={(categoria) =>
           setActiveCategory((prev) => (prev === categoria ? null : categoria))
         }
       />
-
       <MapLocationButton />
-      {/* --- LE PASAMOS LA FUNCIÓN A TUS BOTONES MORADOS --- */}
       <MapActionButtons onModeSelect={handleModeToggle} />
 
       <MapSpawnModal
@@ -234,6 +276,22 @@ export function MapScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
+
+  avatarOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  avatarImage: {
+    width: 120,
+    height: 120,
+    marginTop: 120,
+  },
   avatarContainer: {
     width: 60,
     height: 60,
