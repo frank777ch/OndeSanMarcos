@@ -16,8 +16,9 @@ from functools import lru_cache
 from app.config import Settings, get_settings
 from app.knowledge.places import CampusPlace, find_places, get_place_by_id
 from app.rag import guardrails
-from app.rag.llm import LLMProvider, TemplateLLM
-from app.rag.retriever import RetrievedChunk, Retriever, build_default_retriever
+from app.rag.llm import LLMProvider
+from app.rag.providers import build_llm_provider, build_retriever
+from app.rag.retriever import RetrievedChunk, Retriever
 from app.schemas.chat import ChatResponse, LocationResult
 
 NO_INFO_MESSAGE = (
@@ -108,18 +109,18 @@ class RAGEngine:
 
 
 def build_engine(settings: Settings | None = None) -> RAGEngine:
-    """Construye el motor según la configuración (mock o real)."""
+    """Construye el motor según la configuración (mock o real).
+
+    Las implementaciones concretas (retriever y LLM) las decide
+    `app.rag.providers` a partir de la configuración. En modo real, si falta
+    una llave o dependencia se lanza `RagProviderError` con un mensaje claro.
+    """
     settings = settings or get_settings()
-    if settings.rag_use_mock:
-        return RAGEngine(
-            retriever=build_default_retriever(),
-            llm=TemplateLLM(),
-            top_k=settings.rag_top_k,
-            score_threshold=settings.rag_score_threshold,
-        )
-    raise NotImplementedError(
-        "Proveedores reales aún no configurados. Instala requirements-rag.txt y "
-        "define LLM_PROVIDER / SUPABASE_*. Mientras tanto usa RAG_USE_MOCK=true."
+    return RAGEngine(
+        retriever=build_retriever(settings),
+        llm=build_llm_provider(settings),
+        top_k=settings.rag_top_k,
+        score_threshold=settings.rag_score_threshold,
     )
 
 

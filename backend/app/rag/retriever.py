@@ -1,8 +1,9 @@
-"""Recuperación de contexto: ingesta del corpus y búsqueda top-k.
+"""Recuperación de contexto: indexa el corpus (vía ingesta) y busca top-k.
 
-El `Retriever` indexa los documentos (embeddings → vector store) y, dada una
-consulta, devuelve los fragmentos más relevantes. Es el equivalente aislado
-del índice que en producción gestionará LlamaIndex sobre pgvector.
+El `Retriever` alimenta el almacén vectorial usando el pipeline de ingesta
+(troceado + embeddings) y, dada una consulta, devuelve los documentos más
+relevantes por similitud coseno. Es el equivalente aislado del índice que en
+producción gestionará LlamaIndex sobre pgvector.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from app.rag.embeddings import (
     EmbeddingProvider,
     build_vocabulary,
 )
+from app.rag.ingestion import ingest_chunks, split_document
 from app.rag.vector_store import InMemoryVectorStore, VectorRecord
 
 
@@ -28,40 +30,58 @@ class RetrievedChunk:
 
 
 class Retriever:
-    """Indexa documentos y recupera los más relevantes por consulta."""
+    """Indexa documentos (troceados) y recupera los más relevantes."""
 
     def __init__(
         self,
         embedding: EmbeddingProvider,
         documents: Iterable[Document] | None = None,
+        *,
+        chunk_size: int = 400,
+        chunk_overlap: int = 60,
     ) -> None:
         self._embedding = embedding
+        self._chunk_size = chunk_size
+        self._chunk_overlap = chunk_overlap
         self._store = InMemoryVectorStore()
         self._docs_by_id: dict[str, Document] = {}
-        for document in DOCUMENTS if documents is None else documents:
+        source = DOCUMENTS if documents is None else documents
+        for document in source:
             self.add_document(document)
 
     def add_document(self, document: Document) -> None:
-        """Vectoriza e indexa un documento (título + texto)."""
-        vector = self._embedding.embed(f"{document.title}. {document.text}")
-        self._store.add(
-            VectorRecord(
-                id=document.id,
-                text=document.text,
-                vector=vector,
-                metadata={"place_id": document.place_id, "title": document.title},
-            )
-        )
+        """Trocea, vectoriza e indexa un documento."""
         self._docs_by_id[document.id] = document
+        chunks = split_document(
+            document, chunk_size=self._chunk_size, overlap=self._chunk_overlap
+        )
+        ingest_chunks(chunks, self._embedding, self._store)
 
     def retrieve(self, query: str, top_k: int = 4) -> list[RetrievedChunk]:
-        """Devuelve los `top_k` documentos más relevantes para la consulta."""
+        """Devuelve los `top_k` documentos más relevantes para la consulta.
+
+        Busca a nivel de fragmento y luego colapsa al documento padre,
+        quedándose con el mejor puntaje de cada documento.
+        """
         query_vector = self._embedding.embed(query)
-        results = self._store.search(query_vector, top_k)
+        candidates = self._store.search(query_vector, max(top_k * 4, top_k))
+
+        best_by_doc: dict[str, float] = {}
+        for record, score in candidates:
+            doc_id = self._document_id_of(record)
+            if doc_id not in best_by_doc or score > best_by_doc[doc_id]:
+                best_by_doc[doc_id] = score
+
+        ranked = sorted(best_by_doc.items(), key=lambda pair: pair[1], reverse=True)
         return [
-            RetrievedChunk(document=self._docs_by_id[record.id], score=score)
-            for record, score in results
+            RetrievedChunk(document=self._docs_by_id[doc_id], score=score)
+            for doc_id, score in ranked[:top_k]
         ]
+
+    @staticmethod
+    def _document_id_of(record: VectorRecord) -> str:
+        """Id del documento padre del registro (cae al id del chunk si falta)."""
+        return record.metadata.get("document_id", record.id)
 
     def __len__(self) -> int:
         return len(self._store)

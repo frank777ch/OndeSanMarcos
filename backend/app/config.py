@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     rag_top_k: int = 4
     rag_score_threshold: float = 0.12
 
+    # --- Pipeline de ingesta ---
+    # Tamaño y solapamiento (en caracteres) de cada fragmento al trocear.
+    rag_chunk_size: int = 400
+    rag_chunk_overlap: int = 60
+    # Carpeta con documentos fuente (.md/.txt). Vacío = usar el corpus en código.
+    knowledge_sources_dir: str = ""
+
     # --- Proveedores reales (solo si rag_use_mock=False) ---
     llm_provider: str = ""
     llm_api_key: str = ""

@@ -1,12 +1,14 @@
 # Dependencias OPCIONALES para los proveedores reales del RAG.
 # No son necesarias para el modo mock ni para los tests aislados.
-# Instálalas cuando vayas a conectar un LLM y la base vectorial (pgvector):
+# Instálalas cuando vayas a conectar un LLM y/o la base vectorial (pgvector):
 #   pip install -r requirements-rag.txt
 #
 # Nota: algunas pueden no tener wheels para versiones muy recientes de Python.
 
-llama-index
+# --- SDK del LLM (elige el que uses con LLM_PROVIDER) ---
+openai
+anthropic
+
+# --- Base vectorial / orquestación (pgvector pendiente, ver providers.py) ---
 supabase
-# SDK del LLM que elijas, por ejemplo:
-# openai
-# anthropic
+llama-index
