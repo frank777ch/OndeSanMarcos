@@ -18,18 +18,21 @@ backend/
 │   ├── main.py            # FastAPI: /health + router del chat
 │   ├── config.py          # Settings (pydantic-settings): RAG_USE_MOCK, top_k, umbral...
 │   ├── api/chat.py        # POST /api/chat  → motor RAG
-│   ├── schemas/chat.py    # ChatRequest / ChatResponse / LocationResult (contrato del front)
+│   ├── schemas/chat.py    # ChatRequest / ChatResponse / LocationResult / Coordinate
 │   ├── knowledge/         # base de conocimiento
 │   │   ├── places.py      #   lugares del campus (espejo del front)
 │   │   └── corpus.py      #   documentos institucionales de ejemplo
 │   └── rag/               # motor RAG
 │       ├── guardrails.py  #   filtro de alcance UNMSM (HU-2.4)
+│       ├── intent.py      #   intención de navegación (HU-2.3)
 │       ├── embeddings.py  #   vectorizador mock (bag-of-words)
 │       ├── vector_store.py#   almacén vectorial en memoria (coseno)
-│       ├── retriever.py   #   ingesta + recuperación top-k
-│       ├── llm.py         #   generación mock anclada al contexto
+│       ├── ingestion.py   #   pipeline de ingesta (carga, troceado, embeddings)
+│       ├── retriever.py   #   indexa por fragmentos + recuperación top-k
+│       ├── llm.py         #   mock anclado al contexto + OpenAI/Anthropic reales
+│       ├── providers.py   #   selección de proveedores mock vs reales
 │       └── engine.py      #   orquestación del pipeline
-└── tests/                 # pytest (guardrails, retriever, motor, endpoint)
+└── tests/                 # pytest (37): guardrails, retriever, ingesta, proveedores, motor, enrutamiento, endpoint
 ```
 
 Pipeline de una consulta:
@@ -100,12 +103,13 @@ pytest
 
 | Método | Ruta | Body | Respuesta |
 |--------|------|------|-----------|
-| `POST` | `/api/chat` | `{ "query": string }` | `{ "answer": string, "locations": LocationResult[] }` |
+| `POST` | `/api/chat` | `{ "query": string }` | `{ "answer", "locations": LocationResult[], "draw_route": bool, "destination": Coordinate? }` |
 | `GET`  | `/health` | — | `{ "status": "ok", ... }` |
 
-`LocationResult = { id: string, name: string, schedule?: string }` — coincide con
-`src/features/chat/types/index.ts` del frontend. **Aún no se conecta** el frontend:
-el cliente puede apuntar aquí cuando se decida (apagando su modo mock).
+`LocationResult = { id, name, schedule? }` · `Coordinate = { latitude, longitude }`.
+Para consultas de navegación ("cómo llego a…"), `draw_route` es `true` y
+`destination` trae las coordenadas del lugar (HU-2.3). **Aún no se conecta** el
+frontend: el cliente puede apuntar aquí cuando se decida (apagando su modo mock).
 
 ---
 
@@ -115,11 +119,13 @@ Controlado por `RAG_USE_MOCK` (ver `.env.example`):
 
 | | Modo mock (`true`, por defecto) | Modo real (`false`) |
 |---|---|---|
-| Embeddings | `BagOfWordsEmbedding` (sin deps) | modelo real vía LlamaIndex |
-| LLM | `TemplateLLM` (anclado al contexto) | OpenAI / Anthropic |
-| Vector store | en memoria | Supabase + `pgvector` |
+| Embeddings | `BagOfWordsEmbedding` (sin deps) | modelo real vía LlamaIndex *(pendiente)* |
+| LLM | `TemplateLLM` (anclado al contexto) | OpenAI / Anthropic *(implementado)* |
+| Vector store | en memoria | Supabase + `pgvector` *(pendiente)* |
 | Requisitos | `requirements.txt` | + `requirements-rag.txt` y llaves |
 
-Las interfaces (`EmbeddingProvider`, `LLMProvider`, retriever) están pensadas para
-que el cambio a proveedores reales se haga en `app/rag/engine.py:build_engine`
-sin tocar el resto.
+La selección de implementaciones vive en `app/rag/providers.py` (la usa
+`engine.build_engine`). Si en modo real falta una llave o dependencia, se lanza
+`RagProviderError` y el endpoint responde **503** con instrucciones. Guía
+completa de activación en
+[`/documents/07-avance-backend.md`](../documents/07-avance-backend.md).
