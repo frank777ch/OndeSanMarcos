@@ -8,12 +8,14 @@ paso posterior. Ejecuta en local con:
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.api.chat import router as chat_router
 from app.config import get_settings
+from app.rag.providers import RagProviderError
 
 
 def create_app() -> FastAPI:
@@ -27,6 +29,13 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.exception_handler(RagProviderError)
+    async def _handle_provider_error(
+        request: Request, exc: RagProviderError
+    ) -> JSONResponse:
+        """Proveedor real mal configurado o no disponible → 503 (no 500)."""
+        return JSONResponse(status_code=503, content={"detail": str(exc)})
 
     @app.get("/health", tags=["health"])
     def health() -> dict[str, str]:

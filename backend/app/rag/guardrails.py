@@ -7,6 +7,7 @@ LLM. Si la consulta no parece relacionada con el campus, se declina responder.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from app.knowledge.places import CAMPUS_PLACES, normalize
@@ -48,6 +49,13 @@ for _place in CAMPUS_PLACES:
     for _keyword in _place.keywords:
         _SCOPE_TERMS.add(normalize(_keyword))
 
+# Coincidencia por límite de palabra para evitar falsos positivos: así "aula"
+# no se activa dentro de "jaula" ni "ruta" dentro de "frutas". Funciona tanto
+# para términos de una palabra como para locuciones ("san marcos").
+_SCOPE_REGEX = re.compile(
+    r"\b(?:" + "|".join(re.escape(term) for term in sorted(_SCOPE_TERMS)) + r")\b"
+)
+
 
 @dataclass(frozen=True)
 class GuardrailResult:
@@ -59,8 +67,7 @@ class GuardrailResult:
 
 def is_in_scope(query: str) -> bool:
     """True si la consulta menciona algún término del dominio UNMSM."""
-    normalized = normalize(query)
-    return any(term in normalized for term in _SCOPE_TERMS)
+    return _SCOPE_REGEX.search(normalize(query)) is not None
 
 
 def check(query: str) -> GuardrailResult:

@@ -39,3 +39,19 @@ def test_chat_out_of_scope_has_no_locations():
     response = client.post("/api/chat", json={"query": "receta de ceviche"})
     assert response.status_code == 200
     assert response.json()["locations"] == []
+
+
+def test_chat_provider_error_returns_503():
+    from app.rag.engine import get_engine
+    from app.rag.providers import RagProviderError
+
+    def _broken_engine():
+        raise RagProviderError("Proveedor real no configurado")
+
+    app.dependency_overrides[get_engine] = _broken_engine
+    try:
+        response = client.post("/api/chat", json={"query": "horario de la biblioteca"})
+        assert response.status_code == 503
+        assert "no configurado" in response.json()["detail"]
+    finally:
+        app.dependency_overrides.pop(get_engine, None)
