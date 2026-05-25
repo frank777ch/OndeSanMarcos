@@ -33,11 +33,31 @@ class LocationResult(BaseModel):
     )
 
 
+class Coordinate(BaseModel):
+    """Coordenada geográfica (igual que el `Coordinate` del frontend)."""
+
+    latitude: float = Field(..., description="Latitud en grados decimales.")
+    longitude: float = Field(..., description="Longitud en grados decimales.")
+
+
 class ChatResponse(BaseModel):
-    """Respuesta del asistente para una consulta."""
+    """Respuesta del asistente para una consulta.
+
+    Los campos `draw_route` y `destination` implementan el enrutamiento
+    automático (HU-2.3): cuando el usuario pide cómo llegar a un lugar, el
+    frontend cambia a la pestaña Mapa y traza la ruta hacia `destination`.
+    """
 
     answer: str = Field(..., description="Respuesta en lenguaje natural.")
     locations: list[LocationResult] = Field(
         default_factory=list,
         description="Lugares relacionados con la consulta (para 'Ver en mapa').",
+    )
+    draw_route: bool = Field(
+        default=False,
+        description="True si el frontend debe trazar una ruta hacia 'destination'.",
+    )
+    destination: Coordinate | None = Field(
+        default=None,
+        description="Coordenada destino cuando se solicita enrutamiento.",
     )

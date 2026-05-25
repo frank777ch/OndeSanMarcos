@@ -16,10 +16,11 @@ from functools import lru_cache
 from app.config import Settings, get_settings
 from app.knowledge.places import CampusPlace, find_places, get_place_by_id
 from app.rag import guardrails
+from app.rag.intent import wants_route
 from app.rag.llm import LLMProvider
 from app.rag.providers import build_llm_provider, build_retriever
 from app.rag.retriever import RetrievedChunk, Retriever
-from app.schemas.chat import ChatResponse, LocationResult
+from app.schemas.chat import ChatResponse, Coordinate, LocationResult
 
 NO_INFO_MESSAGE = (
     "No tengo esa información oficial sobre el campus. Puedes preguntarme por "
@@ -56,15 +57,30 @@ class RAGEngine:
         if not relevant and not places:
             return ChatResponse(answer=NO_INFO_MESSAGE, locations=[])
 
+        draw_route = bool(places) and wants_route(query)
+
         contexts = [chunk.document.text for chunk in relevant]
         body = self._llm.generate(query, contexts) if contexts else ""
-        answer_text = self._compose(body, places)
+        answer_text = self._compose(body, places, draw_route)
 
         locations = [
             LocationResult(id=place.id, name=place.name, schedule=place.schedule)
             for place in places
         ]
-        return ChatResponse(answer=answer_text, locations=locations)
+        destination = (
+            Coordinate(
+                latitude=places[0].coordinate.latitude,
+                longitude=places[0].coordinate.longitude,
+            )
+            if draw_route
+            else None
+        )
+        return ChatResponse(
+            answer=answer_text,
+            locations=locations,
+            draw_route=draw_route,
+            destination=destination,
+        )
 
     def _detect_places(
         self, query: str, chunks: list[RetrievedChunk]
@@ -88,8 +104,10 @@ class RAGEngine:
 
         return ordered
 
-    def _compose(self, body: str, places: list[CampusPlace]) -> str:
-        """Une la respuesta del LLM con una invitación a ver el mapa."""
+    def _compose(
+        self, body: str, places: list[CampusPlace], draw_route: bool = False
+    ) -> str:
+        """Une la respuesta del LLM con una invitación a ver el mapa o la ruta."""
         parts: list[str] = []
         if body:
             parts.append(body)
@@ -97,7 +115,9 @@ class RAGEngine:
             first = places[0]
             parts.append(f"{first.name}. Horario: {first.schedule}.")
 
-        if places:
+        if draw_route and places:
+            parts.append(f"Te guío a {places[0].name}: trazo la ruta en el mapa.")
+        elif places:
             nudge = (
                 'Toca "Ver en mapa" para ubicarlo.'
                 if len(places) == 1
