@@ -36,7 +36,7 @@ graph TD
     class app cli;
 ```
 
-> **Nota de estado:** hoy el cliente funciona en **modo mock** (`EXPO_PUBLIC_USE_MOCK_CHAT` por defecto `true`): el chat responde localmente sin llamar al backend. El backend y el LLM están **planificados**; este diagrama representa la arquitectura objetivo.
+> **Nota de estado:** hoy el cliente funciona en **modo mock** (`EXPO_PUBLIC_USE_MOCK_CHAT` por defecto `true`): el chat responde localmente sin llamar al backend. El **backend ya existe y funciona en modo mock** (ver [§1.7](#17-vista-completa-implementado-vs-planificado) y [07-avance-backend](./07-avance-backend.md)); el **LLM real** y **pgvector** siguen **planificados**. Este diagrama representa la arquitectura objetivo.
 
 ---
 
@@ -212,3 +212,75 @@ sequenceDiagram
 | **RAG con LlamaIndex** | Respuestas ancladas a documentos oficiales → evita alucinaciones (HU-2.2). |
 | **Backend separado para el LLM** | Oculta llaves del LLM y centraliza guardrails fuera del cliente. |
 | **Modo mock conmutable** | Permite avanzar la UI del chat sin depender del backend. |
+
+---
+
+## 1.7 Vista completa: implementado vs. planificado
+
+Una sola vista de todo el sistema (app móvil + backend + servicios externos) con
+el **estado real de cada componente**. Verde sólido = implementado; gris punteado
+= planificado / no implementado todavía.
+
+```mermaid
+graph TB
+    user(["👤 Usuario UNMSM"])
+
+    subgraph app["📱 App móvil — React Native + Expo"]
+        direction TB
+        onb["Onboarding + Auth (Supabase)"]:::done
+        tabs["MainTabs: Mapa · Asistente · Perfil"]:::done
+        map3d["Mapa 3D Mapbox<br/>POIs · cámara · avatar"]:::done
+        chatui["UI Chat (historial, sugerencias)"]:::done
+        stores["Estado Zustand (auth/chat/map)"]:::done
+        c2m["Chat→Mapa: consumir draw_route"]:::planned
+        route["Motor de rutas (polyline A→B)"]:::planned
+        sensors["Avatar + brújula (magnetómetro)"]:::planned
+    end
+
+    subgraph be["⚙️ Backend FastAPI — modo mock (desplegable en Render)"]
+        direction TB
+        api["POST /api/chat · /health"]:::done
+        guard["Guardrails (alcance UNMSM)"]:::done
+        engine["Motor RAG"]:::done
+        ingest["Pipeline de ingesta"]:::done
+        retr["Retriever in-memory"]:::done
+        tllm["TemplateLLM determinista"]:::done
+        prov["Selección de proveedores"]:::done
+        realllm["LLM real OpenAI/Anthropic"]:::planned
+        pgr["Recuperación pgvector"]:::planned
+    end
+
+    subgraph cloud["☁️ Servicios externos"]
+        sbauth["Supabase Auth"]:::done
+        mapbox["Mapbox SDK"]:::done
+        sbvec["Supabase pgvector (conocimiento)"]:::planned
+        llmapi["Proveedor LLM (producción)"]:::planned
+    end
+
+    subgraph leg["Leyenda"]
+        L1["Implementado"]:::done
+        L2["Planificado / no implementado"]:::planned
+    end
+
+    user --> app
+    onb --> sbauth
+    map3d --> mapbox
+    chatui --> stores
+    chatui -->|"POST /api/chat"| api
+    api --> guard --> engine
+    engine --> ingest --> retr
+    engine --> prov
+    prov --> tllm
+    prov -.-> realllm
+    retr -.-> pgr -.-> sbvec
+    realllm -.-> llmapi
+    c2m -.-> map3d
+    route -.-> map3d
+
+    classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d;
+    classDef planned fill:#f1f5f9,stroke:#94a3b8,stroke-dasharray:5 5,color:#64748b;
+```
+
+> El esqueleto completo del sistema ya existe; lo punteado (LLM real, pgvector,
+> consumo del enrutamiento en el mapa, sensores del avatar) es el trabajo de los
+> siguientes sprints. Estado por historia en [06-backlog-y-roadmap §6.3](./06-backlog-y-roadmap.md#63-historias-de-usuario-y-estado).

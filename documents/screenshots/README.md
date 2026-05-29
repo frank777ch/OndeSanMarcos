@@ -62,13 +62,17 @@ Formato: **`NN-area-descripcion.png`**
 - [ ] `gestion` — User Stories (una con criterios de aceptación)
 - [ ] `gestion` — Roadmap / Gantt (o timeline)
 
-### Diagramas a exportar de [mermaid.live](https://mermaid.live)
-- [ ] `diagrama` — Arquitectura general (¡con leyenda implementado/planificado!)
-- [ ] `diagrama` — Pipeline RAG
-- [ ] `diagrama` — Qué es RAG
-- [ ] `diagrama` — Despliegue en Render
-- [ ] `diagrama` — Secuencia Chat→Mapa
-- [ ] `diagrama` — Gantt del cronograma
+### Diagramas (ya están en los documentos)
 
-> El guion completo de la presentación (contenido por slide) está fuera del repo,
-> en la rama `pedro-presentacion` (`PRESENTACION.md`).
+No necesitas crearlos: los diagramas viven como **Mermaid** dentro de
+`documents/*.md` y se renderizan solos en GitHub. Para llevarlos a las slides,
+ábrelos en [mermaid.live](https://mermaid.live) y expórtalos como PNG/SVG.
+
+| Diagrama | Dónde está |
+|----------|------------|
+| Arquitectura general (implementado vs. planificado) | `01-arquitectura-general.md` |
+| ¿Qué es RAG? y pipeline de consulta | `03-backend-rag.md` |
+| Pipeline de ingesta | `07-avance-backend.md` |
+| Despliegue | `01-arquitectura-general.md` · `08-despliegue-render.md` |
+| Secuencia Chat→Mapa | `05-flujos.md` |
+| Cronograma (Gantt) | `06-backlog-y-roadmap.md` |
