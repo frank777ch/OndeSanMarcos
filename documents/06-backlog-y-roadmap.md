@@ -1,6 +1,6 @@
 # 6. Backlog y roadmap
 
-Consolida la visión del producto, el backlog (épicas e historias de usuario) y el cronograma. La columna **Estado** mapea cada historia contra lo que **ya existe en el código** a la fecha de este documento (22/05/2026).
+Consolida la visión del producto, el backlog (épicas e historias de usuario) y el cronograma. La columna **Estado** mapea cada historia contra lo que **ya existe en el código** a la fecha de este documento (29/05/2026).
 
 > Fuente: *Product Vision Board v1.0* y *Product Backlog v1.1* del equipo. El estado es la lectura del código actual; las historias 🟠 reflejan lo que la documentación dice que **se hará**.
 
@@ -58,9 +58,9 @@ graph LR
 | HU | Nombre | Prioridad | Est. | Estado | Evidencia en código |
 |----|--------|-----------|------|--------|---------------------|
 | HU-2.1 | Interfaz de Chat Dedicada | Alta | 5 | ✅ | Pestaña "Asistente", `ChatScreen`, burbujas, input. |
-| HU-2.2 | Consultas RAG (Base de Conocimiento) | Alta | 13 | 🟠 | Hoy `mockChatQuery`; backend LlamaIndex pendiente. |
-| HU-2.3 | Enrutamiento Automático (Chat-Mapa) | Alta | 8 | 🟡 | `setFocusTarget` + navegación; falta `draw_route` y trazo. |
-| HU-2.4 | Filtro de Contexto (Guardrails) | Alta | 3 | 🟠 | Depende del backend. |
+| HU-2.2 | Consultas RAG (Base de Conocimiento) | Alta | 13 | 🟡 | Backend `/api/chat` + motor RAG e ingesta en modo mock; LLM real listo, pgvector pendiente. Ver [07-avance-backend](./07-avance-backend.md). |
+| HU-2.3 | Enrutamiento Automático (Chat-Mapa) | Alta | 8 | 🟡 | Backend ya devuelve `draw_route` + `destination`; falta que el frontend lo consuma y trace la ruta. |
+| HU-2.4 | Filtro de Contexto (Guardrails) | Alta | 3 | ✅ | Guardrails de alcance UNMSM por límite de palabra + system prompt (heurística implementada y con pruebas); se reforzará con el LLM real. |
 | HU-2.5 | Sugerencias de preguntas | Media | 3 | ✅ | `SuggestionChips` en `ChatScreen`. |
 | HU-2.6 | Respuestas enriquecidas | Media | 5 | ✅ | `LocationCard` con botón "Ver en mapa". |
 
@@ -129,6 +129,6 @@ gantt
 ## 6.5 Próximos pasos sugeridos
 
 1. **Cerrar la integración Chat→Mapa** (HU-2.3 parcial): que `MapScreen` lea `focusTarget` y recentre la cámara.
-2. **Construir el backend RAG** (HU-2.2/2.4): FastAPI + LlamaIndex + pgvector, y apagar `EXPO_PUBLIC_USE_MOCK_CHAT`.
+2. **Completar el backend RAG** (HU-2.2): el motor ya corre en modo mock (ver [07-avance-backend](./07-avance-backend.md)); falta la recuperación real con pgvector + embeddings y, en el frontend, apagar `EXPO_PUBLIC_USE_MOCK_CHAT`.
 3. **Motor de rutas** (EPIC03): poblar `src/features/routing/` y trazar `polyline` A→B.
 4. **Sensores del avatar** (HU-1.2): magnetómetro + filtro de suavizado.

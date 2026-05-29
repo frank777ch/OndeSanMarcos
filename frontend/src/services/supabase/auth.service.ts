@@ -1,4 +1,4 @@
-import * as Linking from 'expo-linking';
+//import * as Linking from 'expo-linking';
 import { supabase } from './client';
 
 export const authService = {
@@ -8,7 +8,8 @@ export const authService = {
       password,
       options: {
         data: { name },
-        emailRedirectTo: Linking.createURL('verified-email'),
+        //emailRedirectTo: Linking.createURL('verified-email'),
+        emailRedirectTo: 'ondesanmarcos://verified-email',
       },
     });
     if (error) throw error;

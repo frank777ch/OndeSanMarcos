@@ -1,6 +1,6 @@
 # 3. Backend y RAG
 
-> **Estado:** el backend está **planificado**. Hoy solo existe `backend/requirements.txt` con las dependencias base (`fastapi`, `uvicorn`, `supabase`, `llama-index`). Este documento define la **arquitectura objetivo** del asistente IA para que sea fácil de visualizar y construir.
+> **Estado:** el backend ya **funciona en modo mock** (`POST /api/chat` operativo, motor RAG y pipeline de ingesta implementados; proveedores LLM reales listos, pgvector pendiente). Este documento describe la **arquitectura objetivo**; para el detalle de **lo que ya existe en el código** y cómo correrlo, ver [07-avance-backend](./07-avance-backend.md).
 
 El asistente responde **solo con información oficial de la UNMSM**. Para lograrlo se usa **RAG (Retrieval-Augmented Generation)**: en vez de dejar que el modelo "invente", primero se **recuperan** fragmentos de documentos institucionales y luego se le pide al LLM que **genere** la respuesta usando ese contexto.
 
@@ -8,18 +8,18 @@ El asistente responde **solo con información oficial de la UNMSM**. Para lograr
 
 ## 3.1 ¿Por qué RAG?
 
-| Problema sin RAG | Solución con RAG |
-|------------------|------------------|
-| El LLM alucina datos (horarios, oficinas inexistentes). | Las respuestas se anclan a documentos reales (HU-2.2). |
-| El conocimiento del modelo está congelado. | Se actualiza agregando documentos a la base vectorial. |
-| No hay forma de citar la fuente. | Cada respuesta se construye desde fragmentos recuperados. |
+| Problema sin RAG                                        | Solución con RAG                                          |
+| ------------------------------------------------------- | --------------------------------------------------------- |
+| El LLM alucina datos (horarios, oficinas inexistentes). | Las respuestas se anclan a documentos reales (HU-2.2).    |
+| El conocimiento del modelo está congelado.              | Se actualiza agregando documentos a la base vectorial.    |
+| No hay forma de citar la fuente.                        | Cada respuesta se construye desde fragmentos recuperados. |
 
 ```mermaid
 graph LR
-    q["❓ Consulta del usuario"] --> r["🔍 RECUPERACIÓN<br/>busca fragmentos relevantes<br/>en la base de conocimiento"]
-    r --> a["✍️ AUMENTACIÓN<br/>arma el prompt:<br/>system + contexto + consulta"]
-    a --> g["🤖 GENERACIÓN<br/>el LLM redacta la respuesta<br/>usando solo ese contexto"]
-    g --> resp["✅ Respuesta confiable<br/>+ lugares relacionados"]
+    q["Consulta del usuario"] --> r["RECUPERACIÓN<br/>busca fragmentos relevantes<br/>en la base de conocimiento"]
+    r --> a["AUMENTACIÓN<br/>arma el prompt:<br/>system + contexto + consulta"]
+    a --> g["GENERACIÓN<br/>el LLM redacta la respuesta<br/>usando solo ese contexto"]
+    g --> resp["Respuesta confiable<br/>+ lugares relacionados"]
 
     classDef step fill:#fff7ed,stroke:#ea580c,color:#1e293b;
     class r,a,g step;
@@ -31,7 +31,7 @@ graph LR
 
 ```mermaid
 graph TD
-    subgraph fastapi["⚙️ Backend FastAPI"]
+    subgraph fastapi["Backend FastAPI"]
         direction TB
         router["Routers<br/>/api/chat · /health"]
         schema["Schemas (Pydantic)<br/>ChatRequest · ChatResponse"]
@@ -44,28 +44,28 @@ graph TD
         engine --> embed
     end
 
-    subgraph supa["🗄️ Supabase"]
+    subgraph supa["Supabase"]
         vstore["Postgres + pgvector<br/>tabla documents(embedding)"]
     end
 
-    llm["🤖 Proveedor LLM"]
+    llm["Proveedor LLM"]
 
     engine -->|"similarity search"| vstore
     engine -->|"prompt final"| llm
-    client["📱 App React Native"] -->|"POST /api/chat"| router
+    client["App React Native"] -->|"POST /api/chat"| router
 
     classDef ext fill:#eef2ff,stroke:#3b5bdb,color:#1e293b;
     class vstore,llm ext;
 ```
 
-| Componente | Responsabilidad |
-|------------|-----------------|
-| **Routers** | Exponen los endpoints HTTP (`/api/chat`, `/health`). |
-| **Schemas (Pydantic)** | Validan y tipan request/response. |
-| **Guardrails** | Aplican el *system prompt* y descartan consultas fuera del dominio UNMSM (HU-2.4). |
-| **RAG Engine (LlamaIndex)** | Recupera contexto y coordina la llamada al LLM. |
-| **Embeddings** | Convierten texto en vectores para la búsqueda semántica. |
-| **pgvector** | Almacena e indexa los embeddings de los documentos. |
+| Componente                  | Responsabilidad                                                                    |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| **Routers**                 | Exponen los endpoints HTTP (`/api/chat`, `/health`).                               |
+| **Schemas (Pydantic)**      | Validan y tipan request/response.                                                  |
+| **Guardrails**              | Aplican el _system prompt_ y descartan consultas fuera del dominio UNMSM (HU-2.4). |
+| **RAG Engine (LlamaIndex)** | Recupera contexto y coordina la llamada al LLM.                                    |
+| **Embeddings**              | Convierten texto en vectores para la búsqueda semántica.                           |
+| **pgvector**                | Almacena e indexa los embeddings de los documentos.                                |
 
 ---
 
@@ -75,7 +75,7 @@ Proceso **previo y periódico** que alimenta la base de conocimiento. No ocurre 
 
 ```mermaid
 flowchart TD
-    docs["📄 Documentos oficiales UNMSM<br/>(PDF, web, reglamentos, horarios)"]
+    docs["Documentos oficiales UNMSM<br/>(PDF, web, reglamentos, horarios)"]
     load["1 · Carga<br/>(LlamaIndex readers)"]
     chunk["2 · Troceado<br/>(chunking en fragmentos)"]
     emb["3 · Embeddings<br/>(vectorización de cada fragmento)"]
@@ -97,7 +97,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as 📱 App
+    participant C as App
     participant API as FastAPI /api/chat
     participant G as Guardrails
     participant E as RAG Engine (LlamaIndex)
@@ -174,17 +174,17 @@ flowchart TD
 
 ## 3.7 Contrato de la API
 
-| Método | Ruta | Body | Respuesta |
-|--------|------|------|-----------|
+| Método | Ruta        | Body                  | Respuesta                                             |
+| ------ | ----------- | --------------------- | ----------------------------------------------------- |
 | `POST` | `/api/chat` | `{ "query": string }` | `{ "answer": string, "locations": LocationResult[] }` |
-| `GET`  | `/health` | — | `{ "status": "ok" }` |
+| `GET`  | `/health`   | —                     | `{ "status": "ok" }`                                  |
 
 `LocationResult` (compartido con el frontend, ver [04-modelo-de-datos](./04-modelo-de-datos.md)):
 
 ```ts
 interface LocationResult {
-  id: string;        // ej. "rectorado"
-  name: string;      // ej. "Rectorado"
+  id: string; // ej. "rectorado"
+  name: string; // ej. "Rectorado"
   schedule?: string; // ej. "Lun–Vie 8:00–17:00"
 }
 ```
@@ -196,9 +196,9 @@ La respuesta crecerá para soportar el dibujo automático de rutas:
 ```jsonc
 {
   "answer": "Te llevo al Rectorado.",
-  "locations": [ { "id": "rectorado", "name": "Rectorado" } ],
+  "locations": [{ "id": "rectorado", "name": "Rectorado" }],
   "draw_route": true,
-  "destination": { "latitude": -12.0578, "longitude": -77.084 }
+  "destination": { "latitude": -12.0578, "longitude": -77.084 },
 }
 ```
 

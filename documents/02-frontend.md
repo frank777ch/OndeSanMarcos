@@ -98,9 +98,9 @@ graph TD
     auth --> auth_screens
 
     subgraph tabs["MainTabs"]
-        m["🗺️ Mapa"]
-        c["💬 Asistente"]
-        p["👤 Perfil"]
+        m["Mapa"]
+        c["Asistente"]
+        p["Perfil"]
     end
     main --> tabs
 ```
@@ -138,7 +138,7 @@ Tres stores independientes, cada uno dueño de su dominio:
 graph LR
     subgraph stores["Zustand stores (core/store)"]
         a["useAuthStore<br/>user · session · isGuest · isLoading"]
-        ch["useChatStore<br/>conversations · activeId · chatState<br/>📦 persistido en AsyncStorage"]
+        ch["useChatStore<br/>conversations · activeId · chatState<br/>persistido en AsyncStorage"]
         mp["useMapStore<br/>userLocation · userHeading · activeRoute<br/>mapMode · focusTarget"]
     end
 
@@ -151,11 +151,11 @@ graph LR
     class ch persist;
 ```
 
-| Store | Persistencia | Notas |
-|-------|--------------|-------|
-| `useAuthStore` | No | Reflejo de la sesión de Supabase; se rehidrata vía `getSession()`. |
+| Store          | Persistencia                                          | Notas                                                                   |
+| -------------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| `useAuthStore` | No                                                    | Reflejo de la sesión de Supabase; se rehidrata vía `getSession()`.      |
 | `useChatStore` | **Sí** (AsyncStorage, clave `osm-chat-conversations`) | `partialize` guarda solo `conversations`; el resto es estado de sesión. |
-| `useMapStore` | No | `focusTarget` permite que el chat centre el mapa en un lugar. |
+| `useMapStore`  | No                                                    | `focusTarget` permite que el chat centre el mapa en un lugar.           |
 
 Detalle de campos y acciones en [04-modelo-de-datos](./04-modelo-de-datos.md).
 
@@ -217,7 +217,7 @@ graph TD
 - `useMapCamera` controla la cámara: **modo ninguno** (vista pájaro), **modo libre** (inmersión tipo street view) y navegación punto a punto.
 - POIs se filtran por `categoria` mediante `MapFilterChips`.
 
-> ⚠️ **Brecha actual:** `ChatScreen` ya escribe `focusTarget` en `useMapStore`, pero el `MapScreen` vigente (rediseño 3D) **aún no lee** `focusTarget` para recentrarse. Cerrar este enlace es el siguiente paso de la integración Chat→Mapa.
+> **Brecha actual:** `ChatScreen` ya escribe `focusTarget` en `useMapStore`, pero el `MapScreen` vigente (rediseño 3D) **aún no lee** `focusTarget` para recentrarse. Cerrar este enlace es el siguiente paso de la integración Chat→Mapa.
 
 ---
 
@@ -225,14 +225,14 @@ graph TD
 
 Toda la configuración se centraliza en `src/constants/config.ts`, que lee variables `EXPO_PUBLIC_*` (ver `.env.example`):
 
-| Variable | Uso | Default |
-|----------|-----|---------|
-| `EXPO_PUBLIC_API_URL` | Base del backend (`apiClient`). | `http://localhost:8000` |
-| `EXPO_PUBLIC_MAPBOX_TOKEN` | Token público de Mapbox. | `''` |
-| `EXPO_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. | `''` |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Llave anónima de Supabase. | `''` |
-| `EXPO_PUBLIC_USE_MOCK_CHAT` | Si `≠ 'false'`, el chat usa respuestas mock. | mock activo |
-| `EXPO_PUBLIC_ENABLE_DEV_LOGS` | Logs de desarrollo. | `false` |
+| Variable                        | Uso                                          | Default                 |
+| ------------------------------- | -------------------------------------------- | ----------------------- |
+| `EXPO_PUBLIC_API_URL`           | Base del backend (`apiClient`).              | `http://localhost:8000` |
+| `EXPO_PUBLIC_MAPBOX_TOKEN`      | Token público de Mapbox.                     | `''`                    |
+| `EXPO_PUBLIC_SUPABASE_URL`      | URL del proyecto Supabase.                   | `''`                    |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Llave anónima de Supabase.                   | `''`                    |
+| `EXPO_PUBLIC_USE_MOCK_CHAT`     | Si `≠ 'false'`, el chat usa respuestas mock. | mock activo             |
+| `EXPO_PUBLIC_ENABLE_DEV_LOGS`   | Logs de desarrollo.                          | `false`                 |
 
 Además, `app.config.ts` expone `mapboxPublicToken` y el `projectId` de EAS vía `expo.extra`.
 
