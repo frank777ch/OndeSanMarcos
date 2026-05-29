@@ -115,6 +115,6 @@ Ejemplos verificados:
 cd backend
 python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt
-pytest                       # corre los 13 tests
+pytest                       # corre los 37 tests
 uvicorn app.main:app --reload   # levanta la API en http://localhost:8000
 ```

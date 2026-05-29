@@ -42,7 +42,7 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 
 ## 🚦 Estado del proyecto
 
-> Snapshot a **22/05/2026** (Sprint 1 en curso). Ver detalle en [Backlog y roadmap](./06-backlog-y-roadmap.md).
+> Snapshot a **29/05/2026** (Sprint 2 — "El Cerebro", en cierre). Ver detalle en [Backlog y roadmap](./06-backlog-y-roadmap.md).
 
 | Módulo | Estado | Notas |
 |--------|--------|-------|
