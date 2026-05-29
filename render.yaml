@@ -1,0 +1,33 @@
+# Blueprint de Render para el backend RAG de OndeSanMarcos.
+# El backend vive en la subcarpeta backend/, por eso se usa `rootDir: backend`:
+# Render ejecuta build y start DENTRO de esa carpeta, así que `requirements.txt`
+# y el paquete `app` se resuelven sin prefijos.
+#
+# Para desplegar: en Render -> New -> Blueprint, apunta a este repo.
+# Render lee este archivo (debe estar en la RAÍZ del repo) y crea el servicio.
+
+services:
+  - type: web
+    name: ondesanmarcos-backend
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Fija la versión de Python (el código requiere 3.11+).
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      # Modo mock: corre sin LLM ni base vectorial externa. No tocar hasta
+      # tener llaves reales (ver documents/08-despliegue-render.md).
+      - key: RAG_USE_MOCK
+        value: "true"
+      # CORS abierto: la app móvil nativa no aplica CORS; se restringe cuando
+      # el front web tenga una URL fija.
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: APP_ENV
+        value: "production"
