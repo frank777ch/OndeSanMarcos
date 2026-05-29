@@ -10,6 +10,13 @@ export const Config = {
     url: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
     anonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
   },
+  chat: {
+    /**
+     * Usa respuestas mock del asistente en lugar del backend.
+     * Por defecto activo; se desactiva con EXPO_PUBLIC_USE_MOCK_CHAT=false.
+     */
+    useMock: process.env.EXPO_PUBLIC_USE_MOCK_CHAT !== 'false',
+  },
   dev: {
     enableLogs: process.env.EXPO_PUBLIC_ENABLE_DEV_LOGS === 'true',
   },
