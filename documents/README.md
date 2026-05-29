@@ -11,6 +11,7 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 
 | # | Documento | Contenido |
 |---|-----------|-----------|
+| 0 | [Planning Document (Informe del proyecto)](./00-planning-document.md) | Documento rector: problema, visión, objetivos, alcance, metodología, equipo y mapa de entregables. |
 | 1 | [Arquitectura general](./01-arquitectura-general.md) | Visión de alto nivel, conexión Frontend ↔ Backend, servicios de cada lado, despliegue. |
 | 2 | [Frontend](./02-frontend.md) | Estructura feature-based, capas, navegación, gestión de estado (Zustand), componentes. |
 | 3 | [Backend y RAG](./03-backend-rag.md) | API FastAPI, pipeline RAG (ingesta + consulta), Supabase pgvector, guardrails, contrato `/api/chat`. |
@@ -19,6 +20,7 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 | 6 | [Backlog y roadmap](./06-backlog-y-roadmap.md) | Épicas, historias de usuario, estado actual vs. planificado, cronograma. |
 | 7 | [Avance del backend RAG](./07-avance-backend.md) | Guía viva de lo construido en el backend: pipeline de ingesta, proveedores, contrato y cómo correrlo. |
 | 8 | [Despliegue en Render](./08-despliegue-render.md) | Cómo desplegar el backend (subcarpeta `backend/`) en Render, variables, verificación y consumo del front. |
+| 📸 | [Capturas](./screenshots/) | Imágenes para la sustentación: estándar de nombres + checklist de capturas. |
 
 ---
 

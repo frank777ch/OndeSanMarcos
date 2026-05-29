@@ -4,6 +4,11 @@ Guía para desplegar el **backend RAG** (FastAPI) en [Render](https://render.com
 de forma **independiente del frontend**. Al terminar tendrás una URL pública
 HTTPS que tu equipo puede consumir (`GET /health`, `POST /api/chat`, `/docs`).
 
+El despliegue se hace con un **Blueprint** de Render: el archivo
+[`render.yaml`](../render.yaml) (en la raíz del repo) describe el servicio como
+*Infraestructura como Código*, así que el deploy es **declarativo y
+reproducible** desde el propio repositorio.
+
 > El backend corre en **modo mock** (`RAG_USE_MOCK=true`): sin LLM ni base
 > vectorial externa, sin llaves. Es autocontenido. Ver detalle del motor en
 > [07-avance-backend](./07-avance-backend.md).
@@ -24,11 +29,10 @@ OndeSanMarcos/
 └── frontend/            ← NO se despliega aquí
 ```
 
-La clave es decirle a Render que la carpeta raíz del servicio es `backend/`.
-Eso se hace con **`rootDir: backend`** en `render.yaml` (ya configurado), o con
-el campo **Root Directory = `backend`** si lo creas a mano en el dashboard.
-Con `rootDir`, Render ejecuta el build y el arranque *dentro* de `backend/`,
-así que `requirements.txt` y el paquete `app` se resuelven sin prefijos.
+Render necesita saber que la carpeta raíz del servicio es `backend/`. Eso lo
+resuelve **`rootDir: backend`** en `render.yaml`: Render ejecuta el build y el
+arranque *dentro* de `backend/`, así que `requirements.txt` y el paquete `app`
+se resuelven sin prefijos.
 
 ---
 
@@ -40,44 +44,40 @@ así que `requirements.txt` y el paquete `app` se resuelven sin prefijos.
 
 ---
 
-## 8.3 Opción A — Blueprint con `render.yaml` (recomendada)
+## 8.3 Desplegar con el Blueprint
 
-El archivo [`render.yaml`](../render.yaml) en la raíz ya define el servicio.
+El archivo [`render.yaml`](../render.yaml) ya define todo el servicio, así que el
+despliegue son cuatro pasos:
 
 1. En Render: **New +** → **Blueprint**.
 2. Conecta el repositorio `OndeSanMarcos` y elige la rama `main`.
 3. Render detecta `render.yaml` y muestra el servicio `ondesanmarcos-backend`.
 4. **Apply** → Render hace el primer build y deploy.
 
-Eso es todo. Los valores (carpeta, comandos, variables) salen del archivo.
+> Render lee el `render.yaml` **desde GitHub**: cualquier cambio al blueprint
+> debe estar commiteado y pusheado antes de aplicar.
+
+### Qué declara el `render.yaml`
+
+Estos ajustes salen del archivo (no se configuran a mano):
+
+| Ajuste | Valor |
+|--------|-------|
+| Carpeta del servicio (`rootDir`) | `backend` |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Health Check | `/health` |
+| Plan / Runtime | `free` · Python |
+| Auto-deploy | sí (cada push a `main` redepliega) |
+
+> El Start Command usa `--port $PORT` (Render asigna el puerto por esa variable,
+> no es fijo) y `--host 0.0.0.0` para que el servicio sea accesible.
 
 ---
 
-## 8.4 Opción B — A mano desde el dashboard
+## 8.4 Variables de entorno
 
-Si prefieres no usar el blueprint:
-
-1. **New +** → **Web Service** → conecta el repo y rama `main`.
-2. Completa los campos:
-
-   | Campo | Valor |
-   |-------|-------|
-   | **Root Directory** | `backend` |
-   | **Runtime / Language** | `Python 3` |
-   | **Build Command** | `pip install -r requirements.txt` |
-   | **Start Command** | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
-   | **Health Check Path** | `/health` |
-   | **Instance Type** | `Free` |
-
-3. En **Environment**, agrega las variables de la sección 8.5.
-4. **Create Web Service**.
-
-> ⚠️ El **Start Command** debe usar `--port $PORT`: Render asigna el puerto por
-> la variable `$PORT`, no es fijo. Y `--host 0.0.0.0` para que sea accesible.
-
----
-
-## 8.5 Variables de entorno
+Declaradas en `render.yaml` (no son secretas en modo mock):
 
 | Variable | Valor | Para qué |
 |----------|-------|----------|
@@ -91,7 +91,7 @@ arranca aunque falte alguna; se declaran explícitas para dejar la intención cl
 
 ---
 
-## 8.6 Verificar que quedó arriba
+## 8.5 Verificar que quedó arriba
 
 Render te da una URL tipo `https://ondesanmarcos-backend.onrender.com`.
 
@@ -113,7 +113,7 @@ Pásale a tu equipo la **URL base** + `/docs`: ahí prueban los endpoints sin c�
 
 ---
 
-## 8.7 Qué consume el frontend
+## 8.6 Qué consume el frontend
 
 | Método | Ruta | Body | Respuesta |
 |--------|------|------|-----------|
@@ -131,7 +131,7 @@ En el frontend (Expo) basta apuntar la URL del backend y apagar su mock del chat
 
 ---
 
-## 8.8 Detalles del plan gratis
+## 8.7 Detalles del plan gratis
 
 - **Cold start:** el servicio se **duerme tras ~15 min** sin tráfico; el primer
   request luego tarda ~50s en responder. Normal en el tier free.
@@ -141,7 +141,7 @@ En el frontend (Expo) basta apuntar la URL del backend y apagar su mock del chat
 
 ---
 
-## 8.9 Más adelante: proveedores reales
+## 8.8 Más adelante: proveedores reales
 
 Cuando haya llaves y base vectorial, **sin redesplegar código**, solo cambian
 variables de entorno (ver `app/rag/providers.py` y `requirements-rag.txt`):
