@@ -12,6 +12,7 @@ import { MapLocationButton } from "../components/MapLocationButton";
 import { MapActionButtons } from "../components/MapActionButtons";
 import { useMapCamera } from "../hooks/useMapCamera";
 import { MapSpawnModal } from "../components/MapSpawnModal";
+import { useMapStore } from "@store/useMapStore";
 
 MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
 
@@ -44,8 +45,12 @@ export function MapScreen() {
     "ninguno",
   );
   const [isSpawnModalVisible, setIsSpawnModalVisible] = useState(false);
-  const { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode } =
+  const { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode, moveToPoint } =
     useMapCamera();
+
+  // Destino solicitado desde fuera del mapa (chat o botón "Abrir"): HU-2.3.
+  const focusTarget = useMapStore((s) => s.focusTarget);
+  const clearFocusTarget = useMapStore((s) => s.clearFocusTarget);
 
   // Timer para detectar cuándo el usuario dejó de arrastrar el mapa
   const walkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,6 +89,17 @@ export function MapScreen() {
     setShowAvatar(true);
     goToFreeMode(coords);
   };
+
+  // Centra la cámara cuando alguien (chat o "Abrir" en una LocationCard)
+  // escribe un destino en useMapStore.focusTarget. Cierra HU-2.3.
+  // moveToPoint no está memoizado en useMapCamera; lo omitimos de las deps a
+  // propósito para evitar disparos en cada render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!focusTarget) return;
+    moveToPoint([focusTarget.longitude, focusTarget.latitude]);
+    clearFocusTarget();
+  }, [focusTarget, clearFocusTarget]);
 
   useEffect(() => {
     (async () => {
