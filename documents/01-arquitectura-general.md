@@ -10,17 +10,17 @@ El sistema tiene un **cliente móvil** (React Native) que se comunica con tres p
 
 ```mermaid
 graph TD
-    user(["👤 Usuario UNMSM<br/>ingresante · estudiante · visitante"])
+    user(["Usuario UNMSM<br/>ingresante · estudiante · visitante"])
 
-    subgraph client["📱 Cliente móvil — OndeSanMarcos"]
+    subgraph client["Cliente móvil — OndeSanMarcos"]
         app["App React Native + Expo<br/>(Android / iOS)"]
     end
 
-    subgraph cloud["☁️ Servicios en la nube"]
-        supabase["🗄️ Supabase<br/>Auth + Postgres + pgvector"]
-        backend["⚙️ Backend API<br/>FastAPI (asistente IA)"]
-        mapbox["🗺️ Mapbox<br/>teselas + estilos 3D"]
-        llm["🤖 Proveedor LLM<br/>generación de lenguaje"]
+    subgraph cloud["Servicios en la nube"]
+        supabase["Supabase<br/>Auth + Postgres + pgvector"]
+        backend["Backend API<br/>FastAPI (asistente IA)"]
+        mapbox["Mapbox<br/>teselas + estilos 3D"]
+        llm["Proveedor LLM<br/>generación de lenguaje"]
     end
 
     user -->|usa| app
@@ -46,7 +46,7 @@ Vista de "contenedores": los módulos internos de cada lado y el **contrato** qu
 
 ```mermaid
 graph LR
-    subgraph FE["📱 FRONTEND — React Native"]
+    subgraph FE["FRONTEND — React Native"]
         direction TB
         ui["UI / Pantallas<br/>auth · map · chat · profile"]
         state["Estado global (Zustand)<br/>useAuthStore · useChatStore · useMapStore"]
@@ -56,7 +56,7 @@ graph LR
         state --> svc
     end
 
-    subgraph BE["⚙️ BACKEND — FastAPI"]
+    subgraph BE["BACKEND — FastAPI"]
         direction TB
         api["Routers / Endpoints<br/>/api/chat · /health"]
         rag["Motor RAG<br/>(LlamaIndex)"]
@@ -64,7 +64,7 @@ graph LR
         api --> guard --> rag
     end
 
-    subgraph DATA["🗄️ DATOS"]
+    subgraph DATA["DATOS"]
         direction TB
         auth["Supabase Auth"]
         vector["Supabase Postgres<br/>+ pgvector"]
@@ -73,7 +73,7 @@ graph LR
     svc -->|"SDK supabase-js"| auth
     svc -->|"POST /api/chat { query }"| api
     rag -->|"similarity search"| vector
-    mapbox["🗺️ Mapbox SDK"]
+    mapbox["Mapbox SDK"]
     ui -->|render| mapbox
 
     classDef be fill:#fff7ed,stroke:#ea580c,color:#1e293b;
@@ -84,17 +84,17 @@ graph LR
 
 ### Servicios en cada lado
 
-| Lado | Servicio / Módulo | Responsabilidad | Estado |
-|------|-------------------|-----------------|--------|
-| **Frontend** | `services/supabase/auth.service` | signUp, signIn, signOut, sesión, listener de auth. | ✅ |
-| **Frontend** | `services/supabase/client` | Cliente Supabase con persistencia en AsyncStorage. | ✅ |
-| **Frontend** | `services/api/client` (`apiClient`) | Wrapper `fetch` genérico (GET/POST, JSON, errores). | ✅ |
-| **Frontend** | `services/api/chatApi` (`sendChatQuery`) | Llama `POST /api/chat` con `{ query }`. | ✅ (a la espera del backend) |
-| **Backend** | Router `/api/chat` | Recibe la consulta, orquesta RAG, responde `{ answer, locations }`. | 🟠 |
-| **Backend** | Guardrails | Limita el alcance a temas UNMSM (HU-2.4). | 🟠 |
-| **Backend** | Motor RAG (LlamaIndex) | Recupera fragmentos relevantes y genera la respuesta. | 🟠 |
-| **Datos** | Supabase Auth | Usuarios, verificación por correo, sesiones JWT. | ✅ |
-| **Datos** | Supabase Postgres + `pgvector` | Documentos institucionales + embeddings. | 🟠 |
+| Lado         | Servicio / Módulo                        | Responsabilidad                                                     | Estado                       |
+| ------------ | ---------------------------------------- | ------------------------------------------------------------------- | ---------------------------- |
+| **Frontend** | `services/supabase/auth.service`         | signUp, signIn, signOut, sesión, listener de auth.                  | ✅                           |
+| **Frontend** | `services/supabase/client`               | Cliente Supabase con persistencia en AsyncStorage.                  | ✅                           |
+| **Frontend** | `services/api/client` (`apiClient`)      | Wrapper `fetch` genérico (GET/POST, JSON, errores).                 | ✅                           |
+| **Frontend** | `services/api/chatApi` (`sendChatQuery`) | Llama `POST /api/chat` con `{ query }`.                             | ✅ (a la espera del backend) |
+| **Backend**  | Router `/api/chat`                       | Recibe la consulta, orquesta RAG, responde `{ answer, locations }`. | 🟠                           |
+| **Backend**  | Guardrails                               | Limita el alcance a temas UNMSM (HU-2.4).                           | 🟠                           |
+| **Backend**  | Motor RAG (LlamaIndex)                   | Recupera fragmentos relevantes y genera la respuesta.               | 🟠                           |
+| **Datos**    | Supabase Auth                            | Usuarios, verificación por correo, sesiones JWT.                    | ✅                           |
+| **Datos**    | Supabase Postgres + `pgvector`           | Documentos institucionales + embeddings.                            | 🟠                           |
 
 ---
 
@@ -117,8 +117,12 @@ Content-Type: application/json
 {
   "answer": "El Rectorado está en la zona central del campus...",
   "locations": [
-    { "id": "rectorado", "name": "Rectorado", "schedule": "Lun–Vie 8:00–17:00" }
-  ]
+    {
+      "id": "rectorado",
+      "name": "Rectorado",
+      "schedule": "Lun–Vie 8:00–17:00",
+    },
+  ],
 }
 ```
 
@@ -132,19 +136,19 @@ Dónde corre cada componente en producción.
 
 ```mermaid
 graph TB
-    subgraph device["📱 Dispositivo del usuario"]
+    subgraph device["Dispositivo del usuario"]
         binary["App OndeSanMarcos<br/>(build EAS: APK/IPA)"]
     end
 
-    subgraph eas["🛠️ Expo / EAS"]
+    subgraph eas["Expo / EAS"]
         build["EAS Build<br/>(compilación nativa en la nube)"]
     end
 
-    subgraph host["☁️ Hosting del backend"]
+    subgraph host["Hosting del backend"]
         fastapi["FastAPI + Uvicorn<br/>(contenedor)"]
     end
 
-    subgraph saas["☁️ SaaS gestionado"]
+    subgraph saas["SaaS gestionado"]
         sb["Supabase<br/>Auth + DB + pgvector"]
         mb["Mapbox<br/>tiles API"]
         llmapi["LLM API"]
@@ -162,6 +166,7 @@ graph TB
 ```
 
 **Notas de despliegue**
+
 - La app se compila con **EAS Build** (`eas.json`, `projectId` en `app.config.ts`) porque `@rnmapbox/maps` incluye código nativo y **no funciona en Expo Go**.
 - La configuración sensible viaja por **variables de entorno** `EXPO_PUBLIC_*` (ver [02-frontend §2.6](./02-frontend.md#26-configuración-y-variables-de-entorno)).
 - El backend es un servicio HTTP independiente; puede desplegarse en cualquier host de contenedores.
@@ -204,14 +209,14 @@ sequenceDiagram
 
 ## 1.6 Decisiones de arquitectura (resumen)
 
-| Decisión | Motivo |
-|----------|--------|
-| **Arquitectura por features** en el front | Escala por dominio (auth/map/chat) y aísla responsabilidades. |
-| **Zustand** en vez de Redux | Mínimo boilerplate; selectores simples; persistencia con middleware. |
-| **Supabase como BaaS** | Auth + Postgres + `pgvector` en un solo servicio con tier gratuito. |
-| **RAG con LlamaIndex** | Respuestas ancladas a documentos oficiales → evita alucinaciones (HU-2.2). |
-| **Backend separado para el LLM** | Oculta llaves del LLM y centraliza guardrails fuera del cliente. |
-| **Modo mock conmutable** | Permite avanzar la UI del chat sin depender del backend. |
+| Decisión                                  | Motivo                                                                     |
+| ----------------------------------------- | -------------------------------------------------------------------------- |
+| **Arquitectura por features** en el front | Escala por dominio (auth/map/chat) y aísla responsabilidades.              |
+| **Zustand** en vez de Redux               | Mínimo boilerplate; selectores simples; persistencia con middleware.       |
+| **Supabase como BaaS**                    | Auth + Postgres + `pgvector` en un solo servicio con tier gratuito.        |
+| **RAG con LlamaIndex**                    | Respuestas ancladas a documentos oficiales → evita alucinaciones (HU-2.2). |
+| **Backend separado para el LLM**          | Oculta llaves del LLM y centraliza guardrails fuera del cliente.           |
+| **Modo mock conmutable**                  | Permite avanzar la UI del chat sin depender del backend.                   |
 
 ---
 
@@ -223,9 +228,9 @@ el **estado real de cada componente**. Verde sólido = implementado; gris puntea
 
 ```mermaid
 graph TB
-    user(["👤 Usuario UNMSM"])
+    user(["Usuario UNMSM"])
 
-    subgraph app["📱 App móvil — React Native + Expo"]
+    subgraph app["App móvil — React Native + Expo"]
         direction TB
         onb["Onboarding + Auth (Supabase)"]:::done
         tabs["MainTabs: Mapa · Asistente · Perfil"]:::done
@@ -237,7 +242,7 @@ graph TB
         sensors["Avatar + brújula (magnetómetro)"]:::planned
     end
 
-    subgraph be["⚙️ Backend FastAPI — modo mock (desplegable en Render)"]
+    subgraph be["Backend FastAPI — modo mock (desplegable en Render)"]
         direction TB
         api["POST /api/chat · /health"]:::done
         guard["Guardrails (alcance UNMSM)"]:::done
@@ -250,7 +255,7 @@ graph TB
         pgr["Recuperación pgvector"]:::planned
     end
 
-    subgraph cloud["☁️ Servicios externos"]
+    subgraph cloud["Servicios externos"]
         sbauth["Supabase Auth"]:::done
         mapbox["Mapbox SDK"]:::done
         sbvec["Supabase pgvector (conocimiento)"]:::planned

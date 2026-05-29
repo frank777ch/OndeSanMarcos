@@ -4,22 +4,19 @@ Documento rector de **OndeSanMarcos**: consolida el problema, la visión, los
 objetivos, el alcance, la metodología, el equipo y los entregables. Es el punto
 de entrada a la documentación; el detalle técnico vive en los documentos 01–08.
 
-> **Nota:** los datos marcados como _(completar)_ deben rellenarse con la
-> información real del equipo/curso antes de la entrega.
-
 ---
 
 ## 0.1 Información general
 
-| Campo | Valor |
-|-------|-------|
-| Producto | **OndeSanMarcos** |
-| Descripción | App móvil de navegación 3D e inducción inteligente (RAG) para el campus de la UNMSM. |
-| Institución | Universidad Nacional Mayor de San Marcos (UNMSM) |
-| Curso / Asignatura | _(completar)_ |
-| Docente | _(completar)_ |
-| Periodo | 18/04/2026 – 28/06/2026 |
-| Repositorio | _(URL del repo)_ |
+| Campo              | Valor                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| Producto           | **OndeSanMarcos**                                                                    |
+| Descripción        | App móvil de navegación 3D e inducción inteligente (RAG) para el campus de la UNMSM. |
+| Institución        | Universidad Nacional Mayor de San Marcos (UNMSM)                                     |
+| Curso / Asignatura | Taller de Construcción de Software Movil                                             |
+| Docente            | Javier Antonio Prudencio Vidal                                                       |
+| Periodo            | 18/04/2026 – 28/06/2026                                                              |
+| Repositorio        | https://github.com/frank777ch/OndeSanMarcos                                          |
 
 ---
 
@@ -46,14 +43,14 @@ información oficial**.
 > dotando a los estudiantes de una herramienta inteligente y autónoma que elimine
 > la desorientación y democratice el acceso rápido a la información institucional.
 
-Detalle del *Product Vision Board* en
+Detalle del _Product Vision Board_ en
 [06-backlog-y-roadmap §6.1](./06-backlog-y-roadmap.md#61-visión-del-producto).
 
-| | |
-|---|---|
-| **Público objetivo** | Ingresantes, estudiantes de pre/posgrado, personal administrativo, visitantes y postulantes. |
-| **Producto** | Mapa 3D (Mapbox) con avatar en tiempo real, rutas A→B y chatbot IA anclado a documentos oficiales (RAG). App React Native (Android/iOS) + backend propio. |
-| **Valor** | Reducir el tiempo perdido buscando aulas/oficinas; arquitectura ampliable agregando documentos a la base de conocimiento. |
+|                      |                                                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Público objetivo** | Ingresantes, estudiantes de pre/posgrado, personal administrativo, visitantes y postulantes.                                                              |
+| **Producto**         | Mapa 3D (Mapbox) con avatar en tiempo real, rutas A→B y chatbot IA anclado a documentos oficiales (RAG). App React Native (Android/iOS) + backend propio. |
+| **Valor**            | Reducir el tiempo perdido buscando aulas/oficinas; arquitectura ampliable agregando documentos a la base de conocimiento.                                 |
 
 ---
 
@@ -97,12 +94,12 @@ y el avance del backend en [07-avance-backend](./07-avance-backend.md).
 ## 0.6 Metodología
 
 Se aplica **Scrum** con 3 sprints, más un hito de planificación inicial y un
-cierre de QA/sustentación. Cada sprint cierra con *review* y *retrospectiva*.
+cierre de QA/sustentación. Cada sprint cierra con _review_ y _retrospectiva_.
 
-| Sprint | Tema | Periodo | Foco |
-|--------|------|---------|------|
-| Sprint 1 | Cimientos | 25/04 – 17/05 | Mapa 3D base + autenticación |
-| Sprint 2 | El Cerebro | 19/05 – 31/05 | Backend RAG + guardrails (HU-2.2/2.4) |
+| Sprint   | Tema        | Periodo       | Foco                                     |
+| -------- | ----------- | ------------- | ---------------------------------------- |
+| Sprint 1 | Cimientos   | 25/04 – 17/05 | Mapa 3D base + autenticación             |
+| Sprint 2 | El Cerebro  | 19/05 – 31/05 | Backend RAG + guardrails (HU-2.2/2.4)    |
 | Sprint 3 | Integración | 09/06 – 21/06 | Chat→Mapa (HU-2.3) + sensores del avatar |
 
 Cronograma completo (Gantt) en
@@ -114,28 +111,28 @@ Cronograma completo (Gantt) en
 
 _(Completar con los nombres reales del equipo.)_
 
-| Integrante | Rol / Foco principal |
-|------------|----------------------|
-| _Pedro_ | Backend · Motor RAG · API · Despliegue |
-| _(completar)_ | Mapa 3D · avatar · cámara |
-| _(completar)_ | Autenticación (Supabase) · onboarding |
-| _(completar)_ | UI del chat · perfil |
-| _(completar)_ | Diseño · documentación |
+| Integrante        | Rol / Foco principal                   |
+| ----------------- | -------------------------------------- |
+| _Pedro_           | Backend · Motor RAG · API · Despliegue |
+| Frank y Guillermo | Mapa 3D · avatar · cámara              |
+| Óscar             | Autenticación (Supabase) · onboarding  |
+| Renzo y Vilberto  | UI del chat · perfil                   |
+| Vilberto y Pedro  | Diseño · documentación                 |
 
 ---
 
 ## 0.8 Stack tecnológico (resumen)
 
-| Capa | Tecnología |
-|------|------------|
-| App móvil | React Native + Expo + TypeScript |
-| Mapas | Mapbox (`@rnmapbox/maps`, 3D nativo) |
-| Estado | Zustand |
-| Backend | FastAPI + Uvicorn (Python 3.11) |
-| RAG | Motor propio (mock) → LlamaIndex / pgvector (objetivo) |
-| Datos / Auth | Supabase (Postgres + pgvector + Auth) |
-| LLM | OpenAI / Anthropic (proveedor enchufable) |
-| Despliegue | Render (backend) · EAS Build (app) |
+| Capa         | Tecnología                                             |
+| ------------ | ------------------------------------------------------ |
+| App móvil    | React Native + Expo + TypeScript                       |
+| Mapas        | Mapbox (`@rnmapbox/maps`, 3D nativo)                   |
+| Estado       | Zustand                                                |
+| Backend      | FastAPI + Uvicorn (Python 3.11)                        |
+| RAG          | Motor propio (mock) → LlamaIndex / pgvector (objetivo) |
+| Datos / Auth | Supabase (Postgres + pgvector + Auth)                  |
+| LLM          | OpenAI / Anthropic (proveedor enchufable)              |
+| Despliegue   | Render (backend) · EAS Build (app)                     |
 
 Detalle en [01-arquitectura-general](./01-arquitectura-general.md) y
 [02-frontend](./02-frontend.md).
@@ -146,25 +143,25 @@ Detalle en [01-arquitectura-general](./01-arquitectura-general.md) y
 
 Mapa de los entregables de gestión y dónde encontrarlos en este repositorio:
 
-| Artefacto | Ubicación |
-|-----------|-----------|
-| **Planning Document** (este informe) | `documents/00-planning-document.md` |
-| **Product Backlog** | [06-backlog-y-roadmap §6.2](./06-backlog-y-roadmap.md#62-épicas) |
-| **User Stories** | [06-backlog-y-roadmap §6.3](./06-backlog-y-roadmap.md#63-historias-de-usuario-y-estado) |
-| **Product Roadmap / Cronograma** | [06-backlog-y-roadmap §6.4](./06-backlog-y-roadmap.md#64-cronograma-scrum) |
-| Documentación técnica | `documents/01`–`08` (arquitectura, frontend, backend, datos, flujos, avance, despliegue) |
-| Capturas para la sustentación | `documents/screenshots/` |
+| Artefacto                            | Ubicación                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| **Planning Document** (este informe) | `documents/00-planning-document.md`                                                      |
+| **Product Backlog**                  | [06-backlog-y-roadmap §6.2](./06-backlog-y-roadmap.md#62-épicas)                         |
+| **User Stories**                     | [06-backlog-y-roadmap §6.3](./06-backlog-y-roadmap.md#63-historias-de-usuario-y-estado)  |
+| **Product Roadmap / Cronograma**     | [06-backlog-y-roadmap §6.4](./06-backlog-y-roadmap.md#64-cronograma-scrum)               |
+| Documentación técnica                | `documents/01`–`08` (arquitectura, frontend, backend, datos, flujos, avance, despliegue) |
+| Capturas para la sustentación        | `documents/screenshots/`                                                                 |
 
 ---
 
 ## 0.10 Riesgos y supuestos
 
-| Riesgo / Supuesto | Mitigación |
-|-------------------|------------|
+| Riesgo / Supuesto                                                         | Mitigación                                                                                                                              |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | Dependencia de llaves de LLM y de Supabase pgvector (aún no disponibles). | Diseño **mock-first**: el sistema funciona y se demuestra sin servicios externos; pasar a real es cambiar configuración, no reescribir. |
-| `@rnmapbox/maps` no corre en Expo Go (requiere build nativo). | Compilación con **EAS Build** (APK/IPA). |
-| Cold-start del backend en el plan gratis de Render. | Despertar el servicio antes de la demo; alternativa Railway si molesta. |
-| Alcance amplio para el tiempo disponible. | Priorización por épicas y entrega incremental por sprint (MVP primero). |
+| `@rnmapbox/maps` no corre en Expo Go (requiere build nativo).             | Compilación con **EAS Build** (APK/IPA).                                                                                                |
+| Cold-start del backend en el plan gratis de Render.                       | Despertar el servicio antes de la demo; alternativa Railway si molesta.                                                                 |
+| Alcance amplio para el tiempo disponible.                                 | Priorización por épicas y entrega incremental por sprint (MVP primero).                                                                 |
 
 ---
 

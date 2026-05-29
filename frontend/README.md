@@ -1,11 +1,11 @@
-# 📱 OndeSanMarcos — Frontend
+# OndeSanMarcos — Frontend
 
 > Aplicación móvil de geolocalización 3D y asistencia inteligente para el campus de la UNMSM.  
 > Stack: **React Native + TypeScript + Expo + Mapbox + Supabase**
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
 1. [Requisitos Previos](#1-requisitos-previos)
 2. [Credenciales y Servicios Externos](#2-credenciales-y-servicios-externos)
@@ -20,28 +20,28 @@
 
 ## 1. Requisitos Previos
 
-### 🖥️ Software a instalar (en orden)
+### Software a instalar (en orden)
 
-| Herramienta | Versión mínima | Enlace | Para qué sirve |
-|---|---|---|---|
-| **Node.js** | 18.x LTS | https://nodejs.org | Motor de JavaScript |
-| **npm** | 9.x (viene con Node) | — | Gestor de paquetes |
-| **Git** | 2.x | https://git-scm.com | Control de versiones |
-| **Expo CLI** | Latest | `npm i -g expo-cli` | Herramienta de Expo |
-| **EAS CLI** | Latest | `npm i -g eas-cli` | Build en la nube |
-| **VS Code** | Latest | https://code.visualstudio.com | Editor recomendado |
+| Herramienta  | Versión mínima       | Enlace                        | Para qué sirve       |
+| ------------ | -------------------- | ----------------------------- | -------------------- |
+| **Node.js**  | 18.x LTS             | https://nodejs.org            | Motor de JavaScript  |
+| **npm**      | 9.x (viene con Node) | —                             | Gestor de paquetes   |
+| **Git**      | 2.x                  | https://git-scm.com           | Control de versiones |
+| **Expo CLI** | Latest               | `npm i -g expo-cli`           | Herramienta de Expo  |
+| **EAS CLI**  | Latest               | `npm i -g eas-cli`            | Build en la nube     |
+| **VS Code**  | Latest               | https://code.visualstudio.com | Editor recomendado   |
 
-### 📱 Para probar la app en tu dispositivo
+### Ejecutar la app en tu dispositivo
 
-| Opción | Plataforma | Instrucciones |
-|---|---|---|
-| **Expo Go** (más fácil) | Android / iOS | Instalar desde la tienda de apps |
-| **Android Emulator** | Android | Requiere Android Studio |
-| **iOS Simulator** | iOS (solo en Mac) | Requiere Xcode |
+| Opción                  | Plataforma        | Instrucciones                    |
+| ----------------------- | ----------------- | -------------------------------- |
+| **Expo Go** (más fácil) | Android / iOS     | Instalar desde la tienda de apps |
+| **Android Emulator**    | Android           | Requiere Android Studio          |
+| **iOS Simulator**       | iOS (solo en Mac) | Requiere Xcode                   |
 
-> ⚠️ **Nota importante sobre Mapbox:** `@rnmapbox/maps` **NO funciona en Expo Go** porque incluye código nativo. Necesitarás un **Expo Development Build** (se explica en la sección de setup).
+> **Nota importante sobre Mapbox:** `@rnmapbox/maps` **NO funciona en Expo Go** porque incluye código nativo. Necesitarás un **Expo Development Build** (se explica en la sección de setup).
 
-### 🔌 Extensiones de VS Code recomendadas
+### Extensiones de VS Code recomendadas
 
 ```
 dbaeumer.vscode-eslint
@@ -59,11 +59,12 @@ Necesitarás cuentas en estos 3 servicios. **Todos tienen tier gratuito suficien
 
 ---
 
-### 🗺️ A. Mapbox (Motor de Mapas 3D)
+### A. Mapbox (Motor de Mapas 3D)
 
 **Para qué:** Renderizar el mapa 3D del campus, trazar rutas, mostrar el avatar.
 
 **Pasos para obtener el token:**
+
 1. Ir a https://account.mapbox.com/auth/signup/
 2. Crear cuenta gratuita
 3. En el dashboard, ir a **"Tokens"** → **"Create a token"**
@@ -72,10 +73,11 @@ Necesitarás cuentas en estos 3 servicios. **Todos tienen tier gratuito suficien
 6. Copiar el token — empieza con `pk.eyJ1...`
 
 **También necesitarás el Secret Token** para la instalación nativa:
+
 1. En la misma sección de Tokens → **"Create a secret token"**
 2. Habilitar el scope `DOWNLOADS:READ`
 3. Copiar el token — empieza con `sk.eyJ1...`
-4. ⚠️ Este token solo se muestra una vez, guárdalo en un lugar seguro
+4. Este token solo se muestra una vez, guárdalo en un lugar seguro
 
 ```
 EXPO_PUBLIC_MAPBOX_TOKEN=pk.eyJ1...  ← va en tu .env
@@ -84,11 +86,12 @@ MAPBOX_SECRET_TOKEN=sk.eyJ1...       ← va en ~/.netrc (ver setup)
 
 ---
 
-### 🗄️ B. Supabase (Base de Datos + Auth)
+### B. Supabase (Base de Datos + Auth)
 
 **Para qué:** Autenticación de usuarios, almacenamiento de embeddings (pgvector), datos de sesión.
 
 **Pasos:**
+
 1. Ir a https://supabase.com → **"Start your project"**
 2. Crear organización: `ondesanmarcos`
 3. Crear proyecto: `ondesanmarcos-dev`
@@ -106,11 +109,12 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
 
 ---
 
-### ☁️ C. Expo (Build y OTA Updates)
+### C. Expo (Build y OTA Updates)
 
 **Para qué:** Compilar la app con código nativo (necesario por Mapbox), distribución al equipo.
 
 **Pasos:**
+
 1. Ir a https://expo.dev → crear cuenta
 2. Crear organización: `ondesanmarcos`
 3. Instalar EAS CLI: `npm install -g eas-cli`
@@ -132,6 +136,7 @@ cd ondesanmarcos/frontend
 Este paso es necesario para que npm pueda descargar el SDK nativo de Mapbox.
 
 **En macOS/Linux:**
+
 ```bash
 # Agregar al archivo ~/.netrc
 echo "machine api.mapbox.com
@@ -142,6 +147,7 @@ chmod 600 ~/.netrc
 ```
 
 **En Windows (PowerShell):**
+
 ```powershell
 # Crear o editar C:\Users\TU_USUARIO\.netrc
 Add-Content -Path "$env:USERPROFILE\.netrc" -Value "machine api.mapbox.com`nlogin mapbox`npassword sk.eyJ1...TU_SECRET_TOKEN"
@@ -174,7 +180,7 @@ eas build --profile development --platform android
 eas build --profile development --platform ios
 ```
 
-> 💡 El build tarda ~10-15 minutos la primera vez. EAS te enviará un link de descarga al correo. Instala el `.apk` en tu dispositivo Android.
+> El build tarda ~10-15 minutos la primera vez. EAS te enviará un link de descarga al correo. Instala el `.apk` en tu dispositivo Android.
 
 ### Paso 6 — Levantar el servidor de desarrollo
 
@@ -203,7 +209,7 @@ frontend/
 │   ├── icons/                    # Iconos SVG/PNG de la app
 │   └── images/                   # Imágenes (logo, splash, onboarding)
 │
-└── src/                          # 🧠 Todo el código vive aquí
+└── src/                          # Todo el código vive aquí
     │
     ├── app/                      # Configuración global de la aplicación
     │   ├── navigation/           # Stack, Tab y tipos de navegación
@@ -219,7 +225,7 @@ frontend/
     │       ├── useMapStore.ts    # Coordenadas, ruta activa, modo del mapa
     │       └── useChatStore.ts   # Historial de mensajes del chat
     │
-    ├── features/                 # 🏗️ Una carpeta por épica del backlog
+    ├── features/                 # Una carpeta por épica del backlog
     │   │
     │   ├── map/                  # EPIC01 — Navegación y Mapa 3D
     │   │   ├── components/
@@ -263,7 +269,7 @@ frontend/
     │       └── hooks/
     │           └── useAuth.ts          # Wraper de Supabase Auth
     │
-    ├── shared/                   # 🔧 Código reutilizable entre features
+    ├── shared/                   # Código reutilizable entre features
     │   ├── components/           # UI genérica
     │   │   ├── Button.tsx        # Botón custom con variantes
     │   │   ├── Input.tsx         # Input custom con validación
@@ -275,7 +281,7 @@ frontend/
     │       ├── validators.ts     # Validar email, contraseña, etc.
     │       └── formatters.ts     # Formatear coords, fechas, etc.
     │
-    ├── services/                 # 🌐 Conexiones con el mundo exterior
+    ├── services/                 # Conexiones con el mundo exterior
     │   ├── supabase/
     │   │   ├── client.ts         # Instancia única del cliente Supabase
     │   │   └── auth.service.ts   # Funciones de login, register, logout
@@ -283,7 +289,7 @@ frontend/
     │       ├── client.ts         # Cliente HTTP (fetch/axios) hacia FastAPI
     │       └── chat.service.ts   # POST /chat → retorna respuesta + coords
     │
-    └── constants/                # 🔢 Valores globales inmutables
+    └── constants/                # Valores globales inmutables
         ├── colors.ts             # Paleta de colores de la app
         ├── typography.ts         # Fuentes y tamaños
         └── config.ts             # URLs, timeouts, flags de features
@@ -315,7 +321,8 @@ EXPO_PUBLIC_API_URL=http://192.168.1.X:8000
 EXPO_PUBLIC_ENABLE_DEV_LOGS=true
 ```
 
-> ⚠️ **Reglas de oro:**
+> **Nota:**
+>
 > - `.env` está en `.gitignore`. **Nunca lo subas al repositorio.**
 > - El `.env.example` sí se sube, con los valores vacíos.
 > - En React Native con Expo, solo las variables que empiezan con `EXPO_PUBLIC_` son accesibles en el código cliente.
@@ -349,7 +356,7 @@ npm run type-check
 
 ## 7. Roadmap Frontend
 
-### 📊 Mapa de dificultad y orden recomendado
+### Mapa de dificultad y orden recomendado
 
 ```
 SEMANA        PANTALLA / FEATURE                      DIFICULTAD   HU
@@ -377,7 +384,7 @@ Sprint 3
 
 ---
 
-### 🟢 Lo más fácil (empieza aquí)
+### Lo más fácil
 
 1. **WelcomeScreen** — Solo dos botones. Sin lógica de negocio. Te permite tener la primera pantalla andando en 2 horas.
 
@@ -389,9 +396,9 @@ Sprint 3
 
 ---
 
-### 🔴 Lo más difícil (planifícalo con tiempo)
+### Lo más difícil
 
-1. **Enrutamiento Automático Chat → Mapa (HU-2.3)** ⚠️ La más compleja del proyecto.
+1. **Enrutamiento Automático Chat → Mapa (HU-2.3)** La más compleja del proyecto.
    - El backend debe devolver JSON con `{text, draw_route: true, coordinates: [...]}`.
    - El frontend debe interceptar ese JSON, hacer el cambio de tab automáticamente y dibujar la polyline.
    - Requiere coordinación exacta entre backend y frontend.
@@ -407,14 +414,14 @@ Sprint 3
 
 ### Nombrado
 
-| Elemento | Convención | Ejemplo |
-|---|---|---|
-| Componentes | PascalCase | `MapView3D.tsx` |
-| Hooks | camelCase con `use` | `useGPS.ts` |
-| Stores (Zustand) | camelCase con `use` | `useMapStore.ts` |
-| Constantes | UPPER_SNAKE_CASE | `UNMSM_CENTER_COORDS` |
-| Types/Interfaces | PascalCase con sufijo | `ChatMessage`, `RoutePayload` |
-| Archivos de servicios | camelCase con `.service` | `auth.service.ts` |
+| Elemento              | Convención               | Ejemplo                       |
+| --------------------- | ------------------------ | ----------------------------- |
+| Componentes           | PascalCase               | `MapView3D.tsx`               |
+| Hooks                 | camelCase con `use`      | `useGPS.ts`                   |
+| Stores (Zustand)      | camelCase con `use`      | `useMapStore.ts`              |
+| Constantes            | UPPER_SNAKE_CASE         | `UNMSM_CENTER_COORDS`         |
+| Types/Interfaces      | PascalCase con sufijo    | `ChatMessage`, `RoutePayload` |
+| Archivos de servicios | camelCase con `.service` | `auth.service.ts`             |
 
 ### Reglas generales
 
@@ -433,7 +440,7 @@ docs(readme): agregar instrucciones de setup para Windows
 
 ---
 
-## 🆘 Solución de Problemas Frecuentes
+## Solución de problemas
 
 **Error: `Mapbox token is not set`**
 → Verificar que `.env` existe y tiene `EXPO_PUBLIC_MAPBOX_TOKEN`. Reiniciar el servidor de Expo.
@@ -446,7 +453,3 @@ docs(readme): agregar instrucciones de setup para Windows
 
 **El GPS no funciona en el emulador**
 → Normal. Para probar el avatar con GPS real, usar un dispositivo físico.
-
----
-
-*Documentación mantenida por el equipo OndeSanMarcos — Última actualización: Abril 2026*

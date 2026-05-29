@@ -1,41 +1,50 @@
 # OnDeSanMarcos
 
-This template should help get you started developing with Vue 3 in Vite.
+Este proyecto contiene el frontend (React Native + Expo) y el backend (FastAPI en Python), organizados en sus respectivas carpetas.
 
-## Recommended IDE Setup
+## Estructura de Carpetas
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- `/frontend/`: Contiene el código de la aplicación móvil, desarrollada con React Native y Expo.
+- `/backend/`: Contiene el código del servidor, la API RAG y la lógica de negocio en Python.
+- `/documents/`: Almacena documentos relevantes, requerimientos y diseños del proyecto.
+- `/test/`: Contiene los scripts y pruebas automatizadas.
 
-## Customize configuration
+## Instalación del Frontend
 
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Para configurar y levantar el entorno de desarrollo de la aplicación móvil, primero debes navegar a su carpeta:
 
 ```sh
+cd frontend
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### Iniciar la aplicación en desarrollo (Expo)
 
 ```sh
-npm run dev
+npx expo start
 ```
 
-### Compile and Minify for Production
+## Instalación del Backend
+
+El backend es una API basada en RAG (Retrieval-Augmented Generation) construida con FastAPI. Requiere **Python 3.11+**.
+
+Para configurar el entorno de Python para el backend:
 
 ```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
-
-python -m venv venv
-
-venv\Scripts\activate
-
+cd backend
+python -m venv .venv
+.venv\Scripts\activate          # En Windows (en Linux/Mac: source .venv/bin/activate)
 pip install -r requirements.txt
+
+# Configuración opcional
+copy .env.example .env          # En Windows (en Linux/Mac: cp .env.example .env)
+```
+
+### Ejecutar la API (Backend)
+
+```sh
+uvicorn app.main:app --reload
+```
+
+- Healthcheck: http://localhost:8000/health
+- Documentación interactiva (Swagger): http://localhost:8000/docs

@@ -1,4 +1,4 @@
-# 📸 Capturas para la sustentación
+# Capturas para la sustentación
 
 Carpeta para las imágenes que se usan en la presentación del proyecto
 (slides en Canva). Hoy puede estar **vacía**; ve subiendo aquí las capturas
@@ -37,6 +37,7 @@ Formato: **`NN-area-descripcion.png`**
 ## Checklist de capturas
 
 ### De la app (emulador o dispositivo)
+
 - [ ] `app` — Onboarding
 - [ ] `app` — Welcome / Login
 - [ ] `app` — Mapa 3D, vista general (la más vistosa)
@@ -46,6 +47,7 @@ Formato: **`NN-area-descripcion.png`**
 - [ ] `app` — Perfil
 
 ### Del código / herramientas
+
 - [ ] `backend` — VS Code: árbol `backend/app/rag/` y un archivo (ej. `engine.py`)
 - [ ] `backend` — Terminal: `pytest` → "37 passed"
 - [ ] `backend` — Swagger UI (`/docs`) del backend desplegado
@@ -57,6 +59,7 @@ Formato: **`NN-area-descripcion.png`**
 - [ ] `repo` — GitHub: un doc renderizado con un diagrama Mermaid
 
 ### Documentos de gestión (entregables)
+
 - [ ] `gestion` — Planning Document (portada + índice)
 - [ ] `gestion` — Product Backlog (tabla o tablero)
 - [ ] `gestion` — User Stories (una con criterios de aceptación)
@@ -68,11 +71,11 @@ No necesitas crearlos: los diagramas viven como **Mermaid** dentro de
 `documents/*.md` y se renderizan solos en GitHub. Para llevarlos a las slides,
 ábrelos en [mermaid.live](https://mermaid.live) y expórtalos como PNG/SVG.
 
-| Diagrama | Dónde está |
-|----------|------------|
-| Arquitectura general (implementado vs. planificado) | `01-arquitectura-general.md` |
-| ¿Qué es RAG? y pipeline de consulta | `03-backend-rag.md` |
-| Pipeline de ingesta | `07-avance-backend.md` |
-| Despliegue | `01-arquitectura-general.md` · `08-despliegue-render.md` |
-| Secuencia Chat→Mapa | `05-flujos.md` |
-| Cronograma (Gantt) | `06-backlog-y-roadmap.md` |
+| Diagrama                                            | Dónde está                                               |
+| --------------------------------------------------- | -------------------------------------------------------- |
+| Arquitectura general (implementado vs. planificado) | `01-arquitectura-general.md`                             |
+| ¿Qué es RAG? y pipeline de consulta                 | `03-backend-rag.md`                                      |
+| Pipeline de ingesta                                 | `07-avance-backend.md`                                   |
+| Despliegue                                          | `01-arquitectura-general.md` · `08-despliegue-render.md` |
+| Secuencia Chat→Mapa                                 | `05-flujos.md`                                           |
+| Cronograma (Gantt)                                  | `06-backlog-y-roadmap.md`                                |
