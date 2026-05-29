@@ -58,9 +58,9 @@ graph LR
 | HU | Nombre | Prioridad | Est. | Estado | Evidencia en código |
 |----|--------|-----------|------|--------|---------------------|
 | HU-2.1 | Interfaz de Chat Dedicada | Alta | 5 | ✅ | Pestaña "Asistente", `ChatScreen`, burbujas, input. |
-| HU-2.2 | Consultas RAG (Base de Conocimiento) | Alta | 13 | 🟠 | Hoy `mockChatQuery`; backend LlamaIndex pendiente. |
-| HU-2.3 | Enrutamiento Automático (Chat-Mapa) | Alta | 8 | 🟡 | `setFocusTarget` + navegación; falta `draw_route` y trazo. |
-| HU-2.4 | Filtro de Contexto (Guardrails) | Alta | 3 | 🟠 | Depende del backend. |
+| HU-2.2 | Consultas RAG (Base de Conocimiento) | Alta | 13 | 🟡 | Backend `/api/chat` + motor RAG e ingesta en modo mock; LLM real listo, pgvector pendiente. Ver [07-avance-backend](./07-avance-backend.md). |
+| HU-2.3 | Enrutamiento Automático (Chat-Mapa) | Alta | 8 | 🟡 | Backend ya devuelve `draw_route` + `destination`; falta que el frontend lo consuma y trace la ruta. |
+| HU-2.4 | Filtro de Contexto (Guardrails) | Alta | 3 | 🟡 | Guardrails de alcance UNMSM por límite de palabra + system prompt; reforzable con el LLM real. |
 | HU-2.5 | Sugerencias de preguntas | Media | 3 | ✅ | `SuggestionChips` en `ChatScreen`. |
 | HU-2.6 | Respuestas enriquecidas | Media | 5 | ✅ | `LocationCard` con botón "Ver en mapa". |
 

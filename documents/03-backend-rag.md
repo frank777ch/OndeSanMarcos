@@ -1,6 +1,6 @@
 # 3. Backend y RAG
 
-> **Estado:** el backend está **planificado**. Hoy solo existe `backend/requirements.txt` con las dependencias base (`fastapi`, `uvicorn`, `supabase`, `llama-index`). Este documento define la **arquitectura objetivo** del asistente IA para que sea fácil de visualizar y construir.
+> **Estado:** el backend ya **funciona en modo mock** (`POST /api/chat` operativo, motor RAG y pipeline de ingesta implementados; proveedores LLM reales listos, pgvector pendiente). Este documento describe la **arquitectura objetivo**; para el detalle de **lo que ya existe en el código** y cómo correrlo, ver [07-avance-backend](./07-avance-backend.md).
 
 El asistente responde **solo con información oficial de la UNMSM**. Para lograrlo se usa **RAG (Retrieval-Augmented Generation)**: en vez de dejar que el modelo "invente", primero se **recuperan** fragmentos de documentos institucionales y luego se le pide al LLM que **genere** la respuesta usando ese contexto.
 

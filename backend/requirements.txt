@@ -1,4 +1,13 @@
-fastapi
-uvicorn
-supabase
-llama-index
+# Dependencias núcleo del backend (suficientes para correr y testear en modo mock).
+# El motor RAG funciona de forma aislada con estas dependencias, sin LLM ni
+# base vectorial externa. Para los proveedores reales, ver requirements-rag.txt.
+
+fastapi==0.136.1
+uvicorn==0.47.0
+pydantic==2.13.4
+pydantic-settings==2.14.1
+python-dotenv==1.2.2
+
+# --- Desarrollo / pruebas ---
+pytest==9.0.3
+httpx==0.28.1

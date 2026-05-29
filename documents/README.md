@@ -17,6 +17,7 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 | 4 | [Modelo de datos](./04-modelo-de-datos.md) | Diagramas de clases de dominio, stores y entidades de base de datos. |
 | 5 | [Flujos](./05-flujos.md) | Diagramas de flujo y secuencia: arranque, autenticación, chat, chat→mapa, RAG, rutas. |
 | 6 | [Backlog y roadmap](./06-backlog-y-roadmap.md) | Épicas, historias de usuario, estado actual vs. planificado, cronograma. |
+| 7 | [Avance del backend RAG](./07-avance-backend.md) | Guía viva de lo construido en el backend: pipeline de ingesta, proveedores, contrato y cómo correrlo. |
 
 ---
 
@@ -29,8 +30,8 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 | Mapas | `@rnmapbox/maps` (Mapbox nativo) | Render 3D del campus, POIs y rutas. |
 | Estado | Zustand `5` | Stores de auth, chat y mapa. |
 | Sensores | `expo-location`, `expo-sensors` | GPS y brújula (magnetómetro) para el avatar. |
-| **Backend** | FastAPI + Uvicorn (Python) | API del asistente IA. *(en construcción)* |
-| RAG | LlamaIndex | Orquestación de recuperación + generación. *(planificado)* |
+| **Backend** | FastAPI + Uvicorn (Python) | API del asistente IA. *(funcional en modo mock)* |
+| RAG | LlamaIndex / pgvector | Orquestación de recuperación + generación. *(motor mock listo; proveedores reales en curso)* |
 | **Datos / BaaS** | Supabase (Postgres + `pgvector` + Auth) | Autenticación, base de conocimiento y embeddings. |
 | Servicios externos | Mapbox, proveedor LLM | Teselas/render de mapas y modelo de lenguaje. |
 
@@ -46,8 +47,8 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 | Autenticación (Supabase) | ✅ Implementado | Registro con verificación por correo, login, modo invitado. |
 | UI del Asistente (Chat) | ✅ Implementado | Estados idle/asking/answered, historial persistido, respuestas **mock**. |
 | Integración Chat → Mapa | 🟡 Parcial | El chat fija el destino (`focusTarget`); falta que el mapa lo consuma. |
-| Backend / API del chat | 🟠 Planificado | Solo `requirements.txt`; el chat usa respuestas simuladas (`useMock`). |
-| Motor RAG (LlamaIndex) | 🟠 Planificado | Diseño documentado en [03-backend-rag](./03-backend-rag.md). |
+| Backend / API del chat | 🟡 Parcial | `POST /api/chat` funcional en modo mock; ver [07-avance-backend](./07-avance-backend.md). |
+| Motor RAG (LlamaIndex) | 🟡 Parcial | Motor + ingesta listos en mock; LLM real implementado, pgvector pendiente. |
 | Motor de rutas / GPS real | 🟠 Planificado | `src/features/routing/` aún vacío. |
 
 **Leyenda:** ✅ Implementado · 🟡 Parcial · 🟠 Planificado
