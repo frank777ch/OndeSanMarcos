@@ -26,10 +26,20 @@ export interface LocationResult {
   schedule?: string;
 }
 
+/** Coordenada geográfica (para el enrutamiento chat→mapa, HU-2.3). */
+export interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
+
 /** Respuesta del endpoint `/api/chat`. */
 export interface ChatResponse {
   answer: string;
   locations: LocationResult[];
+  /** True si el asistente sugiere trazar una ruta hacia `destination` (HU-2.3). */
+  drawRoute?: boolean;
+  /** Coordenada destino cuando se detecta intención de navegación. */
+  destination?: Coordinate | null;
 }
 
 /** Una conversación guardada en el historial del asistente. */
