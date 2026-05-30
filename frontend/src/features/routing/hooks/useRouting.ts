@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMapStore } from '../../../core/store/useMapStore';
-import { campusPathfinder } from '../utils/pathfinder';
+import { campusPathfinder, haversineDistance } from '../utils/pathfinder';
 
 export function useRouting() {
   const [isCalculating, setIsCalculating] = useState(false);
@@ -8,7 +8,7 @@ export function useRouting() {
   const setActiveRoute = useMapStore((state) => state.setActiveRoute);
   const clearRoute = useMapStore((state) => state.clearRoute);
 
-  const calculateRoute = async (start: [number, number], end: [number, number]) => {
+  const calculateRoute = async (start: [number, number], end: [number, number], startName: string, endName: string) => {
     setIsCalculating(true);
     setError(null);
     try {
@@ -24,7 +24,17 @@ export function useRouting() {
           latitude: c[1]
         }));
         
-        setActiveRoute(coords);
+        let totalDistance = 0;
+        for (let i = 0; i < pathCoords.length - 1; i++) {
+          totalDistance += haversineDistance(pathCoords[i], pathCoords[i + 1]);
+        }
+        
+        setActiveRoute(coords, {
+          startName,
+          endName,
+          distance: Math.round(totalDistance)
+        });
+        
         return coords;
       } else {
         throw new Error('No route found');

@@ -12,8 +12,8 @@ interface Edge {
   weight: number;
 }
 
-// 1. Funciones auxiliares matemáticas
-function haversineDistance(c1: Coord, c2: Coord): number {
+// Funciones auxiliares matemáticas
+export function haversineDistance(c1: Coord, c2: Coord): number {
   const R = 6371e3; // radio de la tierra en metros
   const lat1 = (c1[1] * Math.PI) / 180;
   const lat2 = (c2[1] * Math.PI) / 180;
@@ -31,7 +31,7 @@ function haversineDistance(c1: Coord, c2: Coord): number {
   return R * c; // en metros
 }
 
-// 2. Construcción del Grafo
+// Construcción del Grafo
 class Pathfinder {
   private nodes = new Map<string, Node>();
   private adjacencyList = new Map<string, Edge[]>();
@@ -119,7 +119,7 @@ class Pathfinder {
     return closestId;
   }
 
-  // 3. Algoritmo de Dijkstra
+  // Algoritmo de Dijkstra
   public findShortestPath(startPoint: Coord, endPoint: Coord): Coord[] {
     const startNodeId = this.getClosestNode(startPoint);
     const endNodeId = this.getClosestNode(endPoint);
