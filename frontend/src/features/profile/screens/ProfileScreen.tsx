@@ -5,16 +5,22 @@ import { authService } from "@services/supabase/auth.service";
 import { lightColors } from "@theme/light";
 import { Button } from "@shared/components/Button";
 import { SettingsItem } from "@shared/components/SettingsItem";
-import { HatGlasses, Palette, Bell, LogOut } from "lucide-react-native";
 import { primitive } from "@/theme/colors";
+import type { ProfileMainScreenProps } from "@navigation/types";
+import { useThemeStore } from "@/core/store/useThemeStore";
+import { HatGlasses, Palette, Bell, LogOut } from "lucide-react-native";
 
-export function ProfileScreen() {
+export function ProfileScreen({ navigation }: ProfileMainScreenProps) {
   const { session, isGuest, clear } = useAuthStore();
+  const primaryColor = useThemeStore((s) => s.primaryColor);
 
+  // Try to get full_name, fallback to name, fallback to email prefix
   const displayName =
     session?.user?.user_metadata?.full_name ??
+    session?.user?.user_metadata?.name ??
     session?.user?.email?.split("@")[0] ??
     "";
+
   const initial = displayName.charAt(0).toUpperCase() || "?";
   const email = session?.user?.email ?? "";
 
@@ -50,15 +56,21 @@ export function ProfileScreen() {
     >
       <View style={styles.userInfoContainer}>
         <View>
-          <View style={styles.avatarCircle}>
+          <View
+            style={[
+              styles.avatarCircle,
+              {
+                borderColor: primaryColor,
+                backgroundColor: `${primaryColor}1A`,
+              },
+            ]}
+          >
             {isGuest ? (
-              <HatGlasses
-                color={lightColors.bgPrimaryBtn}
-                size={48}
-                strokeWidth={1.5}
-              />
+              <HatGlasses color={primaryColor} size={48} strokeWidth={1.5} />
             ) : (
-              <Text style={styles.avatarInitial}>{initial}</Text>
+              <Text style={[styles.avatarInitial, { color: primaryColor }]}>
+                {initial}
+              </Text>
             )}
           </View>
         </View>
@@ -78,9 +90,10 @@ export function ProfileScreen() {
             style={styles.actionBtn}
             onPress={() => {
               if (isGuest) {
-                /* navegar a login */
+                // Al limpiar, el AppNavigator detectará que no hay sesión y enviará al AuthStack (LoginScreen/Welcome)
+                clear();
               } else {
-                /* navegar a editar */
+                navigation.navigate("EditProfile");
               }
             }}
           />
@@ -95,15 +108,15 @@ export function ProfileScreen() {
             icon={<Palette color="#1A1A2E" size={22} strokeWidth={1.8} />}
             title="Tema"
             description="Predeterminado del sistema"
-            onPress={() => {}}
+            onPress={() => navigation.navigate("Theme")}
             style={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
           />
 
           <SettingsItem
             icon={<Bell color="#1A1A2E" size={22} strokeWidth={1.8} />}
             title="Notificaciones"
-            description="Recordatorios diarios."
-            onPress={() => {}}
+            description="Permitir alertas."
+            onPress={() => navigation.navigate("Notifications")}
           />
 
           <SettingsItem
@@ -142,8 +155,6 @@ const styles = StyleSheet.create({
     minHeight: 120,
     borderRadius: 100,
     borderWidth: 3,
-    borderColor: lightColors.bgPrimaryBtn,
-    backgroundColor: primitive.ghostWhite,
     alignItems: "center",
     justifyContent: "center",
   },

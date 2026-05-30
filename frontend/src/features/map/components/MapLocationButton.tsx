@@ -1,17 +1,24 @@
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
-import { Locate } from "lucide-react-native";
+import { Locate, LocateOff } from "lucide-react-native";
 import Constants from "expo-constants";
 import { lightColors } from "@/theme/light";
 
-export function MapLocationButton() {
+interface MapLocationButtonProps {
+  disabled?: boolean;
+  onPress?: () => void;
+}
+
+export function MapLocationButton({ disabled, onPress }: MapLocationButtonProps) {
+  const Icon = disabled ? LocateOff : Locate;
   return (
     <TouchableOpacity
-      style={styles.button}
+      style={[styles.button, disabled && styles.buttonDisabled]}
       activeOpacity={0.8}
-      onPress={() => console.log("Centrar en mi ubicación")}
+      onPress={onPress}
+      disabled={disabled}
     >
-      <Locate size={20} color={lightColors.textGhostBtn} />
-      <Text style={styles.text}>Mi ubicación</Text>
+      <Icon size={20} color={disabled ? "#A0A0A0" : lightColors.textGhostBtn} />
+      <Text style={[styles.text, disabled && styles.textDisabled]}>Mi ubicación</Text>
     </TouchableOpacity>
   );
 }
@@ -36,10 +43,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
+  buttonDisabled: {
+    backgroundColor: "#F5F5F5",
+  },
   text: {
     marginLeft: 8,
     color: lightColors.textGhostBtn,
     fontSize: 15,
     fontFamily: "DMSans_500Medium",
+  },
+  textDisabled: {
+    color: "#A0A0A0",
   },
 });

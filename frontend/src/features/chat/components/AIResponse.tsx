@@ -1,6 +1,6 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { chatColors } from '../types';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { chatColors } from "../types";
 
 interface AIResponseProps {
   content: string;
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     paddingRight: 24,
   },
   text: {
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: "DMSans_400Regular",
     fontSize: 15,
     lineHeight: 22,
     color: chatColors.textAIResponse,

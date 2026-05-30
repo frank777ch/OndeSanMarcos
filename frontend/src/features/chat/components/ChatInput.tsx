@@ -1,13 +1,15 @@
-import React from 'react';
+import React from "react";
 import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
   TextInput,
   View,
-} from 'react-native';
-import { Send } from 'lucide-react-native';
-import { chatColors } from '../types';
+} from "react-native";
+import { Send } from "lucide-react-native";
+import { chatColors } from "../types";
+import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 interface ChatInputProps {
   value: string;
@@ -26,6 +28,7 @@ export function ChatInput({
   isLoading = false,
 }: ChatInputProps): React.JSX.Element {
   const canSend = value.trim().length > 0 && !isLoading;
+  const primaryColor = useThemeStore((s) => s.primaryColor);
 
   return (
     <View style={styles.container}>
@@ -44,14 +47,18 @@ export function ChatInput({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Enviar mensaje"
-        style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
+        style={[
+          styles.sendButton,
+          !canSend && styles.sendButtonDisabled,
+          { backgroundColor: primaryColor },
+        ]}
         onPress={onSend}
         disabled={!canSend}
       >
         {isLoading ? (
-          <ActivityIndicator color={chatColors.surface} size="small" />
+          <ActivityIndicator color={chatColors.surface} size={18} />
         ) : (
-          <Send color={chatColors.surface} size={18} strokeWidth={2.2} />
+          <Send color={chatColors.surface} size={20} strokeWidth={2.2} />
         )}
       </Pressable>
     </View>
@@ -60,15 +67,17 @@ export function ChatInput({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: chatColors.surface,
-    borderRadius: 28,
-    paddingLeft: 20,
-    paddingRight: 6,
-    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    backgroundColor: lightColors.bg,
+    borderColor: lightColors.strokePrimaryBtn,
+    borderWidth: 1,
+    borderRadius: 24,
+    paddingLeft: 18,
+    paddingRight: 16,
+    paddingVertical: 16,
     gap: 8,
-    shadowColor: '#000000',
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -76,19 +85,20 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 14,
+    fontFamily: "DMSans_400Regular",
+    fontSize: 16,
     color: chatColors.textPrimary,
     paddingVertical: 8,
     maxHeight: 120,
+    textAlignVertical: "top",
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: chatColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 16,
+    backgroundColor: lightColors.bgPrimaryBtn,
+    alignItems: "center",
+    justifyContent: "center",
   },
   sendButtonDisabled: {
     opacity: 0.4,

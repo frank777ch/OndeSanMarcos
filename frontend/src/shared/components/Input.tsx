@@ -10,6 +10,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { lightColors } from "@theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 export type InputVariant = "with-label" | "without-label" | "input-icon";
 
@@ -113,6 +114,7 @@ export function Input({
 }: InputProps) {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
+  const primaryColor = useThemeStore((s) => s.primaryColor);
 
   const typeConfig = resolveInputTypeConfig(inputType);
 
@@ -130,6 +132,7 @@ export function Input({
   const resolvedWrapper = StyleSheet.flatten([
     styles.inputWrapper,
     focused && styles.inputWrapperFocused,
+    focused && { borderColor: primaryColor },
     hasError && styles.inputWrapperError,
     hasSuccess && styles.inputWrapperSuccess,
     inputWrapperStyle,
@@ -161,7 +164,7 @@ export function Input({
           placeholderTextColor={lightColors.textGhostBtn}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          selectionColor={lightColors.bgPrimaryBtn}
+          selectionColor={primaryColor}
           // Props derivadas del inputType (se pueden sobreescribir con textInputProps)
           keyboardType={typeConfig.keyboardType}
           autoCapitalize={typeConfig.autoCapitalize}

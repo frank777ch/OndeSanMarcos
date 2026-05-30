@@ -54,5 +54,24 @@ export function useMapCamera() {
     }));
   };
 
-  return { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode, moveToPoint };
+  const goToGuideMode = (currentCoordinate: [number, number]) => {
+    setCameraConfig({
+      centerCoordinate: currentCoordinate,
+      zoomLevel: 18,
+      pitch: 60,
+      heading: 0,
+      animationMode: 'flyTo',
+      animationDuration: 2000,
+    });
+  };
+
+  const setHeading = (heading: number) => {
+    setCameraConfig((prev) => ({
+      ...prev,
+      heading,
+      animationDuration: 500,
+    }));
+  };
+
+  return { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode, goToGuideMode, moveToPoint, setHeading };
 }

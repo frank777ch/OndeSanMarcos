@@ -4,8 +4,8 @@ export const UNMSM = {
     longitude: -77.0827,
   },
   bounds: {
-    ne: { latitude: -12.0490, longitude: -77.0750 },
-    sw: { latitude: -12.0640, longitude: -77.0900 },
+    ne: { latitude: -12.049, longitude: -77.075 },
+    sw: { latitude: -12.064, longitude: -77.09 },
   },
   camera: {
     zoomLevel: 16,
@@ -37,53 +37,56 @@ export interface CampusPlace {
  */
 export const CAMPUS_PLACES: CampusPlace[] = [
   {
-    id: 'rectorado',
-    name: 'Rectorado',
-    schedule: 'Lun–Vie 8:00–17:00',
-    keywords: ['rectorado', 'rector', 'administracion central'],
-    coordinate: { latitude: -12.0578, longitude: -77.084 },
+    id: "rectorado",
+    name: "Rectorado",
+    schedule: "Lun–Vie 8:00–17:00",
+    keywords: ["rectorado", "rector", "administracion central"],
+    coordinate: { latitude: -12.056524, longitude: -77.086253 },
   },
   {
-    id: 'comedor-universitario',
-    name: 'Comedor Universitario',
-    schedule: 'Lun–Vie 12:00–14:30',
-    keywords: ['comedor', 'comedor universitario', 'almuerzo'],
-    coordinate: { latitude: -12.056, longitude: -77.081 },
+    id: "comedor-universitario",
+    name: "Comedor Universitario",
+    schedule: "Lun–Vie 12:00–14:30",
+    keywords: ["comedor", "comedor universitario", "almuerzo"],
+    coordinate: { latitude: -12.059444, longitude: -77.083053 },
   },
   {
-    id: 'auditorio-ela-dunbar-temple',
-    name: 'Auditorio Ela Dunbar Temple',
-    schedule: 'Según programación de eventos',
-    keywords: ['auditorio', 'ela dunbar', 'dunbar temple', 'ela dunbar temple'],
-    coordinate: { latitude: -12.059, longitude: -77.0825 },
+    id: "auditorio-ela-dunbar-temple",
+    name: "Auditorio Ela Dunbar Temple",
+    schedule: "Según programación de eventos",
+    keywords: ["auditorio", "ela dunbar", "dunbar temple", "ela dunbar temple"],
+    coordinate: { latitude: -12.056644, longitude: -77.086096 },
   },
   {
-    id: 'biblioteca-central',
-    name: 'Biblioteca Central Pedro Zulen',
-    schedule: 'Lun–Sáb 8:00–21:00',
-    keywords: ['biblioteca', 'biblioteca central', 'pedro zulen', 'libros'],
-    coordinate: { latitude: -12.0568, longitude: -77.0838 },
+    id: "biblioteca-central",
+    name: "Biblioteca Central Pedro Zulen",
+    schedule: "Lun–Sáb 8:00–21:00",
+    keywords: ["biblioteca", "biblioteca central", "pedro zulen", "libros"],
+    coordinate: {
+      latitude: -12.055868939512747,
+      longitude: -77.08586761087753,
+    },
   },
   {
-    id: 'fisi',
-    name: 'Facultad de Ingeniería de Sistemas (FISI)',
-    schedule: 'Lun–Vie 7:00–22:00',
-    keywords: ['fisi', 'sistemas', 'ingenieria de sistemas', 'software'],
-    coordinate: { latitude: -12.054, longitude: -77.085 },
+    id: "fisi",
+    name: "Facultad de Ingeniería de Sistemas (FISI)",
+    schedule: "Lun–Vie 7:00–22:00",
+    keywords: ["fisi", "sistemas", "ingenieria de sistemas", "software"],
+    coordinate: { latitude: -12.053679, longitude: -77.085711 },
   },
   {
-    id: 'estadio',
-    name: 'Estadio Universitario',
-    schedule: 'Lun–Dom 6:00–20:00',
-    keywords: ['estadio', 'cancha', 'deporte', 'futbol'],
-    coordinate: { latitude: -12.06, longitude: -77.08 },
+    id: "estadio",
+    name: "Estadio Universitario",
+    schedule: "Lun–Dom 6:00–20:00",
+    keywords: ["estadio", "cancha", "deporte", "futbol"],
+    coordinate: { latitude: -12.060926, longitude: -77.085954 },
   },
   {
-    id: 'museo-historia-natural',
-    name: 'Museo de Historia Natural',
-    schedule: 'Mar–Dom 9:00–15:00',
-    keywords: ['museo', 'historia natural', 'museo de historia'],
-    coordinate: { latitude: -12.0552, longitude: -77.0805 },
+    id: "museo-historia-natural",
+    name: "Cancha de Futbol - Gimnasio",
+    schedule: "Mar–Dom 9:00–15:00",
+    keywords: ["museo", "historia natural", "museo de historia"],
+    coordinate: { latitude: -12.060084, longitude: -77.084272 },
   },
 ];
 
@@ -93,59 +96,527 @@ export function getCampusPlaceById(id: string): CampusPlace | undefined {
 }
 
 export const UNMSM_POIS = {
-  type: 'FeatureCollection',
+  type: "FeatureCollection",
   features: [
     {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-77.08761951511643, -12.051880164062666] },
-      properties: { 
-        id: '1', 
-        nombre: 'Puerta 8', 
-        categoria: 'Puertas'
-      }
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.08761951511643, -12.051880164062666],
+      },
+      properties: {
+        id: "1",
+        nombre: "Puerta 8",
+        categoria: "Puertas",
+      },
     },
     {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-77.08454506116111, -12.053801766665373] },
-      properties: { 
-        id: '2', 
-        nombre: 'Puerta 7', 
-        categoria: 'Puertas' 
-      }
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.08454506116111, -12.053801766665373],
+      },
+      properties: {
+        id: "2",
+        nombre: "Puerta 7",
+        categoria: "Puertas",
+      },
     },
     {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-77.08001732406147, -12.057136012331654] },
-      properties: { 
-        id: '3', 
-        nombre: 'Puerta 3', 
-        categoria: 'Puertas' 
-      }
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.08001732406147, -12.057136012331654],
+      },
+      properties: {
+        id: "3",
+        nombre: "Puerta 3",
+        categoria: "Puertas",
+      },
     },
     {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-77.07936395135454, -12.059496369475596] },
-      properties: { 
-        id: '4', 
-        nombre: 'Puerta 2', 
-        categoria: 'Puertas' 
-      }
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.07936395135454, -12.059496369475596],
+      },
+      properties: {
+        id: "4",
+        nombre: "Puerta 2",
+        categoria: "Puertas",
+      },
     },
     {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [-77.08583596979169, -12.060949126150703] },
-      properties: { 
-        id: '5', 
-        nombre: 'Puerta 1', 
-        categoria: 'Puertas' 
-      }
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.08583596979169, -12.060949126150703],
+      },
+      properties: {
+        id: "5",
+        nombre: "Puerta 1",
+        categoria: "Puertas",
+      },
+    },
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0837569, -12.0544354],
+      },
+      properties: {
+        id: "6",
+        nombre: "Puerta 6",
+        categoria: "Puertas",
+      },
+    },
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0824707, -12.0551539],
+      },
+      properties: {
+        id: "7",
+        nombre: "Puerta 5",
+        categoria: "Puertas",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0857217, -12.0535548],
+      },
+      properties: {
+        id: "8",
+        nombre: "Facultad de Ingeniería de Sistemas e Informática",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0875399, -12.0533466],
+      },
+      properties: {
+        id: "9",
+        nombre: "Escuela Profesional de Enfermería y Tecnología Médica",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0867638, -12.0535766],
+      },
+      properties: {
+        id: "10",
+        nombre: "Facultad de Psicología",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0869915, -12.0552369],
+      },
+      properties: {
+        id: "11",
+        nombre: "Facultad de Electrónica (Nuevo Pabellón)",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.087094, -12.0558976],
+      },
+      properties: {
+        id: "12",
+        nombre: "Facultad de Ingeniería Civil",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.087094, -12.0558976],
+      },
+      properties: {
+        id: "13",
+        nombre: "Escuela Profesional de Ing. de Mecanica de Fluidos",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0860475, -12.0555738],
+      },
+      properties: {
+        id: "14",
+        nombre: "Escuela Profesional de Ingeniería Geografica",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0851319, -12.0554579],
+      },
+      properties: {
+        id: "15",
+        nombre: "Facultad de Educación",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0848002, -12.0549302],
+      },
+      properties: {
+        id: "16",
+        nombre: "Facultad de Educación Física",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.084739, -12.0607884],
+      },
+      properties: {
+        id: "17",
+        nombre: "Facultad de Ingeniería Geológica, Minera y Metalúrgica",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.084194, -12.06022],
+      },
+      properties: {
+        id: "18",
+        nombre: "Facultad de Ingeniería Geológica",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0835806, -12.060074],
+      },
+      properties: {
+        id: "19",
+        nombre: "Facultad de Ingeniería Quimica y Textil",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0820091, -12.0594417],
+      },
+      properties: {
+        id: "20",
+        nombre: "Facultad de Ciencias Biológicas",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0818206, -12.0595585],
+      },
+      properties: {
+        id: "21",
+        nombre: "Facultad de Ciencias Físicas",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0823088, -12.0605261],
+      },
+      properties: {
+        id: "22",
+        nombre: "Facultad de Ciencias Matemáticas",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0809839, -12.0600774],
+      },
+      properties: {
+        id: "23",
+        nombre: "Facultad de Ingeniería Industrial",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0813687, -12.0577069],
+      },
+      properties: {
+        id: "24",
+        nombre: "Facultad de Ciencias Admistrativas",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0804662, -12.0596003],
+      },
+      properties: {
+        id: "25",
+        nombre: "Facultad de Ingeniería Industrial",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0816666, -12.0579798],
+      },
+      properties: {
+        id: "26",
+        nombre: "Facultad de Ciencias Sociales",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0811987, -12.0580466],
+      },
+      properties: {
+        id: "27",
+        nombre: "Facultad de Ciencias Economicas (Antiguo)",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0804619, -12.0576735],
+      },
+      properties: {
+        id: "28",
+        nombre: "Facultad de Ciencias Contables",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0814113, -12.0574376],
+      },
+      properties: {
+        id: "29",
+        nombre: "Facultad de Letras y Humanidades",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0857825, -12.0541478],
+      },
+      properties: {
+        id: "30",
+        nombre: "Facultad de Odontología",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.086256, -12.0534471],
+      },
+      properties: {
+        id: "31",
+        nombre: "Facultad de Ciencias Economicas (Nuevo)",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0876297, -12.052315],
+      },
+      properties: {
+        id: "32",
+        nombre: "Facultad de Ingeniería de Minas",
+        categoria: "Facultades",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0838174, -12.0600503],
+      },
+      properties: {
+        id: "33",
+        nombre: "Cafeteria de la Facultad de Ingeniería Quimica",
+        categoria: "Cafeterias",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.085277, -12.0547815],
+      },
+      properties: {
+        id: "34",
+        nombre: "Cafeteria de la Facultad de Odontología",
+        categoria: "Cafeterias",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0872794, -12.0562339],
+      },
+      properties: {
+        id: "35",
+        nombre: "Cafeteria de la Facultad de Ingeniería Civil",
+        categoria: "Cafeterias",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0811103, -12.0560269],
+      },
+      properties: {
+        id: "36",
+        nombre: "Puerta 4",
+        categoria: "Puertas",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0860517, -12.05667],
+      },
+      properties: {
+        id: "37",
+        nombre: "Auditorio Ella Dumber Temple",
+        categoria: "Auditorios",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.085161, -12.0555951],
+      },
+      properties: {
+        id: "38",
+        nombre: "Auditorio Rosa Alarco Larraburre",
+        categoria: "Auditorios",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0852821, -12.0528848],
+      },
+      properties: {
+        id: "39",
+        nombre: "Cancha de la Facultad de Ingeniería de Sistemas e Informática",
+        categoria: "Campos deportivos",
+      },
+    },
+
+    {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [-77.0869071, -12.0519369],
+      },
+      properties: {
+        id: "40",
+        nombre: "Cancha de la Facultad de Ingeniería de Minas",
+        categoria: "Campos deportivos",
+      },
     },
 
     // --- LA LÍNEA DEL CAMINO ---
     {
-      type: 'Feature',
+      type: "Feature",
       geometry: {
-        type: 'LineString',
+        type: "LineString",
         coordinates: [
           [-77.08583367924176, -12.060946483706246],
           [-77.085802308228, -12.060913016219672],
@@ -199,14 +670,33 @@ export const UNMSM_POIS = {
           [-77.07951219174385, -12.059541622585627],
           [-77.07947036372484, -12.059517451497484],
           [-77.07943138761624, -12.059495139721363],
-          [-77.0793657936778, -12.059495139721363]
-        ]
+          [-77.0793657936778, -12.059495139721363],
+        ],
       },
-      properties: { 
-        id: 'ruta_prueba',
-        tipo: 'camino_peatonal',
-        color: '#512DA8'
-      }
-    }
-  ]
+      properties: {
+        id: "ruta_prueba",
+        tipo: "camino_peatonal",
+        color: "#512DA8",
+      },
+    },
+  ],
 };
+
+export const ALL_SEARCHABLE_PLACES: CampusPlace[] = [
+  ...CAMPUS_PLACES,
+  ...UNMSM_POIS.features
+    .filter((f) => f.geometry.type === "Point")
+    .map((f: any) => ({
+      id: f.properties.id,
+      name: f.properties.nombre,
+      schedule: "Campus UNMSM",
+      keywords: [
+        f.properties.nombre.toLowerCase(),
+        f.properties.categoria?.toLowerCase() || "",
+      ],
+      coordinate: {
+        longitude: f.geometry.coordinates[0],
+        latitude: f.geometry.coordinates[1],
+      },
+    })),
+];

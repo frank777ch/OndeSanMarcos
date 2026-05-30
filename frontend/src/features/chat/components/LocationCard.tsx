@@ -1,7 +1,8 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { MapPin } from 'lucide-react-native';
-import { chatColors, type LocationResult } from '../types';
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { MapPin } from "lucide-react-native";
+import { chatColors, type LocationResult } from "../types";
+import { lightColors } from "@/theme/light";
 
 interface LocationCardProps {
   location: LocationResult;
@@ -16,7 +17,7 @@ export function LocationCard({
   return (
     <View style={styles.card}>
       <View style={styles.iconWrapper}>
-        <MapPin color={chatColors.primary} size={20} strokeWidth={2} />
+        <MapPin color={lightColors.textH1} size={20} strokeWidth={2} />
       </View>
 
       <View style={styles.info}>
@@ -33,7 +34,10 @@ export function LocationCard({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Abrir ${location.name} en el mapa`}
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+        style={({ pressed }) => [
+          styles.button,
+          pressed && styles.buttonPressed,
+        ]}
         onPress={() => onOpen(location)}
       >
         <Text style={styles.buttonText}>Abrir</Text>
@@ -44,14 +48,14 @@ export function LocationCard({
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: chatColors.surface,
     borderRadius: 16,
     padding: 12,
     marginVertical: 6,
     gap: 12,
-    shadowColor: '#000000',
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -62,35 +66,37 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 12,
     backgroundColor: chatColors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   info: {
     flex: 1,
     gap: 2,
   },
   name: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: "DMSans_500Medium",
     fontSize: 14,
     color: chatColors.textPrimary,
   },
   schedule: {
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: "DMSans_400Regular",
     fontSize: 12,
     color: chatColors.textSecondary,
   },
   button: {
-    backgroundColor: chatColors.primary,
+    backgroundColor: lightColors.bgSecondaryBtn,
     borderRadius: 12,
     paddingHorizontal: 18,
     paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: lightColors.strokePrimaryBtn,
   },
   buttonPressed: {
     opacity: 0.8,
   },
   buttonText: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: "DMSans_500Medium",
     fontSize: 13,
-    color: chatColors.surface,
+    color: lightColors.textSecondaryBtn,
   },
 });
