@@ -681,3 +681,22 @@ export const UNMSM_POIS = {
     },
   ],
 };
+
+export const ALL_SEARCHABLE_PLACES: CampusPlace[] = [
+  ...CAMPUS_PLACES,
+  ...UNMSM_POIS.features
+    .filter((f) => f.geometry.type === "Point")
+    .map((f: any) => ({
+      id: f.properties.id,
+      name: f.properties.nombre,
+      schedule: "Campus UNMSM",
+      keywords: [
+        f.properties.nombre.toLowerCase(),
+        f.properties.categoria?.toLowerCase() || "",
+      ],
+      coordinate: {
+        longitude: f.geometry.coordinates[0],
+        latitude: f.geometry.coordinates[1],
+      },
+    })),
+];

@@ -15,6 +15,10 @@ import { MapSpawnModal } from "../components/MapSpawnModal";
 import { MapRouteSelectionModal } from "../components/MapRouteSelectionModal";
 import { useMapStore } from "../../../core/store/useMapStore";
 import { useRouting } from "../../routing/hooks/useRouting";
+import { MapRouteInfoCard } from "../components/MapRouteInfoCard";
+import { Ionicons } from "@expo/vector-icons";
+import { MapPin } from "lucide-react-native";
+import { useThemeStore } from "../../../core/store/useThemeStore";
 
 MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
 
@@ -64,21 +68,34 @@ export function MapScreen() {
   const focusTarget = useMapStore((state) => state.focusTarget);
   const { calculateRoute, clearRoute, isCalculating } = useRouting();
 
+  const primaryColor = useThemeStore((s) => s.primaryColor);
+  const routeMetadata = useMapStore((s) => s.routeMetadata);
+
   // Timer para detectar cuándo el usuario dejó de arrastrar el mapa
   const walkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [isFollowingUser, setIsFollowingUser] = useState(true);
+  const isFollowingUserRef = useRef(true);
+
   // Se llama en cada frame mientras la cámara se mueve (usuario arrastrando)
-  const handleCameraChanged = () => {
-    if (appMode !== "libre") return;
+  const handleCameraChanged = (e: any) => {
+    if (e.properties && e.properties.isUserInteraction) {
+      if (appMode === "guia") {
+        setIsFollowingUser(false);
+        isFollowingUserRef.current = false;
+      }
 
-    // El usuario está moviendo el mapa → animación de caminar
-    setIsWalking(true);
+      if (appMode === "libre") {
+        // El usuario está moviendo el mapa → animación de caminar
+        setIsWalking(true);
 
-    // Reinicia el timer: si no hay movimiento en 600ms → vuelve a idle
-    if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
-    walkTimerRef.current = setTimeout(() => {
-      setIsWalking(false);
-    }, 600);
+        // Reinicia el timer: si no hay movimiento en 600ms → vuelve a idle
+        if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
+        walkTimerRef.current = setTimeout(() => {
+          setIsWalking(false);
+        }, 600);
+      }
+    }
   };
 
   const handleModeToggle = (modo: "ninguno" | "libre" | "guia") => {
@@ -91,9 +108,17 @@ export function MapScreen() {
       goToDefaultMode();
     } else if (modo === "guia") {
       setAppMode("guia");
+      setIsFollowingUser(true);
+      isFollowingUserRef.current = true;
       if (userLocation) {
         goToGuideMode(userLocation);
       }
+
+      // Permitir libre exploración después de 5 segundos
+      setTimeout(() => {
+        setIsFollowingUser(false);
+        isFollowingUserRef.current = false;
+      }, 5000);
     }
   };
 
@@ -101,8 +126,13 @@ export function MapScreen() {
     setIsRouteSelectionVisible(true);
   };
 
-  const handleRouteConfirm = async (start: [number, number], end: [number, number]) => {
-    await calculateRoute(start, end);
+  const handleRouteConfirm = async (
+    start: [number, number],
+    end: [number, number],
+    startName: string,
+    endName: string,
+  ) => {
+    await calculateRoute(start, end, startName, endName);
     handleModeToggle("guia");
   };
 
@@ -191,7 +221,13 @@ export function MapScreen() {
               loc.coords.latitude,
             ];
             setUserLocation(coords);
-            moveToPoint(coords);
+            if (isFollowingUserRef.current) {
+              moveToPoint(coords);
+            }
+            if (appMode === "guia") {
+              const speed = loc.coords.speed || 0;
+              setIsWalking(speed > 0.5);
+            }
           },
         );
 
@@ -248,6 +284,19 @@ export function MapScreen() {
         }
       : { type: "FeatureCollection", features: [] };
 
+  const destinationCoord =
+    isRouteActive && activeRoute.length > 0
+      ? [
+          activeRoute[activeRoute.length - 1].longitude,
+          activeRoute[activeRoute.length - 1].latitude,
+        ]
+      : null;
+
+  const startCoord =
+    isRouteActive && activeRoute.length > 0
+      ? [activeRoute[0].longitude, activeRoute[0].latitude]
+      : null;
+
   const shouldShowAvatar =
     showAvatar &&
     userLocation !== null &&
@@ -296,10 +345,22 @@ export function MapScreen() {
         </MapboxGL.VectorSource>
 
         <MapboxGL.ShapeSource id="route-source" shape={routeData as any}>
+          {/* Capa exterior gruesa (brillo/sombra) */}
+          <MapboxGL.LineLayer
+            id="route-glow"
+            style={{
+              lineColor: primaryColor,
+              lineWidth: 10,
+              lineOpacity: 0.3,
+              lineJoin: "round",
+              lineCap: "round",
+            }}
+          />
+          {/* Capa central brillante */}
           <MapboxGL.LineLayer
             id="route-line"
             style={{
-              lineColor: "#512DA8",
+              lineColor: primaryColor,
               lineWidth: 5,
               lineJoin: "round",
               lineCap: "round",
@@ -333,26 +394,103 @@ export function MapScreen() {
 
         {showAvatar && userLocation && (
           <MapboxGL.PointAnnotation id="avatar" coordinate={userLocation}>
+            {appMode === "guia" ? (
+              <Image
+                source={avatarSource}
+                style={{ width: 80, height: 80 }}
+                contentFit="contain"
+              />
+            ) : (
+              <View
+                style={{
+                  width: 84,
+                  height: 84,
+                  borderRadius: 42,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 2,
+                  borderColor: "red",
+                  overflow: "hidden",
+                }}
+              >
+                <Text style={{ fontSize: 34 }}>👨‍🏫</Text>
+              </View>
+            )}
+          </MapboxGL.PointAnnotation>
+        )}
+
+        {startCoord && (
+          <MapboxGL.PointAnnotation
+            id="start-pin"
+            key={`start-pin-${primaryColor}`}
+            coordinate={startCoord as [number, number]}
+          >
             <View
               style={{
-                width: 84,
-                height: 84,
-                borderRadius: 42,
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "red",
-                overflow: "hidden",
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                backgroundColor: "white",
+                borderWidth: 6,
+                borderColor: primaryColor,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 5,
               }}
-            >
-              <Text style={{ fontSize: 34 }}>👨‍🏫</Text>
+            />
+          </MapboxGL.PointAnnotation>
+        )}
+
+        {destinationCoord && (
+          <MapboxGL.PointAnnotation
+            id="destination-pin"
+            key={`destination-pin-${primaryColor}`}
+            coordinate={destinationCoord as [number, number]}
+          >
+            <View style={{ alignItems: "center" }}>
+              <View
+                style={{
+                  backgroundColor: primaryColor,
+                  padding: 8,
+                  borderRadius: 20,
+                  borderWidth: 2,
+                  borderColor: "white",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 4,
+                  elevation: 5,
+                }}
+              >
+                <MapPin size={16} color="white" />
+              </View>
+              {/* Punta del pin */}
+              <View
+                style={{
+                  width: 0,
+                  height: 0,
+                  backgroundColor: "transparent",
+                  borderStyle: "solid",
+                  borderTopWidth: 8,
+                  borderRightWidth: 6,
+                  borderBottomWidth: 0,
+                  borderLeftWidth: 6,
+                  borderTopColor: primaryColor,
+                  borderRightColor: "transparent",
+                  borderBottomColor: "transparent",
+                  borderLeftColor: "transparent",
+                  marginTop: -2,
+                }}
+              />
             </View>
           </MapboxGL.PointAnnotation>
         )}
       </MapboxGL.MapView>
 
       {/* ── CAPA 2: AVATAR FLOTANTE ── */}
-      {shouldShowAvatar && (
+      {shouldShowAvatar && appMode === "libre" && (
         <View style={styles.avatarOverlay} pointerEvents="none">
           <Image
             source={avatarSource}
@@ -370,7 +508,16 @@ export function MapScreen() {
           setActiveCategory((prev) => (prev === categoria ? null : categoria))
         }
       />
-      <MapLocationButton />
+      <MapLocationButton
+        disabled={userLocation === null}
+        onPress={() => {
+          if (userLocation) {
+            setIsFollowingUser(true);
+            isFollowingUserRef.current = true;
+            moveToPoint(userLocation);
+          }
+        }}
+      />
       <MapActionButtons
         onModeSelect={handleModeToggle}
         onStartRoute={handleStartRoute}
@@ -390,6 +537,8 @@ export function MapScreen() {
         onRouteConfirm={handleRouteConfirm}
         userLocation={userLocation}
       />
+
+      <MapRouteInfoCard />
     </View>
   );
 }

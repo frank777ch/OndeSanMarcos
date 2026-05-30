@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,13 +10,13 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { lightColors } from "@/theme/light";
-import { CAMPUS_PLACES, CampusPlace } from "../constants/unmsm";
+import { CampusPlace, ALL_SEARCHABLE_PLACES } from "../constants/unmsm";
 import { useThemeStore } from "@/core/store/useThemeStore";
 
 interface MapRouteSelectionModalProps {
   visible: boolean;
   onClose: () => void;
-  onRouteConfirm: (start: [number, number], end: [number, number]) => void;
+  onRouteConfirm: (start: [number, number], end: [number, number], startName: string, endName: string) => void;
   userLocation: [number, number] | null;
 }
 
@@ -27,14 +27,28 @@ export function MapRouteSelectionModal({
   userLocation,
 }: MapRouteSelectionModalProps) {
   const primaryColor = useThemeStore((s) => s.primaryColor);
-  const [startPlace, setStartPlace] = useState<CampusPlace | "current" | null>(
-    userLocation ? "current" : null
-  );
+  const [startPlace, setStartPlace] = useState<CampusPlace | "current" | null>(null);
   const [endPlace, setEndPlace] = useState<CampusPlace | null>(null);
-  
-  const [startQuery, setStartQuery] = useState(userLocation ? "Ubicación actual" : "");
+
+  const [startQuery, setStartQuery] = useState("");
   const [endQuery, setEndQuery] = useState("");
-  const [activeField, setActiveField] = useState<"start" | "end">("end");
+  const [activeField, setActiveField] = useState<"start" | "end">("start");
+
+  useEffect(() => {
+    if (visible) {
+      if (userLocation) {
+        setStartPlace("current");
+        setStartQuery("Ubicación actual");
+        setActiveField("end");
+      } else {
+        setStartPlace(null);
+        setStartQuery("");
+        setActiveField("start");
+      }
+      setEndPlace(null);
+      setEndQuery("");
+    }
+  }, [visible]);
 
   const handleSelectPlace = (place: CampusPlace) => {
     if (activeField === "start") {
@@ -73,7 +87,10 @@ export function MapRouteSelectionModal({
       if (!userLocation) return;
       startCoord = userLocation;
     } else {
-      startCoord = [startPlace.coordinate.longitude, startPlace.coordinate.latitude];
+      startCoord = [
+        startPlace.coordinate.longitude,
+        startPlace.coordinate.latitude,
+      ];
     }
 
     const endCoord: [number, number] = [
@@ -81,23 +98,28 @@ export function MapRouteSelectionModal({
       endPlace.coordinate.latitude,
     ];
 
-    onRouteConfirm(startCoord, endCoord);
+    onRouteConfirm(startCoord, endCoord, startQuery, endQuery);
     onClose();
   };
 
   const isReady = startPlace !== null && endPlace !== null;
 
   const currentQuery = activeField === "start" ? startQuery : endQuery;
-  const filteredPlaces = CAMPUS_PLACES.filter((place) => {
-    if (!currentQuery || (activeField === "start" && startPlace === "current")) return true;
+  let filteredPlaces = ALL_SEARCHABLE_PLACES.filter((place) => {
+    if (!currentQuery || (activeField === "start" && startPlace === "current"))
+      return true;
     if (activeField === "end" && endPlace !== null) return true; // Ya seleccionado
-    
+
     const lowerQuery = currentQuery.toLowerCase();
     return (
       place.name.toLowerCase().includes(lowerQuery) ||
       place.keywords.some((k) => k.toLowerCase().includes(lowerQuery))
     );
   });
+
+  if (!currentQuery || (activeField === "start" && startPlace === "current") || (activeField === "end" && endPlace !== null)) {
+    filteredPlaces = filteredPlaces.slice(0, 8);
+  }
 
   return (
     <Modal
@@ -123,7 +145,10 @@ export function MapRouteSelectionModal({
           <View
             style={[
               styles.inputBox,
-              activeField === "start" && [styles.inputBoxActive, { borderColor: primaryColor }],
+              activeField === "start" && [
+                styles.inputBoxActive,
+                { borderColor: primaryColor },
+              ],
             ]}
           >
             <Ionicons
@@ -144,7 +169,10 @@ export function MapRouteSelectionModal({
           <View
             style={[
               styles.inputBox,
-              activeField === "end" && [styles.inputBoxActive, { borderColor: primaryColor }],
+              activeField === "end" && [
+                styles.inputBoxActive,
+                { borderColor: primaryColor },
+              ],
             ]}
           >
             <Ionicons
@@ -165,17 +193,22 @@ export function MapRouteSelectionModal({
 
         <Text style={styles.subtitle}>Sugerencias del campus</Text>
 
-        <ScrollView style={styles.optionsContainer}>
-          {activeField === "start" && userLocation && startPlace !== "current" && (
-            <TouchableOpacity
-              style={styles.optionButton}
-              activeOpacity={0.7}
-              onPress={handleSelectCurrentLocation}
-            >
-              <Ionicons name="navigate" size={20} color={primaryColor} />
-              <Text style={styles.optionText}>Ubicación actual</Text>
-            </TouchableOpacity>
-          )}
+        <ScrollView 
+          style={styles.optionsContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          {activeField === "start" &&
+            userLocation &&
+            startPlace !== "current" && (
+              <TouchableOpacity
+                style={styles.optionButton}
+                activeOpacity={0.7}
+                onPress={handleSelectCurrentLocation}
+              >
+                <Ionicons name="navigate" size={20} color={primaryColor} />
+                <Text style={styles.optionText}>Ubicación actual</Text>
+              </TouchableOpacity>
+            )}
 
           {filteredPlaces.map((place) => (
             <TouchableOpacity
@@ -183,23 +216,23 @@ export function MapRouteSelectionModal({
               style={styles.optionButton}
               activeOpacity={0.7}
               onPress={() => handleSelectPlace(place)}
-              >
-              <Ionicons
-                name="business"
-                size={20}
-                color={primaryColor}
-              />
+            >
+              <Ionicons name="business" size={20} color={primaryColor} />
               <Text style={styles.optionText}>{place.name}</Text>
             </TouchableOpacity>
           ))}
-          
+
           {filteredPlaces.length === 0 && (
             <Text style={styles.emptyText}>No se encontraron lugares.</Text>
           )}
         </ScrollView>
 
         <TouchableOpacity
-          style={[styles.confirmButton, { backgroundColor: primaryColor }, !isReady && styles.confirmButtonDisabled]}
+          style={[
+            styles.confirmButton,
+            { backgroundColor: primaryColor },
+            !isReady && { backgroundColor: `${primaryColor}1A` },
+          ]}
           disabled={!isReady}
           onPress={handleConfirm}
         >
@@ -218,14 +251,15 @@ const styles = StyleSheet.create({
   sheet: {
     backgroundColor: "white",
     padding: 24,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    paddingTop: 60, // para no superponer con el status bar en dispositivos con notch
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     position: "absolute",
-    bottom: 0,
+    top: 0,
     width: "100%",
     maxHeight: "80%",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 10,
@@ -301,9 +335,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     alignItems: "center",
-  },
-  confirmButtonDisabled: {
-    backgroundColor: "#A0C4FF",
   },
   confirmButtonText: {
     color: "white",
