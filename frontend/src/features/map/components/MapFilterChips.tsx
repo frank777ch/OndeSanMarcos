@@ -8,13 +8,24 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 const FILTERS = [
-  { id: "1", label: "Facultades", icon: "business-outline" },
-  { id: "2", label: "Cafeterías", icon: "cafe-outline" },
-  { id: "3", label: "Auditorios", icon: "mic-outline" },
-  { id: "4", label: "Campos deportivos", icon: "football-outline" },
-  { id: "5", label: "Puertas", icon: "log-in-outline" },
+  {
+    id: "1",
+    label: "Facultades",
+    value: "Facultades",
+    icon: "business-outline",
+  },
+  { id: "2", label: "Cafeterías", value: "Cafeterias", icon: "cafe-outline" },
+  { id: "3", label: "Auditorios", value: "Auditorios", icon: "mic-outline" },
+  {
+    id: "4",
+    label: "Campos deportivos",
+    value: "Campos deportivos",
+    icon: "football-outline",
+  },
+  { id: "5", label: "Puertas", value: "Puertas", icon: "log-in-outline" },
 ];
 
 interface MapFilterChipsProps {
@@ -26,6 +37,7 @@ export function MapFilterChips({
   activeFilter,
   onFilterChange,
 }: MapFilterChipsProps) {
+  const primaryColor = useThemeStore((s) => s.primaryColor);
   return (
     <View style={styles.container}>
       <ScrollView
@@ -34,13 +46,13 @@ export function MapFilterChips({
         contentContainerStyle={styles.scrollContent}
       >
         {FILTERS.map((filter) => {
-          const isActive = activeFilter === filter.label;
+          const isActive = activeFilter === filter.value;
           return (
             <TouchableOpacity
               key={filter.id}
-              style={[styles.chip, isActive && styles.chipActive]}
+              style={[styles.chip, isActive && [styles.chipActive, { backgroundColor: primaryColor }]]}
               activeOpacity={0.8}
-              onPress={() => onFilterChange(filter.label)}
+              onPress={() => onFilterChange(filter.value)}
             >
               <Ionicons
                 name={filter.icon as any}
@@ -86,7 +98,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   chipActive: {
-    backgroundColor: lightColors.bgPrimaryBtn, // Azul UNMSM
+    // backgroundColor: lightColors.bgPrimaryBtn, // Dynamic
   },
   chipText: {
     marginLeft: 8,

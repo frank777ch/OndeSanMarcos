@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 // Las opciones de lugares donde el usuario puede aparecer
 const SPAWN_POINTS = [
@@ -37,6 +38,7 @@ export function MapSpawnModal({
   onClose,
   onSelectPoint,
 }: MapSpawnModalProps) {
+  const primaryColor = useThemeStore((s) => s.primaryColor);
   return (
     <Modal
       animationType="slide"
@@ -75,7 +77,7 @@ export function MapSpawnModal({
               <Ionicons
                 name="location"
                 size={20}
-                color={lightColors.bgPrimaryBtn}
+                color={primaryColor}
               />
               <Text style={styles.optionText}>{point.nombre}</Text>
             </TouchableOpacity>

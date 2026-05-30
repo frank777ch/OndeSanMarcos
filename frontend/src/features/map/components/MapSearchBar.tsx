@@ -3,15 +3,17 @@ import { Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 export function MapSearchBar() {
+  const primaryColor = useThemeStore((s) => s.primaryColor);
   return (
     <TouchableOpacity
       style={styles.container}
       activeOpacity={0.8}
       onPress={() => console.log("Navegar a la pantalla de búsqueda real")}
     >
-      <Ionicons name="search" size={20} color={lightColors.bgPrimaryBtn} />
+      <Ionicons name="search" size={20} color={primaryColor} />
       <Text style={styles.placeholder}>Buscar...</Text>
     </TouchableOpacity>
   );

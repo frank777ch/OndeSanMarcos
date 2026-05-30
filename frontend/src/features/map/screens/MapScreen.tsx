@@ -12,6 +12,9 @@ import { MapLocationButton } from "../components/MapLocationButton";
 import { MapActionButtons } from "../components/MapActionButtons";
 import { useMapCamera } from "../hooks/useMapCamera";
 import { MapSpawnModal } from "../components/MapSpawnModal";
+import { MapRouteSelectionModal } from "../components/MapRouteSelectionModal";
+import { useMapStore } from "../../../core/store/useMapStore";
+import { useRouting } from "../../routing/hooks/useRouting";
 
 MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
 
@@ -44,8 +47,22 @@ export function MapScreen() {
     "ninguno",
   );
   const [isSpawnModalVisible, setIsSpawnModalVisible] = useState(false);
-  const { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode } =
-    useMapCamera();
+  const [isRouteSelectionVisible, setIsRouteSelectionVisible] = useState(false);
+  const {
+    cameraRef,
+    cameraConfig,
+    goToDefaultMode,
+    goToFreeMode,
+    goToGuideMode,
+    moveToPoint,
+    setHeading,
+  } = useMapCamera();
+
+  const activeRoute = useMapStore((state) => state.activeRoute);
+  const isRouteActive = useMapStore((state) => state.isRouteActive);
+  const clearRouteStore = useMapStore((state) => state.clearRoute);
+  const focusTarget = useMapStore((state) => state.focusTarget);
+  const { calculateRoute, clearRoute, isCalculating } = useRouting();
 
   // Timer para detectar cuándo el usuario dejó de arrastrar el mapa
   const walkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,9 +89,27 @@ export function MapScreen() {
       if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
       setAppMode("ninguno");
       goToDefaultMode();
-    } else {
-      setAppMode(modo);
+    } else if (modo === "guia") {
+      setAppMode("guia");
+      if (userLocation) {
+        goToGuideMode(userLocation);
+      }
     }
+  };
+
+  const handleStartRoute = () => {
+    setIsRouteSelectionVisible(true);
+  };
+
+  const handleRouteConfirm = async (start: [number, number], end: [number, number]) => {
+    await calculateRoute(start, end);
+    handleModeToggle("guia");
+  };
+
+  const handleStopRoute = () => {
+    clearRoute();
+    clearRouteStore();
+    handleModeToggle("ninguno");
   };
 
   const handleSpawnSelection = (coords: [number, number]) => {
@@ -86,7 +121,7 @@ export function MapScreen() {
   };
 
   useEffect(() => {
-    (async () => {
+    async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setShowAvatar(false);
@@ -134,8 +169,50 @@ export function MapScreen() {
       } catch (error) {
         console.error("Error obteniendo ubicación:", error);
       }
-    })();
+    };
+  }, []);
 
+  useEffect(() => {
+    let locSub: Location.LocationSubscription | null = null;
+    let headSub: Location.LocationSubscription | null = null;
+
+    if (appMode === "guia") {
+      (async () => {
+        // Suscribirse a la ubicación
+        locSub = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 2000,
+            distanceInterval: 1,
+          },
+          (loc) => {
+            const coords: [number, number] = [
+              loc.coords.longitude,
+              loc.coords.latitude,
+            ];
+            setUserLocation(coords);
+            moveToPoint(coords);
+          },
+        );
+
+        // Suscribirse a la brújula
+        headSub = await Location.watchHeadingAsync((head) => {
+          setHeading(head.magHeading);
+        });
+      })();
+    } else if (appMode === "ninguno" || appMode === "libre") {
+      // Limpiar suscripciones si se sale del modo guía
+      if (locSub) locSub.remove();
+      if (headSub) headSub.remove();
+    }
+
+    return () => {
+      if (locSub) locSub.remove();
+      if (headSub) headSub.remove();
+    };
+  }, [appMode]);
+
+  useEffect(() => {
     return () => {
       if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
     };
@@ -144,10 +221,6 @@ export function MapScreen() {
   // @ts-ignore
   const pointsFeatures = UNMSM_POIS.features.filter(
     (f) => f.geometry.type === "Point",
-  );
-  // @ts-ignore
-  const routeFeatures = UNMSM_POIS.features.filter(
-    (f) => f.geometry.type === "LineString",
   );
 
   const filteredPoints = {
@@ -158,10 +231,27 @@ export function MapScreen() {
       : [],
   };
 
-  const routeData = { type: "FeatureCollection", features: routeFeatures };
+  const routeData =
+    isRouteActive && activeRoute.length > 0
+      ? {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "LineString",
+                coordinates: activeRoute.map((c) => [c.longitude, c.latitude]),
+              },
+            },
+          ],
+        }
+      : { type: "FeatureCollection", features: [] };
 
   const shouldShowAvatar =
-    showAvatar && userLocation !== null && appMode === "libre";
+    showAvatar &&
+    userLocation !== null &&
+    (appMode === "libre" || appMode === "guia");
 
   const avatarSource = isWalking
     ? require("../../../../assets/avatar/david_walk.webp")
@@ -281,12 +371,24 @@ export function MapScreen() {
         }
       />
       <MapLocationButton />
-      <MapActionButtons onModeSelect={handleModeToggle} />
+      <MapActionButtons
+        onModeSelect={handleModeToggle}
+        onStartRoute={handleStartRoute}
+        onStopRoute={handleStopRoute}
+        isRouteActive={isRouteActive}
+      />
 
       <MapSpawnModal
         visible={isSpawnModalVisible}
         onClose={() => setIsSpawnModalVisible(false)}
         onSelectPoint={handleSpawnSelection}
+      />
+
+      <MapRouteSelectionModal
+        visible={isRouteSelectionVisible}
+        onClose={() => setIsRouteSelectionVisible(false)}
+        onRouteConfirm={handleRouteConfirm}
+        userLocation={userLocation}
       />
     </View>
   );
