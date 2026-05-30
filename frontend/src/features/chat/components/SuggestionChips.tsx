@@ -1,6 +1,7 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { chatColors } from '../types';
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { chatColors } from "../types";
+import { lightColors } from "@/theme/light";
 
 interface SuggestionChipsProps {
   suggestions: string[];
@@ -30,13 +31,13 @@ export function SuggestionChips({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 8,
   },
   chip: {
-    backgroundColor: chatColors.surface,
+    backgroundColor: lightColors.bg,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 9,
@@ -45,8 +46,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   chipText: {
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 12,
-    color: chatColors.textSecondary,
+    fontFamily: "DMSans_500Medium",
+    fontSize: 14,
+    color: lightColors.textGhostBtn,
   },
 });

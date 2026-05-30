@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from "react";
 import {
   FlatList,
   Keyboard,
@@ -8,32 +8,34 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Menu, RotateCw, SquarePen } from 'lucide-react-native';
-import type { ChatScreenProps } from '@navigation/types';
-import { useMapStore } from '@store/useMapStore';
-import { getCampusPlaceById } from '@features/map/constants/unmsm';
-import { useChat } from '../hooks/useChat';
-import { chatColors, type LocationResult, type Message } from '../types';
-import { ChatInput } from '../components/ChatInput';
-import { MessageBubble } from '../components/MessageBubble';
-import { AIResponse } from '../components/AIResponse';
-import { LocationCard } from '../components/LocationCard';
-import { SuggestionChips } from '../components/SuggestionChips';
-import { TypingIndicator } from '../components/TypingIndicator';
-import { ConversationHistory } from '../components/ConversationHistory';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ChartNoAxesColumn, RotateCw, SquarePen } from "lucide-react-native";
+import type { ChatScreenProps } from "@navigation/types";
+import { useMapStore } from "@store/useMapStore";
+import { getCampusPlaceById } from "@features/map/constants/unmsm";
+import { useChat } from "../hooks/useChat";
+import { chatColors, type LocationResult, type Message } from "../types";
+import { ChatInput } from "../components/ChatInput";
+import { MessageBubble } from "../components/MessageBubble";
+import { AIResponse } from "../components/AIResponse";
+import { LocationCard } from "../components/LocationCard";
+import { SuggestionChips } from "../components/SuggestionChips";
+import { TypingIndicator } from "../components/TypingIndicator";
+import { ConversationHistory } from "../components/ConversationHistory";
+import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
-const TITLE = '¿En qué puedo ayudarte hoy?';
+const TITLE = "¿En qué puedo ayudarte hoy?";
 
-const IDLE_PLACEHOLDER = 'Busca lugares o consulta horarios y oficinas.';
+const IDLE_PLACEHOLDER = "Busca lugares o consulta horarios y oficinas.";
 const ANSWERED_PLACEHOLDER =
-  'Puedes preguntarle cualquier información sobre el campus.';
+  "Puedes preguntarle cualquier información sobre el campus.";
 
 const SUGGESTIONS = [
-  'Cómo llegar al auditorio Ela Dunbar Temple?',
-  'Cómo llegar al Rectorado?',
-  'Cómo llegar al Comedor Universitario?',
+  "Cómo llegar al auditorio Ela Dunbar Temple?",
+  "Cómo llegar al Rectorado?",
+  "Cómo llegar al Comedor Universitario?",
 ];
 
 export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
@@ -51,17 +53,18 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
   const listRef = useRef<FlatList<Message>>(null);
   const [historyVisible, setHistoryVisible] = useState(false);
   const setFocusTarget = useMapStore((state) => state.setFocusTarget);
+  const primaryColor = useThemeStore((s) => s.primaryColor);
 
   function handleOpenLocation(location: LocationResult): void {
     const place = getCampusPlaceById(location.id);
     if (place) {
       setFocusTarget(place.coordinate);
     }
-    navigation.navigate('Map');
+    navigation.navigate("Map");
   }
 
   function renderMessage({ item }: { item: Message }): React.JSX.Element {
-    if (item.role === 'user') {
+    if (item.role === "user") {
       return <MessageBubble content={item.content} />;
     }
     return (
@@ -78,27 +81,31 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Reintentar"
-            style={styles.retryButton}
+            style={[
+              styles.retryButton,
+              { borderWidth: 1, borderColor: primaryColor },
+            ]}
             disabled={isLoading}
             onPress={() => retryMessage(item)}
           >
-            <RotateCw color={chatColors.primary} size={16} strokeWidth={2} />
-            <Text style={styles.retryText}>Reintentar</Text>
+            <RotateCw color={primaryColor} size={16} strokeWidth={2} />
+            <Text style={[styles.retryText, { color: primaryColor }]}>
+              Reintentar
+            </Text>
           </Pressable>
         ) : null}
       </View>
     );
   }
 
-  const showResetButton = messages.length > 0 || chatState !== 'idle';
+  const showResetButton = messages.length > 0 || chatState !== "idle";
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* Header: hamburguesa (historial) + nueva conversación */}
         <View style={styles.header}>
           <Pressable
             accessibilityRole="button"
@@ -106,7 +113,14 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
             hitSlop={10}
             onPress={() => setHistoryVisible(true)}
           >
-            <Menu color={chatColors.textPrimary} size={26} strokeWidth={2} />
+            <ChartNoAxesColumn
+              color={chatColors.textPrimary}
+              size={26}
+              strokeWidth={2}
+              style={{
+                transform: [{ rotate: "90deg" }],
+              }}
+            />
           </Pressable>
 
           {showResetButton ? (
@@ -125,7 +139,7 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
           ) : null}
         </View>
 
-        {chatState === 'answered' ? (
+        {chatState === "answered" ? (
           <>
             <FlatList
               ref={listRef}
@@ -156,7 +170,7 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
           <Pressable
             style={[
               styles.centerArea,
-              chatState === 'asking' && styles.centerAreaAsking,
+              chatState === "asking" && styles.centerAreaAsking,
             ]}
             onPress={Keyboard.dismiss}
             accessible={false}
@@ -171,7 +185,7 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
               isLoading={isLoading}
             />
 
-            {chatState === 'idle' ? (
+            {chatState === "idle" ? (
               <SuggestionChips
                 suggestions={SUGGESTIONS}
                 onSelect={onChangeText}
@@ -192,58 +206,53 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: chatColors.background,
+    backgroundColor: lightColors.bgContainer,
+    padding: 24,
   },
   flex: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   centerArea: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    justifyContent: "center",
     gap: 16,
   },
   centerAreaAsking: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
     paddingTop: 80,
   },
   title: {
-    fontFamily: 'FunnelDisplay_600SemiBold',
-    fontSize: 20,
+    fontFamily: "FunnelDisplay_600SemiBold",
+    fontSize: 36,
     color: chatColors.textPrimary,
-    textAlign: 'center',
+    textAlign: "center",
   },
   listContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 4,
     paddingTop: 8,
     paddingBottom: 16,
   },
   retryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
     marginTop: 4,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: chatColors.primary,
   },
   retryText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: chatColors.primary,
+    fontFamily: "DMSans_500Medium",
+    fontSize: 14,
   },
   inputDock: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 4,
     paddingTop: 8,
     paddingBottom: 12,
     backgroundColor: chatColors.background,

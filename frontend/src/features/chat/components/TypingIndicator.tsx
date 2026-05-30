@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
-import { chatColors } from '../types';
+import React, { useEffect, useRef } from "react";
+import { Animated, StyleSheet, View } from "react-native";
+import { chatColors } from "../types";
+import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 const DOT_COUNT = 3;
 const STEP_MS = 200;
@@ -8,8 +10,9 @@ const STEP_MS = 200;
 /** Indicador animado de "escribiendo…" con tres puntos en rebote. */
 export function TypingIndicator(): React.JSX.Element {
   const dots = useRef(
-    Array.from({ length: DOT_COUNT }, () => new Animated.Value(0))
+    Array.from({ length: DOT_COUNT }, () => new Animated.Value(0)),
   ).current;
+  const primaryColor = useThemeStore((s) => s.primaryColor);
 
   useEffect(() => {
     const animations = dots.map((dot, index) =>
@@ -27,8 +30,8 @@ export function TypingIndicator(): React.JSX.Element {
             useNativeDriver: true,
           }),
           Animated.delay((DOT_COUNT - 1 - index) * STEP_MS),
-        ])
-      )
+        ]),
+      ),
     );
     animations.forEach((animation) => animation.start());
     return () => animations.forEach((animation) => animation.stop());
@@ -40,6 +43,7 @@ export function TypingIndicator(): React.JSX.Element {
         <Animated.View
           key={index}
           style={[
+            { backgroundColor: primaryColor },
             styles.dot,
             {
               opacity: dot.interpolate({
@@ -64,8 +68,8 @@ export function TypingIndicator(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingVertical: 10,
   },
@@ -73,6 +77,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: chatColors.primary,
+    backgroundColor: lightColors.bgPrimaryBtn,
   },
 });

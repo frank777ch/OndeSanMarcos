@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   FlatList,
   Modal,
@@ -6,11 +6,13 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MessageSquare, SquarePen, Trash2, X } from 'lucide-react-native';
-import { useChatStore } from '@store/useChatStore';
-import { chatColors, type Conversation } from '../types';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MessageSquare, SquarePen, Trash2, X } from "lucide-react-native";
+import { useChatStore } from "@store/useChatStore";
+import { chatColors, type Conversation } from "../types";
+import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 interface ConversationHistoryProps {
   visible: boolean;
@@ -24,11 +26,11 @@ function formatDate(iso: string): string {
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
 
-  if (date.toDateString() === today.toDateString()) return 'Hoy';
-  if (date.toDateString() === yesterday.toDateString()) return 'Ayer';
+  if (date.toDateString() === today.toDateString()) return "Hoy";
+  if (date.toDateString() === yesterday.toDateString()) return "Ayer";
 
-  const day = `${date.getDate()}`.padStart(2, '0');
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
   return `${day}/${month}/${date.getFullYear()}`;
 }
 
@@ -43,8 +45,9 @@ export function ConversationHistory({
   const selectConversation = useChatStore((state) => state.selectConversation);
   const deleteConversation = useChatStore((state) => state.deleteConversation);
   const startNewConversation = useChatStore(
-    (state) => state.startNewConversation
+    (state) => state.startNewConversation,
   );
+  const primaryColor = useThemeStore((s) => s.primaryColor);
 
   function handleSelect(id: string): void {
     selectConversation(id);
@@ -59,14 +62,19 @@ export function ConversationHistory({
   function renderItem({ item }: { item: Conversation }): React.JSX.Element {
     const isActive = item.id === activeId;
     return (
-      <View style={[styles.item, isActive && styles.itemActive]}>
+      <View
+        style={[
+          styles.item,
+          isActive && { borderWidth: 1, borderColor: primaryColor },
+        ]}
+      >
         <Pressable
           accessibilityRole="button"
           style={styles.itemMain}
           onPress={() => handleSelect(item.id)}
         >
           <MessageSquare
-            color={isActive ? chatColors.primary : chatColors.textSecondary}
+            color={isActive ? primaryColor : chatColors.textSecondary}
             size={18}
             strokeWidth={2}
           />
@@ -100,7 +108,7 @@ export function ConversationHistory({
     >
       <View style={styles.root}>
         <View style={styles.panel}>
-          <SafeAreaView style={styles.panelInner} edges={['top', 'bottom']}>
+          <SafeAreaView style={styles.panelInner} edges={["top", "bottom"]}>
             <View style={styles.header}>
               <Text style={styles.title}>Conversaciones</Text>
               <Pressable
@@ -115,14 +123,10 @@ export function ConversationHistory({
 
             <Pressable
               accessibilityRole="button"
-              style={styles.newButton}
+              style={[styles.newButton, { backgroundColor: primaryColor }]}
               onPress={handleNew}
             >
-              <SquarePen
-                color={chatColors.surface}
-                size={18}
-                strokeWidth={2}
-              />
+              <SquarePen color={chatColors.surface} size={18} strokeWidth={2} />
               <Text style={styles.newButtonText}>Nueva conversación</Text>
             </Pressable>
 
@@ -157,10 +161,10 @@ export function ConversationHistory({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   panel: {
-    width: '82%',
+    width: "82%",
     maxWidth: 340,
     backgroundColor: chatColors.background,
   },
@@ -170,31 +174,31 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: "rgba(0, 0, 0, 0.35)",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
   },
   title: {
-    fontFamily: 'FunnelDisplay_600SemiBold',
+    fontFamily: "FunnelDisplay_600SemiBold",
     fontSize: 18,
     color: chatColors.textPrimary,
   },
   newButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    backgroundColor: chatColors.primary,
+    backgroundColor: lightColors.bgPrimaryBtn,
     borderRadius: 14,
     paddingVertical: 12,
     marginBottom: 8,
   },
   newButtonText: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: "DMSans_500Medium",
     fontSize: 14,
     color: chatColors.surface,
   },
@@ -203,20 +207,16 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   item: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: chatColors.surface,
     borderRadius: 12,
     paddingRight: 8,
   },
-  itemActive: {
-    borderWidth: 1.5,
-    borderColor: chatColors.primary,
-  },
   itemMain: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     paddingVertical: 12,
     paddingLeft: 12,
@@ -226,12 +226,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   itemTitle: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: "DMSans_500Medium",
     fontSize: 14,
     color: chatColors.textPrimary,
   },
   itemDate: {
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: "DMSans_400Regular",
     fontSize: 12,
     color: chatColors.textSecondary,
   },
@@ -239,10 +239,10 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   empty: {
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: "DMSans_400Regular",
     fontSize: 13,
     color: chatColors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     paddingVertical: 24,
   },
 });
