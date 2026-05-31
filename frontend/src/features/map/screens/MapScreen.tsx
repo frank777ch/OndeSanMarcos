@@ -65,7 +65,6 @@ export function MapScreen() {
   const activeRoute = useMapStore((state) => state.activeRoute);
   const isRouteActive = useMapStore((state) => state.isRouteActive);
   const clearRouteStore = useMapStore((state) => state.clearRoute);
-  const focusTarget = useMapStore((state) => state.focusTarget);
   const { calculateRoute, clearRoute, isCalculating } = useRouting();
 
   const primaryColor = useThemeStore((s) => s.primaryColor);
@@ -136,6 +135,10 @@ export function MapScreen() {
     startName: string,
     endName: string,
   ) => {
+    // Para demo: colocar al usuario en el inicio de la ruta y mostrar avatar inmediatamente
+    setUserLocation(start);
+    setShowAvatar(true);
+
     await calculateRoute(start, end, startName, endName);
     handleModeToggle("guia");
   };
@@ -220,8 +223,30 @@ export function MapScreen() {
   useEffect(() => {
     let locSub: Location.LocationSubscription | null = null;
     let headSub: Location.LocationSubscription | null = null;
+    let simInterval: NodeJS.Timeout | null = null;
 
     if (appMode === "guia") {
+      // DEMO: Simular el recorrido de la ruta en lugar de usar GPS real
+      if (isRouteActive && activeRoute.length > 0) {
+        setIsWalking(true);
+        let currentIndex = 0;
+        simInterval = setInterval(() => {
+          if (currentIndex < activeRoute.length) {
+            const point = activeRoute[currentIndex];
+            const coords: [number, number] = [point.longitude, point.latitude];
+            setUserLocation(coords);
+            if (isFollowingUserRef.current) {
+              moveToPoint(coords);
+            }
+            currentIndex++;
+          } else {
+            setIsWalking(false);
+            if (simInterval) clearInterval(simInterval);
+          }
+        }, 1500); // Mueve el avatar a lo largo de la ruta cada 1.5s
+      }
+
+      /* Código original de GPS comentado para la demo:
       (async () => {
         // Suscribirse a la ubicación
         locSub = await Location.watchPositionAsync(
@@ -251,17 +276,20 @@ export function MapScreen() {
           setHeading(head.magHeading);
         });
       })();
+      */
     } else if (appMode === "ninguno" || appMode === "libre") {
       // Limpiar suscripciones si se sale del modo guía
       if (locSub) locSub.remove();
       if (headSub) headSub.remove();
+      if (simInterval) clearInterval(simInterval);
     }
 
     return () => {
       if (locSub) locSub.remove();
       if (headSub) headSub.remove();
+      if (simInterval) clearInterval(simInterval);
     };
-  }, [appMode]);
+  }, [appMode, isRouteActive, activeRoute]);
 
   useEffect(() => {
     return () => {

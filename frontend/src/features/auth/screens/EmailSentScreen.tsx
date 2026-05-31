@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { AuthHeader } from "@shared/components/AuthHeader";
+import { AuthHeader } from "@/features/auth/components/AuthHeader";
 import type { EmailSentScreenProps } from "@navigation/types";
 import SentEmail from "@shared/assets/message-sent.svg";
 import { lightColors } from "@theme/light";
@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
     backgroundColor: lightColors.bg,
     padding: 48,
   },
-
 
   centerContent: {
     flex: 1,

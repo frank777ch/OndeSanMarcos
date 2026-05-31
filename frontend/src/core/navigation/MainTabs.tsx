@@ -3,7 +3,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type { MainTabsParamList } from "./types";
 import { MapScreen } from "@features/map/screens/MapScreen";
 import { ChatScreen } from "@features/chat/screens/ChatScreen";
-import { Colors } from "@constants/colors";
 import { ProfileStack } from "./ProfileStack";
 import { MapPinned, MessageCircle, User2 } from "lucide-react-native";
 import { lightColors } from "@/theme/light";
@@ -20,8 +19,8 @@ export function MainTabs() {
         tabBarActiveTintColor: primaryColor,
         tabBarInactiveTintColor: lightColors.textGhostBtn,
         tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
+          backgroundColor: lightColors.bg,
+          borderTopColor: lightColors.strokeSecondaryBtn,
           height: 88,
           paddingTop: 10,
           paddingBottom: 24,

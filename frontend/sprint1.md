@@ -43,8 +43,6 @@ frontend/
 │
 └── src/
     ├── constants/                   ✅ COMPLETO
-    │   ├── colors.ts                ✅ Paleta UNMSM (azul #003087, amarillo #E8B800)
-    │   ├── typography.ts            ✅ FontSize, FontWeight
     │   └── config.ts                ✅ Lee variables de .env
     │
     ├── core/                        ✅ (renombrado desde src/app para evitar conflicto con Expo Router)
