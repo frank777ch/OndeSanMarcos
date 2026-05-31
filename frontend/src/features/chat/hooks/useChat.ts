@@ -1,8 +1,11 @@
 import { useCallback } from 'react';
 import { LayoutAnimation } from 'react-native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { Config } from '@constants/config';
 import { selectActiveMessages, useChatStore } from '@store/useChatStore';
+import { useMapStore } from '@store/useMapStore';
 import { sendChatQuery } from '@services/api/chatApi';
+import type { MainTabsParamList } from '@navigation/types';
 import { mockChatQuery } from '../constants/mockChat';
 import type { ChatResponse, ChatState, Message } from '../types';
 
@@ -58,6 +61,11 @@ export function useChat(): UseChatResult {
     (state) => state.startNewConversation
   );
 
+  // Enrutamiento automático (HU-2.3): cuando el backend marca `drawRoute`, el
+  // chat fija el destino en el store del mapa y salta a la pestaña Mapa.
+  const navigation = useNavigation<NavigationProp<MainTabsParamList>>();
+  const setFocusTarget = useMapStore((state) => state.setFocusTarget);
+
   const onChangeText = useCallback(
     (text: string) => {
       setInputText(text);
@@ -86,6 +94,10 @@ export function useChat(): UseChatResult {
           locations: response.locations,
           timestamp: new Date(),
         });
+        if (response.drawRoute && response.destination) {
+          setFocusTarget(response.destination);
+          navigation.navigate('Map');
+        }
       } catch {
         addMessage({
           id: nextId(),
@@ -99,7 +111,7 @@ export function useChat(): UseChatResult {
         setLoading(false);
       }
     },
-    [addMessage, setLoading]
+    [addMessage, setLoading, navigation, setFocusTarget]
   );
 
   const sendMessage = useCallback(async () => {
