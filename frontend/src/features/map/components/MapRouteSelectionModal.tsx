@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -34,6 +34,9 @@ export function MapRouteSelectionModal({
   const [endQuery, setEndQuery] = useState("");
   const [activeField, setActiveField] = useState<"start" | "end">("start");
 
+  const startInputRef = useRef<TextInput>(null);
+  const endInputRef = useRef<TextInput>(null);
+
   useEffect(() => {
     if (visible) {
       if (userLocation) {
@@ -55,6 +58,7 @@ export function MapRouteSelectionModal({
       setStartPlace(place);
       setStartQuery(place.name);
       setActiveField("end"); // Auto-enfocar destino
+      setTimeout(() => endInputRef.current?.focus(), 100);
     } else {
       setEndPlace(place);
       setEndQuery(place.name);
@@ -66,17 +70,24 @@ export function MapRouteSelectionModal({
       setStartPlace("current");
       setStartQuery("Ubicación actual");
       setActiveField("end");
+      setTimeout(() => endInputRef.current?.focus(), 100);
     }
   };
 
   const handleStartQueryChange = (text: string) => {
     setStartQuery(text);
-    if (startPlace) setStartPlace(null);
+    if (startPlace === "current") {
+      if (text !== "Ubicación actual") setStartPlace(null);
+    } else if (startPlace) {
+      if (text !== startPlace.name) setStartPlace(null);
+    }
   };
 
   const handleEndQueryChange = (text: string) => {
     setEndQuery(text);
-    if (endPlace) setEndPlace(null);
+    if (endPlace && text !== endPlace.name) {
+      setEndPlace(null);
+    }
   };
 
   const handleConfirm = () => {
@@ -157,6 +168,7 @@ export function MapRouteSelectionModal({
               color={activeField === "start" ? primaryColor : "#777"}
             />
             <TextInput
+              ref={startInputRef}
               style={styles.textInput}
               placeholder="Elegir punto de partida..."
               placeholderTextColor="#999"
@@ -181,6 +193,7 @@ export function MapRouteSelectionModal({
               color={activeField === "end" ? primaryColor : "#777"}
             />
             <TextInput
+              ref={endInputRef}
               style={styles.textInput}
               placeholder="Elegir destino..."
               placeholderTextColor="#999"
