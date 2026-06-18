@@ -53,12 +53,20 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
   const listRef = useRef<FlatList<Message>>(null);
   const [historyVisible, setHistoryVisible] = useState(false);
   const setFocusTarget = useMapStore((state) => state.setFocusTarget);
+  const setFocusedPlace = useMapStore((state) => state.setFocusedPlace);
   const primaryColor = useThemeStore((s) => s.primaryColor);
 
   function handleOpenLocation(location: LocationResult): void {
     const place = getCampusPlaceById(location.id);
     if (place) {
       setFocusTarget(place.coordinate);
+      setFocusedPlace({
+        id: place.id,
+        name: place.name,
+        schedule: place.schedule,
+        latitude: place.coordinate.latitude,
+        longitude: place.coordinate.longitude,
+      });
     }
     navigation.navigate("Map");
   }

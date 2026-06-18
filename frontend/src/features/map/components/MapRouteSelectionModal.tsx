@@ -176,6 +176,11 @@ export function MapRouteSelectionModal({
               onChangeText={handleStartQueryChange}
               onFocus={() => setActiveField("start")}
             />
+            {startQuery.length > 0 && (
+              <TouchableOpacity onPress={() => handleStartQueryChange("")}>
+                <Ionicons name="close-circle" size={20} color="#C4C4C4" />
+              </TouchableOpacity>
+            )}
           </View>
 
           <View
@@ -201,6 +206,11 @@ export function MapRouteSelectionModal({
               onChangeText={handleEndQueryChange}
               onFocus={() => setActiveField("end")}
             />
+            {endQuery.length > 0 && (
+              <TouchableOpacity onPress={() => handleEndQueryChange("")}>
+                <Ionicons name="close-circle" size={20} color="#C4C4C4" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 

@@ -13,6 +13,7 @@ import { MapActionButtons } from "../components/MapActionButtons";
 import { useMapCamera } from "../hooks/useMapCamera";
 import { MapSpawnModal } from "../components/MapSpawnModal";
 import { MapRouteSelectionModal } from "../components/MapRouteSelectionModal";
+import { MapPlaceInfoCard } from "../components/MapPlaceInfoCard";
 import { useMapStore } from "../../../core/store/useMapStore";
 import { useRouting } from "../../routing/hooks/useRouting";
 import { MapRouteInfoCard } from "../components/MapRouteInfoCard";
@@ -46,6 +47,7 @@ export function MapScreen() {
   const [showAvatar, setShowAvatar] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isWalking, setIsWalking] = useState(false);
+  const [isGpsEnabled, setIsGpsEnabled] = useState(false);
 
   const [appMode, setAppMode] = useState<"ninguno" | "libre" | "guia">(
     "ninguno",
@@ -73,6 +75,7 @@ export function MapScreen() {
   // Destino solicitado desde fuera del mapa (chat o botón "Abrir"): HU-2.3.
   const focusTarget = useMapStore((s) => s.focusTarget);
   const clearFocusTarget = useMapStore((s) => s.clearFocusTarget);
+  const focusedPlace = useMapStore((s) => s.focusedPlace);
 
   // Timer para detectar cuándo el usuario dejó de arrastrar el mapa
   const walkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -169,7 +172,21 @@ export function MapScreen() {
   }, [focusTarget, clearFocusTarget]);
 
   useEffect(() => {
-    async () => {
+    const checkGps = async () => {
+      try {
+        const { locationServicesEnabled } = await Location.getProviderStatusAsync();
+        setIsGpsEnabled(locationServicesEnabled);
+      } catch (e) {
+        setIsGpsEnabled(false);
+      }
+    };
+    checkGps();
+    const interval = setInterval(checkGps, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setShowAvatar(false);
@@ -217,7 +234,7 @@ export function MapScreen() {
       } catch (error) {
         console.error("Error obteniendo ubicación:", error);
       }
-    };
+    })();
   }, []);
 
   useEffect(() => {
@@ -435,31 +452,63 @@ export function MapScreen() {
           />
         </MapboxGL.ShapeSource>
 
-        {showAvatar && userLocation && (
-          <MapboxGL.PointAnnotation id="avatar" coordinate={userLocation}>
-            {appMode === "guia" ? (
-              <Image
-                source={avatarSource}
-                style={{ width: 80, height: 80 }}
-                contentFit="contain"
-              />
-            ) : (
-              <View
-                style={{
-                  width: 84,
-                  height: 84,
-                  borderRadius: 42,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderWidth: 2,
-                  borderColor: "red",
-                  overflow: "hidden",
-                }}
-              >
-                <Text style={{ fontSize: 34 }}>👨‍🏫</Text>
-              </View>
-            )}
+        {isGpsEnabled && userLocation && (
+          <MapboxGL.PointAnnotation id="user-location" coordinate={userLocation}>
+            <View style={{
+              width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(66, 133, 244, 0.3)", alignItems: "center", justifyContent: "center"
+            }}>
+              <View style={{
+                width: 14, height: 14, borderRadius: 7, backgroundColor: "#4285F4", borderWidth: 2, borderColor: "white"
+              }} />
+            </View>
           </MapboxGL.PointAnnotation>
+        )}
+
+        {focusedPlace && (
+          <MapboxGL.MarkerView
+            id="focused-place-pin"
+            coordinate={[focusedPlace.longitude, focusedPlace.latitude]}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <View style={{ alignItems: "center", justifyContent: "center", width: 44, height: 50 }}>
+              <View style={{
+                position: "absolute",
+                bottom: 12,
+                backgroundColor: primaryColor,
+                borderRadius: 20,
+                padding: 8,
+                shadowColor: "#000",
+                shadowOpacity: 0.3,
+                shadowRadius: 5,
+                shadowOffset: { width: 0, height: 3 },
+                elevation: 6,
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <MapPin size={22} color="white" />
+              </View>
+              <View style={{
+                position: "absolute",
+                bottom: 5,
+                width: 0,
+                height: 0,
+                borderLeftWidth: 8,
+                borderRightWidth: 8,
+                borderTopWidth: 10,
+                borderLeftColor: "transparent",
+                borderRightColor: "transparent",
+                borderTopColor: primaryColor,
+              }} />
+              <View style={{
+                position: "absolute",
+                bottom: 1,
+                width: 8,
+                height: 4,
+                borderRadius: 4,
+                backgroundColor: "rgba(0,0,0,0.3)",
+              }} />
+            </View>
+          </MapboxGL.MarkerView>
         )}
 
         {startCoord && (
@@ -487,10 +536,11 @@ export function MapScreen() {
         )}
 
         {destinationCoord && (
-          <MapboxGL.PointAnnotation
+          <MapboxGL.MarkerView
             id="destination-pin"
             key={`destination-pin-${primaryColor}`}
             coordinate={destinationCoord as [number, number]}
+            anchor={{ x: 0.5, y: 0.5 }}
           >
             <View style={{ alignItems: "center" }}>
               <View
@@ -507,7 +557,7 @@ export function MapScreen() {
                   elevation: 5,
                 }}
               >
-                <MapPin size={16} color="white" />
+                <MapPin size={16} color={primaryColor} />
               </View>
               {/* Punta del pin */}
               <View
@@ -528,20 +578,11 @@ export function MapScreen() {
                 }}
               />
             </View>
-          </MapboxGL.PointAnnotation>
+          </MapboxGL.MarkerView>
         )}
       </MapboxGL.MapView>
 
-      {/* ── CAPA 2: AVATAR FLOTANTE ── */}
-      {shouldShowAvatar && appMode === "libre" && (
-        <View style={styles.avatarOverlay} pointerEvents="none">
-          <Image
-            source={avatarSource}
-            style={styles.avatarImage}
-            contentFit="contain"
-          />
-        </View>
-      )}
+
 
       {/* ── CAPA 3: UI ── */}
       <MapSearchBar />
@@ -552,7 +593,7 @@ export function MapScreen() {
         }
       />
       <MapLocationButton
-        disabled={userLocation === null}
+        disabled={!isGpsEnabled}
         onPress={() => {
           if (userLocation) {
             setIsFollowingUser(true);
@@ -581,6 +622,7 @@ export function MapScreen() {
         userLocation={userLocation}
       />
 
+      <MapPlaceInfoCard />
       <MapRouteInfoCard />
     </View>
   );

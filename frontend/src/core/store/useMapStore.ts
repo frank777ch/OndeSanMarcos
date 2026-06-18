@@ -11,6 +11,14 @@ interface RouteMetadata {
   distance: number;
 }
 
+export interface PlaceInfo {
+  id: string;
+  name: string;
+  schedule?: string;
+  latitude: number;
+  longitude: number;
+}
+
 interface MapState {
   userLocation: Coordinate | null;
   userHeading: number;
@@ -20,6 +28,7 @@ interface MapState {
   mapMode: 'free' | 'guide';
   /** Lugar al que debe centrarse el mapa (p. ej. al abrirlo desde el chat). */
   focusTarget: Coordinate | null;
+  focusedPlace: PlaceInfo | null;
   setUserLocation: (coord: Coordinate) => void;
   setUserHeading: (heading: number) => void;
   setActiveRoute: (coords: Coordinate[], metadata?: RouteMetadata | null) => void;
@@ -27,6 +36,7 @@ interface MapState {
   setMapMode: (mode: 'free' | 'guide') => void;
   setFocusTarget: (coord: Coordinate) => void;
   clearFocusTarget: () => void;
+  setFocusedPlace: (place: PlaceInfo | null) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -37,6 +47,7 @@ export const useMapStore = create<MapState>((set) => ({
   isRouteActive: false,
   mapMode: 'free',
   focusTarget: null,
+  focusedPlace: null,
   setUserLocation: (coord) => set({ userLocation: coord }),
   setUserHeading: (heading) => set({ userHeading: heading }),
   setActiveRoute: (coords, metadata = null) =>
@@ -45,4 +56,5 @@ export const useMapStore = create<MapState>((set) => ({
   setMapMode: (mode) => set({ mapMode: mode }),
   setFocusTarget: (coord) => set({ focusTarget: coord }),
   clearFocusTarget: () => set({ focusTarget: null }),
+  setFocusedPlace: (place) => set({ focusedPlace: place }),
 }));

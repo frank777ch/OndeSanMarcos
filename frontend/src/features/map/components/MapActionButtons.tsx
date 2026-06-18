@@ -4,6 +4,8 @@ import { Route, Road, Signpost, X, Map, Trash2 } from "lucide-react-native";
 import { lightColors } from "@/theme/light";
 import { useThemeStore } from "@/core/store/useThemeStore";
 
+import { useMapStore } from "@/core/store/useMapStore";
+
 interface MapActionButtonsProps {
   onModeSelect: (modo: "ninguno" | "libre" | "guia") => void;
   onStartRoute?: () => void;
@@ -11,19 +13,37 @@ interface MapActionButtonsProps {
   isRouteActive?: boolean;
 }
 
-export function MapActionButtons({ onModeSelect, onStartRoute, onStopRoute, isRouteActive }: MapActionButtonsProps) {
+export function MapActionButtons({
+  onModeSelect,
+  onStartRoute,
+  onStopRoute,
+  isRouteActive,
+}: MapActionButtonsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const primaryColor = useThemeStore((s) => s.primaryColor);
+  const focusedPlace = useMapStore((s) => s.focusedPlace);
+
+  const bottomPosition = focusedPlace ? 170 : 30;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { bottom: bottomPosition }]}>
       {isRouteActive ? (
-        <TouchableOpacity style={styles.whiteButton} activeOpacity={0.8} onPress={onStopRoute}>
+        <TouchableOpacity
+          style={styles.whiteButton}
+          activeOpacity={0.8}
+          onPress={onStopRoute}
+        >
           <Trash2 size={20} color="red" />
-          <Text style={[styles.whiteText, { color: "red" }]}>Cancelar ruta</Text>
+          <Text style={[styles.whiteText, { color: "red" }]}>
+            Cancelar ruta
+          </Text>
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity style={styles.whiteButton} activeOpacity={0.8} onPress={onStartRoute}>
+        <TouchableOpacity
+          style={styles.whiteButton}
+          activeOpacity={0.8}
+          onPress={onStartRoute}
+        >
           <Route size={20} color={lightColors.textLinkBtn} />
           <Text style={styles.whiteText}>Iniciar ruta</Text>
         </TouchableOpacity>
@@ -40,8 +60,8 @@ export function MapActionButtons({ onModeSelect, onStartRoute, onStopRoute, isRo
             <Text style={styles.blueText}>Modo libre</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.blueButton, { backgroundColor: primaryColor }]} 
+          <TouchableOpacity
+            style={[styles.blueButton, { backgroundColor: primaryColor }]}
             activeOpacity={0.8}
             onPress={() => onModeSelect("guia")}
           >
@@ -121,4 +141,3 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
-
