@@ -48,6 +48,7 @@ export function MapScreen() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isWalking, setIsWalking] = useState(false);
   const [isGpsEnabled, setIsGpsEnabled] = useState(false);
+  const [exploreLocation, setExploreLocation] = useState<[number, number] | null>(null);
 
   const [appMode, setAppMode] = useState<"ninguno" | "libre" | "guia">(
     "ninguno",
@@ -59,6 +60,7 @@ export function MapScreen() {
     cameraConfig,
     goToDefaultMode,
     goToFreeMode,
+    goToRoutePreview,
     goToGuideMode,
     moveToPoint,
     setHeading,
@@ -138,12 +140,17 @@ export function MapScreen() {
     startName: string,
     endName: string,
   ) => {
-    // Para demo: colocar al usuario en el inicio de la ruta y mostrar avatar inmediatamente
-    setUserLocation(start);
-    setShowAvatar(true);
-
+    // Trazamos la ruta
     await calculateRoute(start, end, startName, endName);
-    handleModeToggle("guia");
+
+    // Salimos de cualquier modo activo para que no salga el avatar y no se bloquee la cámara en el GPS
+    setIsWalking(false);
+    setIsFollowingUser(false);
+    isFollowingUserRef.current = false;
+    setAppMode("ninguno");
+
+    // Centramos la cámara al inicio de la ruta sin iniciar seguimiento
+    goToRoutePreview(start);
   };
 
   const handleStopRoute = () => {
@@ -152,11 +159,14 @@ export function MapScreen() {
     handleModeToggle("ninguno");
   };
 
-  const handleSpawnSelection = (coords: [number, number]) => {
+  const handleSpawnSelection = (coords: [number, number], isCurrentLocation?: boolean) => {
     setIsSpawnModalVisible(false);
     setAppMode("libre");
-    setUserLocation(coords);
-    setShowAvatar(true);
+    if (!isCurrentLocation) {
+      setExploreLocation(coords);
+    } else {
+      setExploreLocation(null);
+    }
     goToFreeMode(coords);
   };
 
@@ -243,57 +253,37 @@ export function MapScreen() {
     let simInterval: NodeJS.Timeout | null = null;
 
     if (appMode === "guia") {
-      // DEMO: Simular el recorrido de la ruta en lugar de usar GPS real
-      if (isRouteActive && activeRoute.length > 0) {
-        setIsWalking(true);
-        let currentIndex = 0;
-        simInterval = setInterval(() => {
-          if (currentIndex < activeRoute.length) {
-            const point = activeRoute[currentIndex];
-            const coords: [number, number] = [point.longitude, point.latitude];
-            setUserLocation(coords);
-            if (isFollowingUserRef.current) {
-              moveToPoint(coords);
-            }
-            currentIndex++;
-          } else {
-            setIsWalking(false);
-            if (simInterval) clearInterval(simInterval);
-          }
-        }, 1500); // Mueve el avatar a lo largo de la ruta cada 1.5s
-      }
-
-      /* Código original de GPS comentado para la demo:
       (async () => {
-        // Suscribirse a la ubicación
-        locSub = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.High,
-            timeInterval: 2000,
-            distanceInterval: 1,
-          },
-          (loc) => {
-            const coords: [number, number] = [
-              loc.coords.longitude,
-              loc.coords.latitude,
-            ];
-            setUserLocation(coords);
-            if (isFollowingUserRef.current) {
-              moveToPoint(coords);
-            }
-            if (appMode === "guia") {
+        // Suscribirse a la ubicación real
+        try {
+          locSub = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.High,
+              timeInterval: 2000,
+              distanceInterval: 1,
+            },
+            (loc) => {
+              const coords: [number, number] = [
+                loc.coords.longitude,
+                loc.coords.latitude,
+              ];
+              setUserLocation(coords);
+              if (isFollowingUserRef.current) {
+                moveToPoint(coords);
+              }
               const speed = loc.coords.speed || 0;
               setIsWalking(speed > 0.5);
-            }
-          },
-        );
+            },
+          );
 
-        // Suscribirse a la brújula
-        headSub = await Location.watchHeadingAsync((head) => {
-          setHeading(head.magHeading);
-        });
+          // Suscribirse a la brújula
+          headSub = await Location.watchHeadingAsync((head) => {
+            setHeading(head.magHeading);
+          });
+        } catch (error) {
+          console.error("Error activando seguimiento GPS en tiempo real", error);
+        }
       })();
-      */
     } else if (appMode === "ninguno" || appMode === "libre") {
       // Limpiar suscripciones si se sale del modo guía
       if (locSub) locSub.remove();
@@ -453,7 +443,28 @@ export function MapScreen() {
         </MapboxGL.ShapeSource>
 
         {isGpsEnabled && userLocation && (
-          <MapboxGL.PointAnnotation id="user-location" coordinate={userLocation}>
+          <MapboxGL.MarkerView id="user-location" coordinate={userLocation} anchor={{ x: 0.5, y: 0.5 }}>
+            {isInsideCampus(userLocation[1], userLocation[0]) && appMode !== "ninguno" ? (
+              <Image
+                source={avatarSource}
+                style={{ width: 80, height: 80 }}
+                contentFit="contain"
+              />
+            ) : (
+              <View style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
+                <View style={{
+                  position: "absolute", width: 32, height: 32, borderRadius: 16, backgroundColor: primaryColor, opacity: 0.3
+                }} />
+                <View style={{
+                  width: 18, height: 18, borderRadius: 9, backgroundColor: primaryColor, borderWidth: 2.5, borderColor: "white"
+                }} />
+              </View>
+            )}
+          </MapboxGL.MarkerView>
+        )}
+
+        {appMode === "libre" && exploreLocation && (
+          <MapboxGL.MarkerView id="explore-location" coordinate={exploreLocation} anchor={{ x: 0.5, y: 0.5 }}>
             <View style={{
               width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(66, 133, 244, 0.3)", alignItems: "center", justifyContent: "center"
             }}>
@@ -461,7 +472,7 @@ export function MapScreen() {
                 width: 14, height: 14, borderRadius: 7, backgroundColor: "#4285F4", borderWidth: 2, borderColor: "white"
               }} />
             </View>
-          </MapboxGL.PointAnnotation>
+          </MapboxGL.MarkerView>
         )}
 
         {focusedPlace && (
@@ -607,12 +618,15 @@ export function MapScreen() {
         onStartRoute={handleStartRoute}
         onStopRoute={handleStopRoute}
         isRouteActive={isRouteActive}
+        isGpsEnabled={isGpsEnabled}
       />
 
       <MapSpawnModal
         visible={isSpawnModalVisible}
         onClose={() => setIsSpawnModalVisible(false)}
         onSelectPoint={handleSpawnSelection}
+        isGpsEnabled={isGpsEnabled}
+        userLocation={userLocation}
       />
 
       <MapRouteSelectionModal

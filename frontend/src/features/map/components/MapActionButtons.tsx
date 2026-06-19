@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet, Platform, ToastAndroid, Alert } from "react-native";
 import { Route, Road, Signpost, X, Map, Trash2 } from "lucide-react-native";
 import { lightColors } from "@/theme/light";
 import { useThemeStore } from "@/core/store/useThemeStore";
@@ -11,6 +11,7 @@ interface MapActionButtonsProps {
   onStartRoute?: () => void;
   onStopRoute?: () => void;
   isRouteActive?: boolean;
+  isGpsEnabled?: boolean;
 }
 
 export function MapActionButtons({
@@ -18,6 +19,7 @@ export function MapActionButtons({
   onStartRoute,
   onStopRoute,
   isRouteActive,
+  isGpsEnabled,
 }: MapActionButtonsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const primaryColor = useThemeStore((s) => s.primaryColor);
@@ -54,7 +56,16 @@ export function MapActionButtons({
           <TouchableOpacity
             style={[styles.blueButton, { backgroundColor: primaryColor }]}
             activeOpacity={0.8}
-            onPress={() => onModeSelect("libre")}
+            onPress={() => {
+              if (!isGpsEnabled) {
+                if (Platform.OS === "android") {
+                  ToastAndroid.show("Debes activar tu GPS para mayor precisión.", ToastAndroid.SHORT);
+                } else {
+                  Alert.alert("GPS desactivado", "Debes activar tu GPS para mayor precisión.");
+                }
+              }
+              onModeSelect("libre");
+            }}
           >
             <Road size={20} color="#FFF" />
             <Text style={styles.blueText}>Modo libre</Text>
