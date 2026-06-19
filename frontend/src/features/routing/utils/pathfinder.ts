@@ -1,4 +1,4 @@
-import geojsonData from "./rutas-caminos.json";
+import geojsonData from "./rutas-caminos-completo.json";
 
 export type Coord = [number, number]; // [longitude, latitude]
 

@@ -272,9 +272,7 @@ frontend/
     ├── shared/                   # Código reutilizable entre features
     │   ├── components/           # UI genérica
     │   │   ├── Button.tsx        # Botón custom con variantes
-    │   │   ├── Input.tsx         # Input custom con validación
-    │   │   ├── Toast.tsx         # Notificaciones tipo toast
-    │   │   └── LoadingOverlay.tsx
+    │   │   └── Input.tsx         # Input custom con validación
     │   ├── hooks/                # Hooks genéricos
     │   │   └── usePermissions.ts # Manejo de permisos GPS, cámara, etc.
     │   └── utils/                # Funciones puras sin side effects
@@ -290,8 +288,6 @@ frontend/
     │       └── chat.service.ts   # POST /chat → retorna respuesta + coords
     │
     └── constants/                # Valores globales inmutables
-        ├── colors.ts             # Paleta de colores de la app
-        ├── typography.ts         # Fuentes y tamaños
         └── config.ts             # URLs, timeouts, flags de features
 ```
 

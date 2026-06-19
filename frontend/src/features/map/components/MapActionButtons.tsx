@@ -1,29 +1,51 @@
 import { useState } from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet, Platform, ToastAndroid, Alert } from "react-native";
 import { Route, Road, Signpost, X, Map, Trash2 } from "lucide-react-native";
 import { lightColors } from "@/theme/light";
 import { useThemeStore } from "@/core/store/useThemeStore";
+
+import { useMapStore } from "@/core/store/useMapStore";
 
 interface MapActionButtonsProps {
   onModeSelect: (modo: "ninguno" | "libre" | "guia") => void;
   onStartRoute?: () => void;
   onStopRoute?: () => void;
   isRouteActive?: boolean;
+  isGpsEnabled?: boolean;
 }
 
-export function MapActionButtons({ onModeSelect, onStartRoute, onStopRoute, isRouteActive }: MapActionButtonsProps) {
+export function MapActionButtons({
+  onModeSelect,
+  onStartRoute,
+  onStopRoute,
+  isRouteActive,
+  isGpsEnabled,
+}: MapActionButtonsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const primaryColor = useThemeStore((s) => s.primaryColor);
+  const focusedPlace = useMapStore((s) => s.focusedPlace);
+
+  const bottomPosition = focusedPlace ? 170 : 30;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { bottom: bottomPosition }]}>
       {isRouteActive ? (
-        <TouchableOpacity style={styles.whiteButton} activeOpacity={0.8} onPress={onStopRoute}>
+        <TouchableOpacity
+          style={styles.whiteButton}
+          activeOpacity={0.8}
+          onPress={onStopRoute}
+        >
           <Trash2 size={20} color="red" />
-          <Text style={[styles.whiteText, { color: "red" }]}>Cancelar ruta</Text>
+          <Text style={[styles.whiteText, { color: "red" }]}>
+            Cancelar ruta
+          </Text>
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity style={styles.whiteButton} activeOpacity={0.8} onPress={onStartRoute}>
+        <TouchableOpacity
+          style={styles.whiteButton}
+          activeOpacity={0.8}
+          onPress={onStartRoute}
+        >
           <Route size={20} color={lightColors.textLinkBtn} />
           <Text style={styles.whiteText}>Iniciar ruta</Text>
         </TouchableOpacity>
@@ -34,14 +56,23 @@ export function MapActionButtons({ onModeSelect, onStartRoute, onStopRoute, isRo
           <TouchableOpacity
             style={[styles.blueButton, { backgroundColor: primaryColor }]}
             activeOpacity={0.8}
-            onPress={() => onModeSelect("libre")}
+            onPress={() => {
+              if (!isGpsEnabled) {
+                if (Platform.OS === "android") {
+                  ToastAndroid.show("Debes activar tu GPS para mayor precisión.", ToastAndroid.SHORT);
+                } else {
+                  Alert.alert("GPS desactivado", "Debes activar tu GPS para mayor precisión.");
+                }
+              }
+              onModeSelect("libre");
+            }}
           >
             <Road size={20} color="#FFF" />
             <Text style={styles.blueText}>Modo libre</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.blueButton, { backgroundColor: primaryColor }]} 
+          <TouchableOpacity
+            style={[styles.blueButton, { backgroundColor: primaryColor }]}
             activeOpacity={0.8}
             onPress={() => onModeSelect("guia")}
           >
@@ -121,4 +152,3 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
-

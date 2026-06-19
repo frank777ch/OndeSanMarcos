@@ -13,6 +13,7 @@ import { MapActionButtons } from "../components/MapActionButtons";
 import { useMapCamera } from "../hooks/useMapCamera";
 import { MapSpawnModal } from "../components/MapSpawnModal";
 import { MapRouteSelectionModal } from "../components/MapRouteSelectionModal";
+import { MapPlaceInfoCard } from "../components/MapPlaceInfoCard";
 import { useMapStore } from "../../../core/store/useMapStore";
 import { useRouting } from "../../routing/hooks/useRouting";
 import { MapRouteInfoCard } from "../components/MapRouteInfoCard";
@@ -46,6 +47,8 @@ export function MapScreen() {
   const [showAvatar, setShowAvatar] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isWalking, setIsWalking] = useState(false);
+  const [isGpsEnabled, setIsGpsEnabled] = useState(false);
+  const [exploreLocation, setExploreLocation] = useState<[number, number] | null>(null);
 
   const [appMode, setAppMode] = useState<"ninguno" | "libre" | "guia">(
     "ninguno",
@@ -57,6 +60,7 @@ export function MapScreen() {
     cameraConfig,
     goToDefaultMode,
     goToFreeMode,
+    goToRoutePreview,
     goToGuideMode,
     moveToPoint,
     setHeading,
@@ -65,11 +69,15 @@ export function MapScreen() {
   const activeRoute = useMapStore((state) => state.activeRoute);
   const isRouteActive = useMapStore((state) => state.isRouteActive);
   const clearRouteStore = useMapStore((state) => state.clearRoute);
-  const focusTarget = useMapStore((state) => state.focusTarget);
   const { calculateRoute, clearRoute, isCalculating } = useRouting();
 
   const primaryColor = useThemeStore((s) => s.primaryColor);
   const routeMetadata = useMapStore((s) => s.routeMetadata);
+
+  // Destino solicitado desde fuera del mapa (chat o botón "Abrir"): HU-2.3.
+  const focusTarget = useMapStore((s) => s.focusTarget);
+  const clearFocusTarget = useMapStore((s) => s.clearFocusTarget);
+  const focusedPlace = useMapStore((s) => s.focusedPlace);
 
   // Timer para detectar cuándo el usuario dejó de arrastrar el mapa
   const walkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -132,8 +140,17 @@ export function MapScreen() {
     startName: string,
     endName: string,
   ) => {
+    // Trazamos la ruta
     await calculateRoute(start, end, startName, endName);
-    handleModeToggle("guia");
+
+    // Salimos de cualquier modo activo para que no salga el avatar y no se bloquee la cámara en el GPS
+    setIsWalking(false);
+    setIsFollowingUser(false);
+    isFollowingUserRef.current = false;
+    setAppMode("ninguno");
+
+    // Centramos la cámara al inicio de la ruta sin iniciar seguimiento
+    goToRoutePreview(start);
   };
 
   const handleStopRoute = () => {
@@ -142,16 +159,44 @@ export function MapScreen() {
     handleModeToggle("ninguno");
   };
 
-  const handleSpawnSelection = (coords: [number, number]) => {
+  const handleSpawnSelection = (coords: [number, number], isCurrentLocation?: boolean) => {
     setIsSpawnModalVisible(false);
     setAppMode("libre");
-    setUserLocation(coords);
-    setShowAvatar(true);
+    if (!isCurrentLocation) {
+      setExploreLocation(coords);
+    } else {
+      setExploreLocation(null);
+    }
     goToFreeMode(coords);
   };
 
+  // Centra la cámara cuando alguien (chat o "Abrir" en una LocationCard)
+  // escribe un destino en useMapStore.focusTarget. Cierra HU-2.3.
+  // moveToPoint no está memoizado en useMapCamera; lo omitimos de las deps a
+  // propósito para evitar disparos en cada render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    async () => {
+    if (!focusTarget) return;
+    moveToPoint([focusTarget.longitude, focusTarget.latitude]);
+    clearFocusTarget();
+  }, [focusTarget, clearFocusTarget]);
+
+  useEffect(() => {
+    const checkGps = async () => {
+      try {
+        const { locationServicesEnabled } = await Location.getProviderStatusAsync();
+        setIsGpsEnabled(locationServicesEnabled);
+      } catch (e) {
+        setIsGpsEnabled(false);
+      }
+    };
+    checkGps();
+    const interval = setInterval(checkGps, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setShowAvatar(false);
@@ -199,54 +244,59 @@ export function MapScreen() {
       } catch (error) {
         console.error("Error obteniendo ubicación:", error);
       }
-    };
+    })();
   }, []);
 
   useEffect(() => {
     let locSub: Location.LocationSubscription | null = null;
     let headSub: Location.LocationSubscription | null = null;
+    let simInterval: NodeJS.Timeout | null = null;
 
     if (appMode === "guia") {
       (async () => {
-        // Suscribirse a la ubicación
-        locSub = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.High,
-            timeInterval: 2000,
-            distanceInterval: 1,
-          },
-          (loc) => {
-            const coords: [number, number] = [
-              loc.coords.longitude,
-              loc.coords.latitude,
-            ];
-            setUserLocation(coords);
-            if (isFollowingUserRef.current) {
-              moveToPoint(coords);
-            }
-            if (appMode === "guia") {
+        // Suscribirse a la ubicación real
+        try {
+          locSub = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.High,
+              timeInterval: 2000,
+              distanceInterval: 1,
+            },
+            (loc) => {
+              const coords: [number, number] = [
+                loc.coords.longitude,
+                loc.coords.latitude,
+              ];
+              setUserLocation(coords);
+              if (isFollowingUserRef.current) {
+                moveToPoint(coords);
+              }
               const speed = loc.coords.speed || 0;
               setIsWalking(speed > 0.5);
-            }
-          },
-        );
+            },
+          );
 
-        // Suscribirse a la brújula
-        headSub = await Location.watchHeadingAsync((head) => {
-          setHeading(head.magHeading);
-        });
+          // Suscribirse a la brújula
+          headSub = await Location.watchHeadingAsync((head) => {
+            setHeading(head.magHeading);
+          });
+        } catch (error) {
+          console.error("Error activando seguimiento GPS en tiempo real", error);
+        }
       })();
     } else if (appMode === "ninguno" || appMode === "libre") {
       // Limpiar suscripciones si se sale del modo guía
       if (locSub) locSub.remove();
       if (headSub) headSub.remove();
+      if (simInterval) clearInterval(simInterval);
     }
 
     return () => {
       if (locSub) locSub.remove();
       if (headSub) headSub.remove();
+      if (simInterval) clearInterval(simInterval);
     };
-  }, [appMode]);
+  }, [appMode, isRouteActive, activeRoute]);
 
   useEffect(() => {
     return () => {
@@ -392,31 +442,84 @@ export function MapScreen() {
           />
         </MapboxGL.ShapeSource>
 
-        {showAvatar && userLocation && (
-          <MapboxGL.PointAnnotation id="avatar" coordinate={userLocation}>
-            {appMode === "guia" ? (
+        {isGpsEnabled && userLocation && (
+          <MapboxGL.MarkerView id="user-location" coordinate={userLocation} anchor={{ x: 0.5, y: 0.5 }}>
+            {isInsideCampus(userLocation[1], userLocation[0]) && appMode !== "ninguno" ? (
               <Image
                 source={avatarSource}
                 style={{ width: 80, height: 80 }}
                 contentFit="contain"
               />
             ) : (
-              <View
-                style={{
-                  width: 84,
-                  height: 84,
-                  borderRadius: 42,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderWidth: 2,
-                  borderColor: "red",
-                  overflow: "hidden",
-                }}
-              >
-                <Text style={{ fontSize: 34 }}>👨‍🏫</Text>
+              <View style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
+                <View style={{
+                  position: "absolute", width: 32, height: 32, borderRadius: 16, backgroundColor: primaryColor, opacity: 0.3
+                }} />
+                <View style={{
+                  width: 18, height: 18, borderRadius: 9, backgroundColor: primaryColor, borderWidth: 2.5, borderColor: "white"
+                }} />
               </View>
             )}
-          </MapboxGL.PointAnnotation>
+          </MapboxGL.MarkerView>
+        )}
+
+        {appMode === "libre" && exploreLocation && (
+          <MapboxGL.MarkerView id="explore-location" coordinate={exploreLocation} anchor={{ x: 0.5, y: 0.5 }}>
+            <View style={{
+              width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(66, 133, 244, 0.3)", alignItems: "center", justifyContent: "center"
+            }}>
+              <View style={{
+                width: 14, height: 14, borderRadius: 7, backgroundColor: "#4285F4", borderWidth: 2, borderColor: "white"
+              }} />
+            </View>
+          </MapboxGL.MarkerView>
+        )}
+
+        {focusedPlace && (
+          <MapboxGL.MarkerView
+            id="focused-place-pin"
+            coordinate={[focusedPlace.longitude, focusedPlace.latitude]}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <View style={{ alignItems: "center", justifyContent: "center", width: 44, height: 50 }}>
+              <View style={{
+                position: "absolute",
+                bottom: 12,
+                backgroundColor: primaryColor,
+                borderRadius: 20,
+                padding: 8,
+                shadowColor: "#000",
+                shadowOpacity: 0.3,
+                shadowRadius: 5,
+                shadowOffset: { width: 0, height: 3 },
+                elevation: 6,
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <MapPin size={22} color="white" />
+              </View>
+              <View style={{
+                position: "absolute",
+                bottom: 5,
+                width: 0,
+                height: 0,
+                borderLeftWidth: 8,
+                borderRightWidth: 8,
+                borderTopWidth: 10,
+                borderLeftColor: "transparent",
+                borderRightColor: "transparent",
+                borderTopColor: primaryColor,
+              }} />
+              <View style={{
+                position: "absolute",
+                bottom: 1,
+                width: 8,
+                height: 4,
+                borderRadius: 4,
+                backgroundColor: "rgba(0,0,0,0.3)",
+              }} />
+            </View>
+          </MapboxGL.MarkerView>
         )}
 
         {startCoord && (
@@ -444,10 +547,11 @@ export function MapScreen() {
         )}
 
         {destinationCoord && (
-          <MapboxGL.PointAnnotation
+          <MapboxGL.MarkerView
             id="destination-pin"
             key={`destination-pin-${primaryColor}`}
             coordinate={destinationCoord as [number, number]}
+            anchor={{ x: 0.5, y: 0.5 }}
           >
             <View style={{ alignItems: "center" }}>
               <View
@@ -464,7 +568,7 @@ export function MapScreen() {
                   elevation: 5,
                 }}
               >
-                <MapPin size={16} color="white" />
+                <MapPin size={16} color={primaryColor} />
               </View>
               {/* Punta del pin */}
               <View
@@ -485,20 +589,11 @@ export function MapScreen() {
                 }}
               />
             </View>
-          </MapboxGL.PointAnnotation>
+          </MapboxGL.MarkerView>
         )}
       </MapboxGL.MapView>
 
-      {/* ── CAPA 2: AVATAR FLOTANTE ── */}
-      {shouldShowAvatar && appMode === "libre" && (
-        <View style={styles.avatarOverlay} pointerEvents="none">
-          <Image
-            source={avatarSource}
-            style={styles.avatarImage}
-            contentFit="contain"
-          />
-        </View>
-      )}
+
 
       {/* ── CAPA 3: UI ── */}
       <MapSearchBar />
@@ -509,7 +604,7 @@ export function MapScreen() {
         }
       />
       <MapLocationButton
-        disabled={userLocation === null}
+        disabled={!isGpsEnabled}
         onPress={() => {
           if (userLocation) {
             setIsFollowingUser(true);
@@ -523,12 +618,15 @@ export function MapScreen() {
         onStartRoute={handleStartRoute}
         onStopRoute={handleStopRoute}
         isRouteActive={isRouteActive}
+        isGpsEnabled={isGpsEnabled}
       />
 
       <MapSpawnModal
         visible={isSpawnModalVisible}
         onClose={() => setIsSpawnModalVisible(false)}
         onSelectPoint={handleSpawnSelection}
+        isGpsEnabled={isGpsEnabled}
+        userLocation={userLocation}
       />
 
       <MapRouteSelectionModal
@@ -538,6 +636,7 @@ export function MapScreen() {
         userLocation={userLocation}
       />
 
+      <MapPlaceInfoCard />
       <MapRouteInfoCard />
     </View>
   );

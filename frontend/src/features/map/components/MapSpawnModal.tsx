@@ -25,15 +25,23 @@ const SPAWN_POINTS = [...doors, ...others];
 interface MapSpawnModalProps {
   visible: boolean;
   onClose: () => void;
-  onSelectPoint: (coords: [number, number]) => void;
+  onSelectPoint: (coords: [number, number], isCurrentLocation?: boolean) => void;
+  isGpsEnabled?: boolean;
+  userLocation?: [number, number] | null;
 }
 
 export function MapSpawnModal({
   visible,
   onClose,
   onSelectPoint,
+  isGpsEnabled,
+  userLocation,
 }: MapSpawnModalProps) {
   const primaryColor = useThemeStore((s) => s.primaryColor);
+
+  const displayPoints = isGpsEnabled && userLocation
+    ? [{ id: "current-location", nombre: "Mi Ubicación", coords: userLocation }, ...SPAWN_POINTS]
+    : SPAWN_POINTS;
 
   return (
     <Modal
@@ -64,14 +72,14 @@ export function MapSpawnModal({
 
         <View style={styles.listContainer}>
           <FlatList
-            data={SPAWN_POINTS}
+            data={displayPoints}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.optionButton}
                 activeOpacity={0.7}
-                onPress={() => onSelectPoint(item.coords)}
+                onPress={() => onSelectPoint(item.coords, item.id === "current-location")}
               >
                 <Ionicons name="location" size={20} color={primaryColor} />
                 <Text style={styles.optionText}>{item.nombre}</Text>

@@ -11,7 +11,7 @@ import {
 import { authService } from "@services/supabase/auth.service";
 import { Input } from "@shared/components/Input";
 import { Button } from "@shared/components/Button";
-import { AuthHeader } from "@shared/components/AuthHeader";
+import { AuthHeader } from "@/features/auth/components/AuthHeader";
 import { lightColors } from "@theme/light";
 import type { RegisterScreenProps } from "@navigation/types";
 import EnterEmailSvg from "@shared/assets/enter-email.svg";

@@ -1,4 +1,4 @@
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, ToastAndroid, Platform, Alert } from "react-native";
 import { Locate, LocateOff } from "lucide-react-native";
 import Constants from "expo-constants";
 import { lightColors } from "@/theme/light";
@@ -10,12 +10,24 @@ interface MapLocationButtonProps {
 
 export function MapLocationButton({ disabled, onPress }: MapLocationButtonProps) {
   const Icon = disabled ? LocateOff : Locate;
+
+  const handlePress = () => {
+    if (disabled) {
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Debes activar tu GPS para usar esta función.", ToastAndroid.SHORT);
+      } else {
+        Alert.alert("GPS desactivado", "Debes activar tu GPS para usar esta función.");
+      }
+      return;
+    }
+    if (onPress) onPress();
+  };
+
   return (
     <TouchableOpacity
       style={[styles.button, disabled && styles.buttonDisabled]}
       activeOpacity={0.8}
-      onPress={onPress}
-      disabled={disabled}
+      onPress={handlePress}
     >
       <Icon size={20} color={disabled ? "#A0A0A0" : lightColors.textGhostBtn} />
       <Text style={[styles.text, disabled && styles.textDisabled]}>Mi ubicación</Text>

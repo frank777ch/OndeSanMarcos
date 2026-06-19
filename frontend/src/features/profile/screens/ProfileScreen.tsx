@@ -4,7 +4,7 @@ import { useAuthStore } from "@store/useAuthStore";
 import { authService } from "@services/supabase/auth.service";
 import { lightColors } from "@theme/light";
 import { Button } from "@shared/components/Button";
-import { SettingsItem } from "@shared/components/SettingsItem";
+import { SettingsItem } from "@/features/profile/components/SettingsItem";
 import { primitive } from "@/theme/colors";
 import type { ProfileMainScreenProps } from "@navigation/types";
 import { useThemeStore } from "@/core/store/useThemeStore";
