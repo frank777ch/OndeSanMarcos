@@ -36,59 +36,391 @@ export interface CampusPlace {
  * `bounds` de la UNMSM. Sirven tanto al mapa como al mock del asistente.
  */
 export const CAMPUS_PLACES: CampusPlace[] = [
+  // =============== ADMINISTRACIÓN ===============
   {
     id: "rectorado",
-    name: "Rectorado",
-    schedule: "Lun–Vie 8:00–17:00",
-    keywords: ["rectorado", "rector", "administracion central"],
-    coordinate: { latitude: -12.056524, longitude: -77.086253 },
+    name: "Rectorado (Edificio Jorge Basadre)",
+    schedule: "Lun–Vie 8:00–16:00",
+    keywords: [
+      "rectorado", "rector", "administracion central",
+      "jorge basadre", "autoridades", "gobierno universitario",
+    ],
+    coordinate: { latitude: -12.0566, longitude: -77.0862 },
   },
+  {
+  id: "oca",
+  name: "Oficina Central de Admisión (OCA)",
+  schedule: "Lun–Vie 9:00–16:00",
+  keywords: [
+    "oca", "oficina central de admision",
+    "admisión", "admision", "postulante",
+    "examen de admision", "inscripcion",
+  ],
+  coordinate: { latitude: -12.051715, longitude: -77.085066},
+},
+  // =============== SERVICIOS DE SALUD ===============
+  {
+    id: "clinica-universitaria",
+    name: "Clínica Universitaria UNMSM",
+    schedule: "Lun–Sáb 8:00–20:00",
+    keywords: [
+      "clinica", "clinica universitaria", "medico", "salud",
+      "consulta", "traumatologia", "dermatologia", "cardiologia",
+      "laboratorio", "rayos x", "emergencia", "doctor",
+    ],
+    coordinate: { latitude: -12.0572, longitude: -77.0848 },
+  },
+  {
+    id: "clinica-odontologia",
+    name: "Clínica de Odontología UNMSM",
+    schedule: "Lun–Vie 9:00–18:00 · Tel: 619-7000",
+    keywords: [
+      "odontologia", "dentista", "dientes", "dental",
+      "clinica odontologica", "ortodoncia", "endodoncia",
+    ],
+    coordinate: { latitude: -12.0541, longitude: -77.0858 },
+  },
+  // =============== ALIMENTACIÓN ===============
   {
     id: "comedor-universitario",
     name: "Comedor Universitario",
-    schedule: "Lun–Vie 12:00–14:30",
-    keywords: ["comedor", "comedor universitario", "almuerzo"],
-    coordinate: { latitude: -12.059444, longitude: -77.083053 },
+    schedule: "Lun–Vie · Desayuno: 7:00 (Sin Ticket) · Almuerzo: 12:00–13:40 (Con Ticket) · Cena: 17:00–18:00 (Con Ticket)",
+    keywords: [
+      "comedor", "comedor universitario", "almuerzo", "desayuno",
+      "cena", "comer", "ticket", "racion", "comida",
+    ],
+    coordinate: { latitude: -12.059308, longitude: -77.083110 },
+  },
+  // ============== CAFETERÍAS ===============
+  {
+    id: "cafeteria-fqiq",
+    name: "Cafetería de la Facultad de Química e Ingeniería Química",
+    schedule: "Lun–Sáb 9:00–20:00",
+    keywords: [
+    "cafeteria", "ingenieria quimica", "fqiq",
+    "comida","almuerzo", "bebidas", "snacks",
+  ],
+    coordinate: { latitude: -12.060086195434918, longitude: -77.0836630021812,},
   },
   {
-    id: "auditorio-ela-dunbar-temple",
-    name: "Auditorio Ela Dunbar Temple",
-    schedule: "Según programación de eventos",
-    keywords: ["auditorio", "ela dunbar", "dunbar temple", "ela dunbar temple"],
-    coordinate: { latitude: -12.056644, longitude: -77.086096 },
+    id: "cafeteria-civil",
+    name: "Cafetería de la Facultad de Ingeniería Civil",
+    schedule: "Lun–Sáb 9:00–20:00",
+    keywords: [
+    "cafeteria", "ingenieria civil", "civil",
+    "comida", "bebidas", "snacks",
+  ],
+    coordinate: { latitude: -12.056188014687539, longitude: -77.08728273437961, },
   },
+
+  {
+    id: "cafeteria-odontologia",
+    name: "Cafetería de la Facultad de Odontología",
+    schedule: "Lun–Sáb 9:00–20:00",
+    keywords: [
+    "cafeteria", "odontologia",
+    "comida", "bebidas", "snacks","almuerzo",
+    ],
+    coordinate: { latitude: -12.054604510658335,longitude: -77.08521348497445,},
+  },
+
+  {
+    id: "cafeteria-clinica-universitaria",
+    name: "Cafetería de la Clínica Universitaria",
+    schedule: "Lun–Sáb 9:00–20:00",
+    keywords: [
+    "cafeteria", "clinica universitaria", "clinica",
+    "comida", "bebidas", "snacks","almuerzo",
+    ],
+    coordinate: { latitude: -12.056054089219492,longitude: -77.08180958265828, },
+  },
+  {
+    id: "cafeteria-industrial",
+    name: "Cafetería de la Facultad de Ingeniería Industrial",
+    schedule: "Lun–Sáb 9:00–20:00",
+    keywords: [
+    "cafeteria", "ingenieria industrial", "industrial", "fii",
+    "comida", "bebidas", "snacks","almuerzo",
+    ],
+    coordinate: { latitude: -12.059924310092116, longitude: -77.08004651645386,},
+  },
+  // =============== BIBLIOTECA ===============
   {
     id: "biblioteca-central",
     name: "Biblioteca Central Pedro Zulen",
-    schedule: "Lun–Sáb 8:00–21:00",
-    keywords: ["biblioteca", "biblioteca central", "pedro zulen", "libros"],
-    coordinate: {
-      latitude: -12.055868939512747,
-      longitude: -77.08586761087753,
-    },
+    schedule: "Lun–Sáb 8:00–20:00 · Requiere carné de biblioteca · Tel: 619-7000 anexo 7701",
+    keywords: [
+      "biblioteca", "biblioteca central", "pedro zulen",
+      "libros", "tesis", "hemeroteca", "sisbib", "leer", "estudiar",
+    ],
+    coordinate: { latitude: -12.055728, longitude: -77.085234 },
   },
+  // =============== RESIDENCIA ===============
+  {
+    id: "residencia-universitaria",
+    name: "Residencia Universitaria",
+    schedule: "Atención administrativa: Lun–Vie 8:00–16:00",
+    keywords: [
+      "residencia", "vivienda universitaria", "hospedaje",
+      "alojamiento", "beca vivienda",
+    ],
+    coordinate: { latitude: -12.054826, longitude: -77.084203 },
+  },
+  // =============== DEPORTES ===============
+  {
+    id: "estadio-universitario",
+    name: "Estadio Olímpico de San Marcos",
+    schedule: "Acceso sujeto a eventos y actividades programadas",
+    keywords: [
+      "estadio", "pista atletica",
+      "cancha", "atletismo", "concierto", "evento",
+    ],
+    coordinate: { latitude: -12.057048, longitude: -77.081738 },
+  },
+  {
+    id: "gimnasio-universitario",
+    name: "Gimnasio Universitario",
+    schedule: "Lun–Vie 6:00–20:00 · Sáb 8:00–16:30",
+    keywords: [
+      "gimnasio", "gym", "pesas", "ejercicio",
+      "deporte", "entrenamiento", "fitness",
+    ],
+    coordinate: { latitude: -12.0601, longitude: -77.0843 },
+  },
+  // =============== AUDITORIOS ===============
+  {
+    id: "auditorio-ella-dunbar-temple",
+    name: "Auditorio Ella Dunbar Temple - UNMSM",
+    schedule: "Según programación de eventos",
+    keywords: [
+      "auditorio", "ella dunbar", "dunbar temple",
+      "eventos", "conferencia", "graduacion", "promociones",
+    ],
+    coordinate: { latitude: -12.056592, longitude: -77.085550 },
+  },
+  {
+    id: "auditorio-rosa-alarco",
+    name: "Auditorio Rosa Alarco Larraburre",
+    schedule: "Según programación de eventos",
+    keywords: [
+      "auditorio", "rosa alarco", "larraburre",
+      "eventos", "conferencia", "charla",
+    ],
+    coordinate: { latitude: -12.055686, longitude: -77.084437 },
+  },
+  // =============== FACULTADES ===============
   {
     id: "fisi",
-    name: "Facultad de Ingeniería de Sistemas (FISI)",
-    schedule: "Lun–Vie 7:00–22:00",
-    keywords: ["fisi", "sistemas", "ingenieria de sistemas", "software"],
-    coordinate: { latitude: -12.053679, longitude: -77.085711 },
+    name: "Facultad de Ingeniería de Sistemas e Informática (FISI)",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "fisi", "sistemas", "ingenieria de sistemas", "ingenieria de software", "informatica",
+      "software", "programacion", "computacion",
+    ],
+    coordinate: { latitude: -12.053317, longitude: -77.085456 },
   },
   {
-    id: "estadio",
-    name: "Estadio Universitario",
-    schedule: "Lun–Dom 6:00–20:00",
-    keywords: ["estadio", "cancha", "deporte", "futbol"],
-    coordinate: { latitude: -12.060926, longitude: -77.085954 },
+    id: "fic",
+    name: "Facultad de Ingeniería Civil",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "ingenieria civil", "fic", "civil",
+      "construccion", "estructuras",
+    ],
+    coordinate: { latitude: -12.055903, longitude: -77.086861 },
   },
   {
-    id: "museo-historia-natural",
-    name: "Cancha de Futbol - Gimnasio",
-    schedule: "Mar–Dom 9:00–15:00",
-    keywords: ["museo", "historia natural", "museo de historia"],
-    coordinate: { latitude: -12.060084, longitude: -77.084272 },
+    id: "fiee",
+    name: "Facultad de Ingeniería Electrónica y Eléctrica",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "electronica", "electrica", "biomedica", "fiee",
+      "ingenieria electronica", "telecomunicaciones",
+    ],
+    coordinate: { latitude: -12.056093, longitude: -77.080914 },
+  },
+  {
+    id: "figmmg",
+    name: "Facultad de Ingeniería Geológica, Minera y Metalúrgica",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "geologia", "mineria", "metalurgia", "figmmg",
+      "minas", "geologica", "minera",
+    ],
+    coordinate: { latitude: -12.060661, longitude: -77.084518 },
+  },
+  {
+    id: "fqiq",
+    name: "Facultad de Química e Ingeniería Química",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "quimica", "textil", "ingenieria quimica", "fqiq",
+    ],
+    coordinate: { latitude: -12.060362, longitude: -77.083661 },
+  },
+  {
+    id: "fii",
+    name: "Facultad de Ingeniería Industrial",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "industrial", "ingenieria industrial", "fii",
+      "produccion", "gestion",
+    ],
+    coordinate: { latitude: -12.059723, longitude: -77.080195 },
+  },
+  {
+    id: "psicologia",
+    name: "Facultad de Psicología",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "psicologia", "psicologo", "facultad de psicologia",
+      "conducta", "mente",
+    ],
+    coordinate: { latitude: -12.053410, longitude: -77.086725 },
+  },
+  {
+    id: "odontologia",
+    name: "Facultad de Odontología",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "odontologia", "dentista", "dientes", "estomatologia",
+      "facultad de odontologia",
+    ],
+    coordinate: { latitude: -12.054037, longitude: -77.085411 },
+  },
+  {
+    id: "educacion",
+    name: "Facultad de Educación",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "educacion", "pedagogia", "docente", "ensenanza",
+      "facultad de educacion",
+    ],
+    coordinate: { latitude: -12.054696, longitude: -77.084633 },
+  },
+  {
+    id: "letras-humanidades",
+    name: "Facultad de Letras y Ciencias Humanas",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "letras", "humanidades", "literatura", "linguistica",
+      "filosofia", "historia", "facultad de letras",
+    ],
+    coordinate: { latitude: -12.057106, longitude: -77.081417 },
+  },
+  {
+    id: "ciencias-sociales",
+    name: "Facultad de Ciencias Sociales",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "ciencias sociales", "sociologia", "antropologia",
+      "trabajo social", "arqueologia",
+    ],
+    coordinate: { latitude: -12.057896, longitude: -77.081176 },
+  },
+  {
+    id: "ciencias-biologicas",
+    name: "Facultad de Ciencias Biológicas",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "biologia", "biologicas", "ciencias biologicas",
+      "microbiologia", "genetica", "ecologia",
+    ],
+    coordinate: { latitude: -12.0594, longitude: -77.0820 },
+  },
+  {
+    id: "ciencias-fisicas",
+    name: "Facultad de Ciencias Físicas",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "fisica", "ciencias fisicas", "fisico",
+      "astrofisica", "optica",
+    ],
+    coordinate: { latitude: -12.059594, longitude: -77.081883 },
+  },
+  {
+    id: "ciencias-matematicas",
+    name: "Facultad de Ciencias Matemáticas",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "matematicas", "matematica", "estadistica",
+      "computacion cientifica", "investigacion operativa",
+    ],
+    coordinate: { latitude: -12.060165, longitude: -77.081778 },
+  },
+  {
+    id: "ciencias-administrativas",
+    name: "Facultad de Ciencias Administrativas",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "administracion", "administrativas", "turismo",
+      "hoteleria", "gestion empresarial",
+    ],
+    coordinate: { latitude: -12.057420, longitude: -77.081001 },
+  },
+  {
+    id: "ciencias-contables",
+    name: "Facultad de Ciencias Contables",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "contabilidad", "contables", "auditoria",
+      "finanzas", "tributacion",
+    ],
+    coordinate: { latitude: -12.057643, longitude: -77.079975 },
+  },
+  {
+    id: "ciencias-economicas",
+    name: "Facultad de Ciencias Económicas",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "economia", "economicas", "economista",
+      "macroeconomia", "microeconomia",
+    ],
+    coordinate: { latitude: -12.052943, longitude: -77.085795 },
+  },
+  {
+    id: "derecho",
+    name: "Facultad de Derecho y Ciencia Política",
+    schedule: "Lun–Sáb 8:00–22:00",
+    keywords: [
+      "derecho", "ciencia politica", "abogado", "leyes",
+      "facultad de derecho", "fdcp", "juridica", "jurisprudencia",
+    ],
+    coordinate: { latitude: -12.058368, longitude: -77.080267 },
+  },
+  // =============== OTROS LUGARES DEL CAMPUS ===============
+  {
+    id: "cepreunmsm",
+    name: "Centro Preuniversitario UNMSM (CEPREUNMSM)",
+    schedule: "Según ciclo académico vigente · Consultar en cepre.unmsm.edu.pe",
+    keywords: [
+      "cepreunmsm", "cepre", "preuniversitario", "pre",
+      "preparatoria", "academia", "postulante", "admision",
+    ],
+    coordinate: { latitude: -12.052018, longitude: -77.085390 },
+  },
+  {
+    id: "huaca-san-marcos",
+    name: "Huaca San Marcos",
+    schedule: "Acceso libre dentro del campus",
+    keywords: [
+      "huaca", "huaca san marcos", "arqueologia", "cultura maranga",
+      "monumento arqueologico", "patrimonio", "historia",
+    ],
+    coordinate: { latitude: -12.059995, longitude: -77.086027 },
+  },
+  {
+    id: "posgrado",
+    name: "Escuela de Posgrado UNMSM",
+    schedule: "Lun–Vie 8:00–20:00",
+    keywords: [
+      "posgrado", "maestria", "doctorado", "escuela de posgrado",
+      "segunda especialidad", "dgep",
+    ],
+    coordinate: { latitude: -12.052401, longitude: -77.085791 },
   },
 ];
+
 
 /** Devuelve un lugar del campus por su id, o `undefined` si no existe. */
 export function getCampusPlaceById(id: string): CampusPlace | undefined {
