@@ -16,7 +16,7 @@ import { useThemeStore } from "@/core/store/useThemeStore";
 interface MapRouteSelectionModalProps {
   visible: boolean;
   onClose: () => void;
-  onRouteConfirm: (start: [number, number], end: [number, number], startName: string, endName: string) => void;
+  onRouteConfirm: (start: [number, number], end: [number, number], startName: string, endName: string, startIsCurrentLocation: boolean) => void;
   userLocation: [number, number] | null;
 }
 
@@ -109,7 +109,7 @@ export function MapRouteSelectionModal({
       endPlace.coordinate.latitude,
     ];
 
-    onRouteConfirm(startCoord, endCoord, startQuery, endQuery);
+    onRouteConfirm(startCoord, endCoord, startQuery, endQuery, startPlace === "current");
     onClose();
   };
 
