@@ -208,14 +208,25 @@ export function MapScreen() {
     goToFreeMode(coords);
   };
 
-  // Centra la cámara cuando alguien (chat o "Abrir" en una LocationCard)
-  // escribe un destino en useMapStore.focusTarget. Cierra HU-2.3.
-  // moveToPoint no está memoizado en useMapCamera; lo omitimos de las deps a
+  // Reacciona a un destino escrito en useMapStore.focusTarget (HU-2.3).
+  // - drawRoute=true (intención de navegación desde el chat): traza la ruta
+  //   desde la ubicación del usuario hasta el destino. Sin GPS, solo centra.
+  // - Si no, solo centra el mapa (p. ej. buscar un lugar).
+  // moveToPoint/calculateRoute no están memoizados; los omitimos de las deps a
   // propósito para evitar disparos en cada render.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!focusTarget) return;
-    moveToPoint([focusTarget.longitude, focusTarget.latitude]);
+    const dest: [number, number] = [focusTarget.longitude, focusTarget.latitude];
+
+    if (focusTarget.drawRoute && userLocation) {
+      calculateRoute(userLocation, dest, "Mi ubicación", focusTarget.name ?? "Destino");
+      setIsFollowingUser(false);
+      isFollowingUserRef.current = false;
+      goToRoutePreview(userLocation);
+    } else {
+      moveToPoint(dest);
+    }
     clearFocusTarget();
   }, [focusTarget, clearFocusTarget]);
 
