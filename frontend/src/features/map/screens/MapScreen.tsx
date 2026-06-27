@@ -16,6 +16,7 @@ import { MapRouteSelectionModal } from "../components/MapRouteSelectionModal";
 import { MapPlaceInfoCard } from "../components/MapPlaceInfoCard";
 import { useMapStore } from "../../../core/store/useMapStore";
 import { useRouting } from "../../routing/hooks/useRouting";
+import { haversineDistance } from "../../routing/utils/pathfinder";
 import { MapRouteInfoCard } from "../components/MapRouteInfoCard";
 import { Ionicons } from "@expo/vector-icons";
 import { MapPin } from "lucide-react-native";
@@ -40,6 +41,32 @@ function isInsideCampus(lat: number, lng: number) {
   );
 }
 
+// Distancia (m) que le falta al usuario para llegar al destino siguiendo la
+// polilínea de la ruta: tramo hasta el vértice más cercano + resto de la ruta.
+function remainingRouteDistance(
+  user: [number, number],
+  route: { latitude: number; longitude: number }[],
+): number {
+  if (route.length === 0) return 0;
+  let nearest = 0;
+  let best = Infinity;
+  for (let i = 0; i < route.length; i++) {
+    const d = haversineDistance(user, [route[i].longitude, route[i].latitude]);
+    if (d < best) {
+      best = d;
+      nearest = i;
+    }
+  }
+  let total = best;
+  for (let i = nearest; i < route.length - 1; i++) {
+    total += haversineDistance(
+      [route[i].longitude, route[i].latitude],
+      [route[i + 1].longitude, route[i + 1].latitude],
+    );
+  }
+  return Math.round(total);
+}
+
 export function MapScreen() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
@@ -50,9 +77,9 @@ export function MapScreen() {
   const [isGpsEnabled, setIsGpsEnabled] = useState(false);
   const [exploreLocation, setExploreLocation] = useState<[number, number] | null>(null);
 
-  const [appMode, setAppMode] = useState<"ninguno" | "libre" | "guia">(
-    "ninguno",
-  );
+  // "guia" se controla por separado en el store (guideActive) para que la ruta
+  // y la UI de navegación puedan activarlo/detenerlo.
+  const [appMode, setAppMode] = useState<"ninguno" | "libre">("ninguno");
   const [isSpawnModalVisible, setIsSpawnModalVisible] = useState(false);
   const [isRouteSelectionVisible, setIsRouteSelectionVisible] = useState(false);
   const {
@@ -69,6 +96,10 @@ export function MapScreen() {
   const activeRoute = useMapStore((state) => state.activeRoute);
   const isRouteActive = useMapStore((state) => state.isRouteActive);
   const clearRouteStore = useMapStore((state) => state.clearRoute);
+  const guideActive = useMapStore((state) => state.guideActive);
+  const startGuide = useMapStore((state) => state.startGuide);
+  const stopGuide = useMapStore((state) => state.stopGuide);
+  const setRemainingDistance = useMapStore((state) => state.setRemainingDistance);
   const { calculateRoute, clearRoute, isCalculating } = useRouting();
 
   const primaryColor = useThemeStore((s) => s.primaryColor);
@@ -88,7 +119,7 @@ export function MapScreen() {
   // Se llama en cada frame mientras la cámara se mueve (usuario arrastrando)
   const handleCameraChanged = (e: any) => {
     if (e.properties && e.properties.isUserInteraction) {
-      if (appMode === "guia") {
+      if (guideActive) {
         setIsFollowingUser(false);
         isFollowingUserRef.current = false;
       }
@@ -108,25 +139,24 @@ export function MapScreen() {
 
   const handleModeToggle = (modo: "ninguno" | "libre" | "guia") => {
     if (modo === "libre") {
+      stopGuide();
       setIsSpawnModalVisible(true);
     } else if (modo === "ninguno") {
       setIsWalking(false);
       if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
+      stopGuide();
       setAppMode("ninguno");
       goToDefaultMode();
     } else if (modo === "guia") {
-      setAppMode("guia");
+      setAppMode("ninguno");
+      startGuide();
+      // El seguimiento se mantiene activo hasta que el usuario arrastra el mapa;
+      // entonces puede reactivarlo con el botón de ubicación.
       setIsFollowingUser(true);
       isFollowingUserRef.current = true;
       if (userLocation) {
         goToGuideMode(userLocation);
       }
-
-      // Permitir libre exploración después de 5 segundos
-      setTimeout(() => {
-        setIsFollowingUser(false);
-        isFollowingUserRef.current = false;
-      }, 5000);
     }
   };
 
@@ -139,18 +169,26 @@ export function MapScreen() {
     end: [number, number],
     startName: string,
     endName: string,
+    startIsCurrentLocation: boolean,
   ) => {
     // Trazamos la ruta
-    await calculateRoute(start, end, startName, endName);
+    const coords = await calculateRoute(start, end, startName, endName);
 
-    // Salimos de cualquier modo activo para que no salga el avatar y no se bloquee la cámara en el GPS
-    setIsWalking(false);
-    setIsFollowingUser(false);
-    isFollowingUserRef.current = false;
     setAppMode("ninguno");
+    setIsWalking(false);
 
-    // Centramos la cámara al inicio de la ruta sin iniciar seguimiento
-    goToRoutePreview(start);
+    // Si parte de la ubicación actual y la ruta existe, arrancamos el modo guía
+    // (seguimiento en tiempo real). Si no, mostramos una vista previa de la ruta.
+    if (startIsCurrentLocation && coords && coords.length > 0) {
+      startGuide();
+      setIsFollowingUser(true);
+      isFollowingUserRef.current = true;
+      goToGuideMode(start);
+    } else {
+      setIsFollowingUser(false);
+      isFollowingUserRef.current = false;
+      goToRoutePreview(start);
+    }
   };
 
   const handleStopRoute = () => {
@@ -170,14 +208,25 @@ export function MapScreen() {
     goToFreeMode(coords);
   };
 
-  // Centra la cámara cuando alguien (chat o "Abrir" en una LocationCard)
-  // escribe un destino en useMapStore.focusTarget. Cierra HU-2.3.
-  // moveToPoint no está memoizado en useMapCamera; lo omitimos de las deps a
+  // Reacciona a un destino escrito en useMapStore.focusTarget (HU-2.3).
+  // - drawRoute=true (intención de navegación desde el chat): traza la ruta
+  //   desde la ubicación del usuario hasta el destino. Sin GPS, solo centra.
+  // - Si no, solo centra el mapa (p. ej. buscar un lugar).
+  // moveToPoint/calculateRoute no están memoizados; los omitimos de las deps a
   // propósito para evitar disparos en cada render.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!focusTarget) return;
-    moveToPoint([focusTarget.longitude, focusTarget.latitude]);
+    const dest: [number, number] = [focusTarget.longitude, focusTarget.latitude];
+
+    if (focusTarget.drawRoute && userLocation) {
+      calculateRoute(userLocation, dest, "Mi ubicación", focusTarget.name ?? "Destino");
+      setIsFollowingUser(false);
+      isFollowingUserRef.current = false;
+      goToRoutePreview(userLocation);
+    } else {
+      moveToPoint(dest);
+    }
     clearFocusTarget();
   }, [focusTarget, clearFocusTarget]);
 
@@ -252,7 +301,7 @@ export function MapScreen() {
     let headSub: Location.LocationSubscription | null = null;
     let simInterval: NodeJS.Timeout | null = null;
 
-    if (appMode === "guia") {
+    if (guideActive) {
       (async () => {
         // Suscribirse a la ubicación real
         try {
@@ -273,6 +322,12 @@ export function MapScreen() {
               }
               const speed = loc.coords.speed || 0;
               setIsWalking(speed > 0.5);
+
+              // Progreso de navegación: distancia restante hasta el destino.
+              const route = useMapStore.getState().activeRoute;
+              if (route.length > 0) {
+                setRemainingDistance(remainingRouteDistance(coords, route));
+              }
             },
           );
 
@@ -284,19 +339,15 @@ export function MapScreen() {
           console.error("Error activando seguimiento GPS en tiempo real", error);
         }
       })();
-    } else if (appMode === "ninguno" || appMode === "libre") {
-      // Limpiar suscripciones si se sale del modo guía
-      if (locSub) locSub.remove();
-      if (headSub) headSub.remove();
-      if (simInterval) clearInterval(simInterval);
     }
+    // Al desactivar la guía, el cleanup de abajo libera las suscripciones.
 
     return () => {
       if (locSub) locSub.remove();
       if (headSub) headSub.remove();
       if (simInterval) clearInterval(simInterval);
     };
-  }, [appMode, isRouteActive, activeRoute]);
+  }, [guideActive]);
 
   useEffect(() => {
     return () => {
@@ -350,7 +401,7 @@ export function MapScreen() {
   const shouldShowAvatar =
     showAvatar &&
     userLocation !== null &&
-    (appMode === "libre" || appMode === "guia");
+    (appMode === "libre" || guideActive);
 
   const avatarSource = isWalking
     ? require("../../../../assets/avatar/david_walk.webp")
@@ -444,7 +495,7 @@ export function MapScreen() {
 
         {isGpsEnabled && userLocation && (
           <MapboxGL.MarkerView id="user-location" coordinate={userLocation} anchor={{ x: 0.5, y: 0.5 }}>
-            {isInsideCampus(userLocation[1], userLocation[0]) && appMode !== "ninguno" ? (
+            {isInsideCampus(userLocation[1], userLocation[0]) && (appMode !== "ninguno" || guideActive) ? (
               <Image
                 source={avatarSource}
                 style={{ width: 80, height: 80 }}

@@ -11,14 +11,22 @@ export function MapRouteInfoCard() {
   const clearRoute = useMapStore((s) => s.clearRoute);
   const primaryColor = useThemeStore((s) => s.primaryColor);
   const setMapMode = useMapStore((s) => s.setMapMode);
+  const guideActive = useMapStore((s) => s.guideActive);
+  const remainingDistance = useMapStore((s) => s.remainingDistance);
+  const stopGuide = useMapStore((s) => s.stopGuide);
 
   if (!isRouteActive || !routeMetadata) return null;
 
-  // Formato de tiempo estimado (aprox. 1.4 m/s caminando)
-  const timeMinutes = Math.max(1, Math.round(routeMetadata.distance / 84));
+  // Durante la guía mostramos lo que falta; si no, la distancia total de la ruta.
+  const navigating = guideActive && remainingDistance !== null;
+  const distance = navigating ? remainingDistance! : routeMetadata.distance;
+  // Tiempo estimado (aprox. 1.4 m/s caminando)
+  const timeMinutes = Math.max(1, Math.round(distance / 84));
+  const arrived = navigating && remainingDistance! <= 15;
 
   const handleStop = () => {
     clearRoute();
+    stopGuide();
     setMapMode("free"); // Vuelve a modo libre al terminar
   };
 
@@ -30,13 +38,19 @@ export function MapRouteInfoCard() {
           <Text style={styles.toText} numberOfLines={1}>{routeMetadata.endName}</Text>
         </View>
         <View style={styles.distanceBadge}>
-          <Text style={[styles.distanceText, { color: primaryColor }]}>{routeMetadata.distance}m</Text>
+          <Text style={[styles.distanceText, { color: primaryColor }]}>{distance}m</Text>
           <Text style={styles.timeText}>{timeMinutes} min</Text>
         </View>
       </View>
 
-      <TouchableOpacity 
-        style={[styles.stopButton, { backgroundColor: primaryColor }]} 
+      {arrived ? (
+        <Text style={[styles.arrivedText, { color: primaryColor }]}>¡Has llegado a tu destino!</Text>
+      ) : navigating ? (
+        <Text style={styles.navHint}>Navegando · faltan {distance} m</Text>
+      ) : null}
+
+      <TouchableOpacity
+        style={[styles.stopButton, { backgroundColor: primaryColor }]}
         activeOpacity={0.8}
         onPress={handleStop}
       >
@@ -100,6 +114,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 2,
+  },
+  navHint: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 12,
+  },
+  arrivedText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 15,
+    marginBottom: 12,
   },
   stopButton: {
     flexDirection: 'row',
