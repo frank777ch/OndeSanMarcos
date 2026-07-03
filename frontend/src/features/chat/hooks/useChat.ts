@@ -95,7 +95,12 @@ export function useChat(): UseChatResult {
           timestamp: new Date(),
         });
         if (response.drawRoute && response.destination) {
-          setFocusTarget(response.destination);
+          setFocusTarget({
+            latitude: response.destination.latitude,
+            longitude: response.destination.longitude,
+            name: response.locations[0]?.name,
+            drawRoute: true,
+          });
           navigation.navigate('Map');
         }
       } catch {
