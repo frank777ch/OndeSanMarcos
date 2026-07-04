@@ -3,8 +3,8 @@
 `TemplateLLM` es un generador determinista y sin dependencias: redacta la
 respuesta **a partir del contexto recuperado**, nunca de conocimiento propio.
 Así se respeta el principio del RAG (respuestas ancladas a documentos) incluso
-en modo aislado. El proveedor real (OpenAI / Anthropic vía LlamaIndex) se
-enchufa en la misma interfaz `LLMProvider`.
+en modo aislado. Los proveedores reales (OpenAI, Anthropic o Gemini) se
+enchufan en la misma interfaz `LLMProvider`.
 """
 
 from __future__ import annotations
@@ -111,3 +111,37 @@ class AnthropicLLM:
         )
         parts = [block.text for block in message.content if block.type == "text"]
         return "".join(parts).strip()
+
+
+class GeminiLLM:
+    """Proveedor real basado en la API de Google Gemini (AI Studio).
+
+    Usa el SDK unificado `google-genai`, una dependencia opcional
+    (`requirements-llm.txt`) que se importa de forma perezosa: este módulo se
+    puede importar sin tenerlo instalado.
+    """
+
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash") -> None:
+        try:
+            from google import genai  # import perezoso
+        except ImportError as exc:  # pragma: no cover - depende de extra opcional
+            raise ImportError(
+                "Falta el paquete 'google-genai'. Instálalo con "
+                "`pip install -r requirements-llm.txt`."
+            ) from exc
+        self._client = genai.Client(api_key=api_key)
+        self._model = model
+
+    def generate(self, query: str, contexts: list[str]) -> str:  # pragma: no cover
+        from google.genai import types
+
+        response = self._client.models.generate_content(
+            model=self._model,
+            contents=build_prompt(query, contexts),
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=0.2,
+                max_output_tokens=600,
+            ),
+        )
+        return (response.text or "").strip()
