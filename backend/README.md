@@ -1,10 +1,11 @@
 # ⚙️ Backend — OndeSanMarcos (Asistente RAG)
 
 API del **asistente IA del campus** basada en **RAG (Retrieval-Augmented Generation)**.
-Implementa el endpoint `POST /api/chat` que ya espera el frontend, pero **funciona de
-forma totalmente aislada**: el motor RAG corre en *modo mock* (embeddings + LLM
-deterministas, sin llaves ni servicios externos), por lo que se puede desarrollar y
-probar sin el frontend ni un LLM real.
+Implementa el endpoint `POST /api/chat` que consume el frontend. En **producción**
+corre con **LLM real (Gemini)** sobre el **corpus oficial** del campus; la
+recuperación es local (bag-of-words), con pgvector pendiente. Para desarrollo y
+pruebas también corre **aislado en modo mock** (embeddings + LLM deterministas, sin
+llaves ni servicios externos).
 
 > Diseño y contexto general: ver [`/documents/03-backend-rag.md`](../documents/03-backend-rag.md).
 
@@ -21,7 +22,8 @@ backend/
 │   ├── schemas/chat.py    # ChatRequest / ChatResponse / LocationResult / Coordinate
 │   ├── knowledge/         # base de conocimiento
 │   │   ├── places.py      #   lugares del campus (espejo del front)
-│   │   └── corpus.py      #   documentos institucionales de ejemplo
+│   │   ├── corpus.py      #   corpus oficial (derivado de sources/unmsm_info.md)
+│   │   └── sources/       #   documento oficial verificado (fuente única)
 │   └── rag/               # motor RAG
 │       ├── guardrails.py  #   filtro de alcance UNMSM (HU-2.4)
 │       ├── intent.py      #   intención de navegación (HU-2.3)
@@ -29,10 +31,10 @@ backend/
 │       ├── vector_store.py#   almacén vectorial en memoria (coseno)
 │       ├── ingestion.py   #   pipeline de ingesta (carga, troceado, embeddings)
 │       ├── retriever.py   #   indexa por fragmentos + recuperación top-k
-│       ├── llm.py         #   mock anclado al contexto + OpenAI/Anthropic reales
+│       ├── llm.py         #   mock anclado al contexto + Gemini/OpenAI/Anthropic reales
 │       ├── providers.py   #   selección de proveedores mock vs reales
 │       └── engine.py      #   orquestación del pipeline
-└── tests/                 # pytest (37): guardrails, retriever, ingesta, proveedores, motor, enrutamiento, endpoint
+└── tests/                 # pytest (39): guardrails, retriever, ingesta, proveedores, motor, enrutamiento, endpoint
 ```
 
 Pipeline de una consulta:
@@ -84,10 +86,12 @@ Respuesta:
 
 ```json
 {
-  "answer": "La Biblioteca Central Pedro Zulen brinda servicios... Toca \"Ver en mapa\" para ubicarlo.",
+  "answer": "La Biblioteca Central Pedro Zulen abre de lunes a viernes de 7:30 a 20:00 y los sábados de 8:00 a 17:00. Toca \"Ver en mapa\" para ubicarlo.",
   "locations": [
-    { "id": "biblioteca-central", "name": "Biblioteca Central Pedro Zulen", "schedule": "Lun–Sáb 8:00–21:00" }
-  ]
+    { "id": "biblioteca-central", "name": "Biblioteca Central Pedro Zulen", "schedule": "Lun–Sáb 8:00–20:00 · Requiere carné de biblioteca · Tel: 619-7000 anexo 7701" }
+  ],
+  "draw_route": false,
+  "destination": null
 }
 ```
 
@@ -117,12 +121,12 @@ frontend: el cliente puede apuntar aquí cuando se decida (apagando su modo mock
 
 Controlado por `RAG_USE_MOCK` (ver `.env.example`):
 
-| | Modo mock (`true`, por defecto) | Modo real (`false`) |
+| | Modo mock (`true`, tests/local) | Modo real (`false`, **producción**) |
 |---|---|---|
 | Embeddings | `BagOfWordsEmbedding` (sin deps) | modelo real vía LlamaIndex *(pendiente)* |
-| LLM | `TemplateLLM` (anclado al contexto) | OpenAI / Anthropic *(implementado)* |
-| Vector store | en memoria | Supabase + `pgvector` *(pendiente)* |
-| Requisitos | `requirements.txt` | + `requirements-rag.txt` y llaves |
+| LLM | `TemplateLLM` (anclado al contexto) | **Gemini** / OpenAI / Anthropic *(activo)* |
+| Vector store | en memoria | Supabase + `pgvector` *(pendiente)* · hoy recuperación local |
+| Requisitos | `requirements.txt` | + `requirements-llm.txt` (Gemini) y `LLM_API_KEY` |
 
 La selección de implementaciones vive en `app/rag/providers.py` (la usa
 `engine.build_engine`). Si en modo real falta una llave o dependencia, se lanza
