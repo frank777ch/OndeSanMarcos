@@ -5,7 +5,10 @@ export const Config = {
     baseUrl:
       process.env.EXPO_PUBLIC_API_URL ??
       'https://ondesanmarcos-backend.onrender.com',
-    timeout: 15000,
+    // 60s: el plan free de Render duerme el servicio tras ~15 min sin tráfico y
+    // el primer request (cold start) tarda ~50s. Un timeout menor cortaría esa
+    // primera consulta; al vencer, la UI muestra el error con "Reintentar".
+    timeout: 60000,
   },
   mapbox: {
     token: process.env.EXPO_PUBLIC_MAPBOX_TOKEN ?? '',
