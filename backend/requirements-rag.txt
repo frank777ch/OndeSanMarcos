@@ -6,8 +6,10 @@
 # Nota: algunas pueden no tener wheels para versiones muy recientes de Python.
 
 # --- SDK del LLM (elige el que uses con LLM_PROVIDER) ---
+# Para Gemini basta requirements-llm.txt (más ligero); estos son alternativas.
 openai
 anthropic
+google-genai
 
 # --- Base vectorial / orquestación (pgvector pendiente, ver providers.py) ---
 supabase

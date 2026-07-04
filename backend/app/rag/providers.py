@@ -15,7 +15,7 @@ configuración:
 from __future__ import annotations
 
 from app.config import Settings
-from app.rag.llm import AnthropicLLM, LLMProvider, OpenAILLM, TemplateLLM
+from app.rag.llm import AnthropicLLM, GeminiLLM, LLMProvider, OpenAILLM, TemplateLLM
 from app.rag.retriever import Retriever, build_default_retriever
 
 
@@ -43,8 +43,11 @@ def build_llm_provider(settings: Settings) -> LLMProvider:
             settings.llm_api_key,
             settings.llm_model or "claude-haiku-4-5-20251001",
         )
+    if provider == "gemini":
+        return GeminiLLM(settings.llm_api_key, settings.llm_model or "gemini-2.5-flash")
     raise RagProviderError(
-        f"Proveedor LLM no soportado: {provider!r}. Usa 'openai' o 'anthropic'."
+        f"Proveedor LLM no soportado: {provider!r}. "
+        "Usa 'openai', 'anthropic' o 'gemini'."
     )
 
 

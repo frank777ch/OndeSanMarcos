@@ -1,0 +1,8 @@
+# SDK del proveedor LLM real usado en el despliegue (Gemini · Google AI Studio).
+# Ligero e independiente de la base vectorial: se instala junto a
+# requirements.txt para activar el LLM real sin arrastrar supabase/llama-index
+# (esos viven en requirements-rag.txt, para el trabajo de pgvector).
+#
+# Se activa con RAG_USE_MOCK=false y LLM_PROVIDER=gemini (ver app/config.py).
+
+google-genai==2.10.0

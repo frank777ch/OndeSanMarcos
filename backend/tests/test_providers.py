@@ -32,6 +32,12 @@ def test_real_without_api_key_raises():
         build_llm_provider(settings)
 
 
+def test_real_gemini_without_api_key_raises():
+    settings = Settings(rag_use_mock=False, llm_provider="gemini", llm_api_key="")
+    with pytest.raises(RagProviderError):
+        build_llm_provider(settings)
+
+
 def test_real_unsupported_provider_raises():
     settings = Settings(
         rag_use_mock=False, llm_provider="cohere", llm_api_key="x"
