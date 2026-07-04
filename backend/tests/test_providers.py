@@ -53,9 +53,27 @@ def test_real_without_supabase_uses_local_retriever():
     assert len(retriever) >= 7
 
 
-def test_real_with_supabase_pgvector_pending():
+def test_real_with_supabase_selects_pgvector(monkeypatch):
+    import app.rag.providers as providers
+
+    sentinel = object()
+    monkeypatch.setattr(providers, "_build_pgvector_retriever", lambda s: sentinel)
     settings = Settings(
         rag_use_mock=False,
+        llm_provider="gemini",
+        llm_api_key="x",
+        supabase_url="https://x.supabase.co",
+        supabase_service_key="key",
+    )
+    assert providers.build_retriever(settings) is sentinel
+
+
+def test_pgvector_requires_gemini_embeddings():
+    # Con Supabase configurado pero un proveedor sin embeddings Gemini, se declina.
+    settings = Settings(
+        rag_use_mock=False,
+        llm_provider="openai",
+        llm_api_key="x",
         supabase_url="https://x.supabase.co",
         supabase_service_key="key",
     )

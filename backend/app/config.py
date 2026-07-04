@@ -45,6 +45,14 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_key: str = ""
 
+    # --- Embeddings reales (Gemini) ---
+    embedding_model: str = "gemini-embedding-001"
+    embedding_dim: int = 768
+
+    # --- Recuperación con pgvector (Supabase) ---
+    pgvector_table: str = "documents"
+    pgvector_match_fn: str = "match_documents"
+
     @property
     def cors_origins_list(self) -> list[str]:
         """`cors_origins` como lista (separada por comas)."""

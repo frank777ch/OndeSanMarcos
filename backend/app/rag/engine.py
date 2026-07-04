@@ -19,7 +19,7 @@ from app.rag import guardrails
 from app.rag.intent import wants_route
 from app.rag.llm import LLMProvider
 from app.rag.providers import build_llm_provider, build_retriever
-from app.rag.retriever import RetrievedChunk, Retriever
+from app.rag.retriever import RetrievedChunk, SupportsRetrieve
 from app.schemas.chat import ChatResponse, Coordinate, LocationResult
 
 NO_INFO_MESSAGE = (
@@ -27,19 +27,13 @@ NO_INFO_MESSAGE = (
     "lugares como el Rectorado, la Biblioteca Central o el Comedor Universitario."
 )
 
-# Un lugar recuperado (no nombrado explícitamente en la consulta) solo se
-# incluye si su documento es casi tan relevante como el mejor. Evita arrastrar
-# lugares por menciones de pasada (p. ej. una facultad que dice "biblioteca
-# especializada" al preguntar por la Biblioteca Central).
-PLACE_RELEVANCE_RATIO = 0.6
-
 
 class RAGEngine:
     """Coordina recuperación y generación para responder consultas del chat."""
 
     def __init__(
         self,
-        retriever: Retriever,
+        retriever: SupportsRetrieve,
         llm: LLMProvider,
         *,
         top_k: int = 4,
@@ -91,12 +85,14 @@ class RAGEngine:
     def _detect_places(
         self, query: str, chunks: list[RetrievedChunk]
     ) -> list[CampusPlace]:
-        """Lugares relevantes: nombrados en la consulta + documentos muy afines.
+        """Lugares relevantes: nombrados en la consulta + el más recuperado.
 
-        `chunks` viene ordenado por puntaje descendente. Señal fuerte: lugares
-        que la consulta nombra por palabra clave (`find_places`). Señal de
-        recuperación: solo los lugares de documentos cuyo puntaje esté cerca del
-        mejor (`PLACE_RELEVANCE_RATIO`), para no incluir menciones incidentales.
+        `chunks` viene ordenado por puntaje descendente. Señal fuerte: lugares que
+        la consulta nombra por palabra clave (`find_places`). Señal de
+        recuperación: **solo** el lugar del documento más relevante (`chunks[0]`).
+        Se evita un umbral relativo porque no discrimina con embeddings densos (las
+        similitudes quedan altas y comprimidas); tomar únicamente el mejor documento
+        es fiable en cualquier escala y no arrastra menciones incidentales.
         """
         ordered: list[CampusPlace] = []
         seen: set[str] = set()
@@ -106,11 +102,8 @@ class RAGEngine:
                 ordered.append(place)
                 seen.add(place.id)
 
-        cutoff = chunks[0].score * PLACE_RELEVANCE_RATIO if chunks else 0.0
-        for chunk in chunks:
-            if chunk.score < cutoff:
-                break  # el resto es aún menos relevante (orden descendente)
-            place_id = chunk.document.place_id
+        if chunks:
+            place_id = chunks[0].document.place_id
             if place_id and place_id not in seen:
                 place = get_place_by_id(place_id)
                 if place is not None:
