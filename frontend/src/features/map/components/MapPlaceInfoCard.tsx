@@ -7,10 +7,23 @@ import {
   PanResponder,
   Dimensions,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { useMapStore } from "@/core/store/useMapStore";
 import { lightColors } from "@/theme/light";
-import { X, MapPin, Clock, Info } from "lucide-react-native";
+import {
+  X,
+  MapPin,
+  Clock,
+  Info,
+  Phone,
+  GraduationCap,
+  Coffee,
+  Bookmark,
+  Hash,
+  CheckCircle2,
+  ChevronRight,
+} from "lucide-react-native";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const PEEK_HEIGHT = 130; // Altura cuando está contraído (muestra título y botones)
@@ -60,7 +73,8 @@ export function MapPlaceInfoCard() {
       },
       onPanResponderMove: (_, gestureState) => {
         let newY =
-          (isExpandedRef.current ? 0 : EXPANDED_HEIGHT - PEEK_HEIGHT) + gestureState.dy;
+          (isExpandedRef.current ? 0 : EXPANDED_HEIGHT - PEEK_HEIGHT) +
+          gestureState.dy;
         // Limitar para que no suba más del EXPANDED_HEIGHT ni baje de ocultarse
         if (newY < 0) newY = 0;
         translateY.setValue(newY);
@@ -152,45 +166,154 @@ export function MapPlaceInfoCard() {
             },
           ]}
         >
-          <View style={styles.divider} />
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <View style={styles.divider} />
 
-          <Text style={styles.sectionTitle}>Acerca de este lugar</Text>
-          <View style={styles.infoRow}>
-            <MapPin
-              size={20}
-              color={lightColors.textH1}
-              style={styles.infoIcon}
-            />
-            <Text style={styles.infoText}>
-              Este lugar es uno de los puntos clave dentro del campus
-              universitario de San Marcos. Cuenta con fácil acceso desde las
-              vías principales.
-            </Text>
-          </View>
+            <Text style={styles.sectionTitle}>Acerca de este lugar</Text>
 
-          <View style={styles.infoRow}>
-            <Clock
-              size={20}
-              color={lightColors.textH1}
-              style={styles.infoIcon}
-            />
-            <Text style={styles.infoText}>
-              {focusedPlace?.schedule ||
-                "Abierto de Lunes a Viernes, 08:00 AM - 10:00 PM."}
-            </Text>
-          </View>
+            <View style={styles.infoRow}>
+              <MapPin
+                size={20}
+                color={lightColors.textH1}
+                style={styles.infoIcon}
+              />
+              <Text style={styles.infoText}>
+                {focusedPlace?.description ||
+                  "Este lugar es un punto de interés dentro del campus universitario de la UNMSM."}
+              </Text>
+            </View>
 
-          <View style={styles.infoRow}>
-            <Info
-              size={20}
-              color={lightColors.textH1}
-              style={styles.infoIcon}
-            />
-            <Text style={styles.infoText}>
-              Por favor, recuerda mantener las instalaciones limpias y respetar
-              las normas de la universidad durante tu visita.
-            </Text>
-          </View>
+            <View style={styles.infoRow}>
+              <Clock
+                size={20}
+                color={lightColors.textH1}
+                style={styles.infoIcon}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoText}>
+                  {focusedPlace?.schedule ||
+                    "Abierto de Lunes a Viernes, 08:00 AM - 10:00 PM."}
+                </Text>
+                {focusedPlace?.detailedSchedule && focusedPlace.detailedSchedule.length > 0 && (
+                  <View style={[styles.listItemsContainer, { paddingLeft: 0, marginTop: 8 }]}>
+                    {focusedPlace.detailedSchedule.map((item, i) => (
+                      <View key={i} style={styles.listItem}>
+                        <ChevronRight size={16} color={lightColors.textH1} style={styles.listIcon} />
+                        <Text style={styles.listText}>{item}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {focusedPlace?.phone && (
+              <View style={styles.infoRow}>
+                <Phone
+                  size={20}
+                  color={lightColors.textH1}
+                  style={styles.infoIcon}
+                />
+                <Text style={styles.infoText}>
+                  Teléfono: {focusedPlace.phone}
+                </Text>
+              </View>
+            )}
+
+            {focusedPlace?.annex && (
+              <View style={styles.infoRow}>
+                <Hash
+                  size={20}
+                  color={lightColors.textH1}
+                  style={styles.infoIcon}
+                />
+                <Text style={styles.infoText}>
+                  Anexo: {focusedPlace.annex}
+                </Text>
+              </View>
+            )}
+
+            {focusedPlace?.careers && focusedPlace.careers.length > 0 && (
+              <View style={styles.listSection}>
+                <View style={styles.listSectionHeader}>
+                  <GraduationCap
+                    size={20}
+                    color={lightColors.textH1}
+                    style={styles.infoIcon}
+                  />
+                  <Text style={styles.listSectionTitle}>Carreras:</Text>
+                </View>
+                <View style={styles.listItemsContainer}>
+                  {focusedPlace.careers.map((career, i) => (
+                    <View key={i} style={styles.listItem}>
+                      <ChevronRight size={16} color={lightColors.textH1} style={styles.listIcon} />
+                      <Text style={styles.listText}>{career}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {focusedPlace?.usage && (
+              <View style={styles.infoRow}>
+                <Bookmark
+                  size={20}
+                  color={lightColors.textH1}
+                  style={styles.infoIcon}
+                />
+                <Text style={styles.infoText}>Uso: {focusedPlace.usage}</Text>
+              </View>
+            )}
+
+            {focusedPlace?.services && focusedPlace.services.length > 0 && (
+              <View style={styles.listSection}>
+                <View style={styles.listSectionHeader}>
+                  <Coffee
+                    size={20}
+                    color={lightColors.textH1}
+                    style={styles.infoIcon}
+                  />
+                  <Text style={styles.listSectionTitle}>Servicios:</Text>
+                </View>
+                <View style={styles.listItemsContainer}>
+                  {focusedPlace.services.map((svc, i) => (
+                    <View key={i} style={styles.listItem}>
+                      <CheckCircle2 size={16} color={lightColors.textH1} style={styles.listIcon} />
+                      <Text style={styles.listText}>{svc}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            <View style={styles.infoRow}>
+              <Info
+                size={20}
+                color={lightColors.textH1}
+                style={styles.infoIcon}
+              />
+              <Text style={styles.infoText}>
+                Por favor, recuerda mantener las instalaciones limpias y
+                respetar las normas de la universidad durante tu visita.
+              </Text>
+            </View>
+
+            {focusedPlace?.keywords && focusedPlace.keywords.length > 0 && (
+              <View style={styles.keywordsContainer}>
+                <Text style={styles.keywordsTitle}>Etiquetas:</Text>
+                <View style={styles.badgesWrapper}>
+                  {focusedPlace.keywords.map((kw, index) => (
+                    <View key={index} style={styles.badge}>
+                      <Text style={styles.badgeText}>{kw}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </ScrollView>
         </Animated.View>
       </View>
     </Animated.View>
@@ -282,5 +405,68 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: lightColors.textH1,
     lineHeight: 20,
+  },
+  listSection: {
+    marginBottom: 16,
+  },
+  listSectionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  listSectionTitle: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 14,
+    color: lightColors.textH1,
+    lineHeight: 20,
+    flex: 1,
+  },
+  listItemsContainer: {
+    paddingLeft: 36,
+    gap: 8,
+  },
+  listItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  listIcon: {
+    marginTop: 2,
+    marginRight: 8,
+  },
+  listText: {
+    flex: 1,
+    fontFamily: "DMSans_500Medium",
+    fontSize: 14,
+    color: lightColors.textH1,
+    lineHeight: 20,
+  },
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  keywordsContainer: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  keywordsTitle: {
+    fontFamily: "DMSans_700Bold",
+    fontSize: 14,
+    color: lightColors.textH1,
+    marginBottom: 12,
+  },
+  badgesWrapper: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  badge: {
+    backgroundColor: "#F0F0F0",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  badgeText: {
+    fontFamily: "DMSans_500Medium",
+    fontSize: 12,
+    color: lightColors.textH1,
   },
 });

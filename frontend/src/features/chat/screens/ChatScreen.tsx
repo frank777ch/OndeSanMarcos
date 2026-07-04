@@ -66,6 +66,14 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
         schedule: place.schedule,
         latitude: place.coordinate.latitude,
         longitude: place.coordinate.longitude,
+        description: place.description,
+        phone: place.phone,
+        annex: place.annex,
+        careers: place.careers,
+        usage: place.usage,
+        services: place.services,
+        detailedSchedule: place.detailedSchedule,
+        keywords: place.keywords,
       });
     }
     navigation.navigate("Map");
@@ -112,7 +120,7 @@ export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View style={styles.header}>
           <Pressable
