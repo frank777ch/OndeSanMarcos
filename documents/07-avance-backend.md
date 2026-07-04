@@ -5,20 +5,21 @@
 > objetivo del [03-backend-rag](./03-backend-rag.md): aquí está lo que **ya
 > existe en el código**.
 >
-> Última actualización: **25/05/2026** (Sprint 2 · "El Cerebro").
+> Última actualización: **04/07/2026** (LLM real Gemini + corpus oficial en producción).
 
 ---
 
 ## 7.1 Resumen del estado
 
-El backend ya **funciona de extremo a extremo en modo mock**: se puede levantar
-la API, llamar a `POST /api/chat` y recibir respuestas ancladas al corpus, sin
-necesidad de llaves de LLM ni base vectorial. Sobre esa base se dejó preparado
-el camino a los proveedores reales.
+El backend está **desplegado con LLM real (Gemini)** sobre el **corpus oficial**
+del campus: `POST /api/chat` devuelve respuestas naturales ancladas a documentos
+verificados. La recuperación es **local** (bag-of-words sobre el corpus);
+Supabase + pgvector siguen pendientes. El modo mock persiste para los tests
+(hermético, sin red).
 
 | Historia | Estado | Qué se hizo |
 |----------|--------|-------------|
-| **HU-2.2** Consultas RAG | 🟡 Parcial | Pipeline de ingesta (carga → troceado → embeddings → almacén) y motor RAG completo en modo mock. Proveedores reales (LLM) implementados; pgvector pendiente. |
+| **HU-2.2** Consultas RAG | 🟡 Parcial | LLM real (**Gemini**) en producción sobre **corpus oficial** (37 lugares + 41 documentos desde el documento verificado del campus). Recuperación local; **pgvector + embeddings neuronales pendientes**. |
 | **HU-2.4** Guardrails | ✅ (heurística) | Filtro de alcance UNMSM por límite de palabra + system prompt para el LLM real. |
 | **HU-2.3** Enrutamiento | 🟡 Parcial | El contrato ya devuelve `draw_route` + `destination`; el motor detecta intención de navegación. Falta que el frontend lo consuma. |
 
@@ -35,8 +36,9 @@ backend/app/
 ├── api/chat.py          # Endpoint POST /api/chat
 ├── schemas/chat.py      # Contrato: ChatRequest, ChatResponse, Coordinate, ...
 ├── knowledge/
-│   ├── corpus.py        # Corpus de documentos de ejemplo (base de conocimiento)
-│   └── places.py        # Lugares del campus (espejo de CAMPUS_PLACES del front)
+│   ├── corpus.py        # Corpus oficial del campus (derivado de sources/unmsm_info.md)
+│   ├── places.py        # Lugares del campus (espejo de CAMPUS_PLACES del front)
+│   └── sources/         # Documento oficial verificado (fuente única del corpus)
 └── rag/
     ├── engine.py        # Orquestador RAG (guardrails → recuperar → generar)
     ├── guardrails.py    # Filtro de alcance institucional (HU-2.4)
@@ -45,7 +47,7 @@ backend/app/
     ├── retriever.py     # Indexa por fragmentos y recupera top-k por coseno
     ├── embeddings.py    # EmbeddingProvider (mock: bag-of-words)
     ├── vector_store.py  # InMemoryVectorStore (mock de pgvector)
-    ├── llm.py           # LLMProvider (mock + OpenAI/Anthropic reales)
+    ├── llm.py           # LLMProvider (mock + Gemini/OpenAI/Anthropic reales)
     └── providers.py     # Selecciona implementaciones mock vs reales
 ```
 
@@ -84,9 +86,9 @@ flowchart LR
 
 | `RAG_USE_MOCK` | Supabase configurado | LLM | Recuperación |
 |----------------|----------------------|-----|--------------|
-| `true` (default) | — | `TemplateLLM` (determinista) | corpus + bag-of-words en memoria |
-| `false` | no | OpenAI/Anthropic real | **local** (bag-of-words) sobre los documentos fuente |
-| `false` | sí | OpenAI/Anthropic real | pgvector → **pendiente** (lanza `RagProviderError` con instrucciones) |
+| `true` (tests) | — | `TemplateLLM` (determinista) | corpus + bag-of-words en memoria |
+| `false` (**producción**) | no | **Gemini** (u OpenAI/Anthropic) real | **local** (bag-of-words) sobre los documentos fuente |
+| `false` | sí | Gemini/OpenAI/Anthropic real | pgvector → **pendiente** (lanza `RagProviderError` con instrucciones) |
 
 Si falta una llave o una dependencia opcional, se lanza `RagProviderError` con
 un mensaje accionable; el endpoint lo traduce a **HTTP 503** (no 500) para que
@@ -144,17 +146,18 @@ curl -X POST http://localhost:8000/api/chat ^
 
 ## 7.7 Activar proveedores reales
 
-1. Instala las dependencias opcionales: `pip install -r requirements-rag.txt`.
-2. Copia `.env.example` a `.env` y completa:
+1. Instala el SDK del LLM: `pip install -r requirements-llm.txt` (Gemini). Para
+   OpenAI/Anthropic usa `requirements-rag.txt`.
+2. Copia `.env.example` a `.env` y completa (así corre en producción hoy):
    ```ini
    RAG_USE_MOCK=false
-   LLM_PROVIDER=openai          # o anthropic
-   LLM_API_KEY=sk-...
-   LLM_MODEL=gpt-4o-mini        # opcional
+   LLM_PROVIDER=gemini          # o openai / anthropic
+   LLM_API_KEY=...              # NUNCA subir al repo (.env está en .gitignore)
+   LLM_MODEL=gemini-2.5-flash   # opcional
    ```
-3. Sin `SUPABASE_*`, la recuperación es **local** (sirve para probar el LLM
-   real). Con `SUPABASE_*`, hoy se lanza un error explicando los pasos de
-   pgvector (siguiente sección).
+3. Sin `SUPABASE_*`, la recuperación es **local** (es lo que corre hoy en el
+   deploy). Con `SUPABASE_*`, se lanza un error explicando los pasos de pgvector
+   (siguiente sección).
 
 ---
 
@@ -166,4 +169,6 @@ curl -X POST http://localhost:8000/api/chat ^
 2. **Embeddings reales** (modelo neuronal vía LlamaIndex) en vez de bag-of-words.
 3. **Consumo del enrutamiento en el frontend**: leer `draw_route`/`destination`
    en el chat y trazar la `polyline` en el mapa (cierra HU-2.3).
-4. **Ampliar el corpus** con documentos oficiales reales (reglamentos, horarios).
+
+> ✅ Ya hecho: **corpus oficial real** (desde `sources/unmsm_info.md`) y **LLM
+> real (Gemini)** activo en producción.

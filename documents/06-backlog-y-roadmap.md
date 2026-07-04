@@ -58,7 +58,7 @@ graph LR
 | HU | Nombre | Prioridad | Est. | Estado | Evidencia en código |
 |----|--------|-----------|------|--------|---------------------|
 | HU-2.1 | Interfaz de Chat Dedicada | Alta | 5 | ✅ | Pestaña "Asistente", `ChatScreen`, burbujas, input. |
-| HU-2.2 | Consultas RAG (Base de Conocimiento) | Alta | 13 | 🟡 | Backend `/api/chat` + motor RAG e ingesta en modo mock; LLM real listo, pgvector pendiente. Ver [07-avance-backend](./07-avance-backend.md). |
+| HU-2.2 | Consultas RAG (Base de Conocimiento) | Alta | 13 | 🟡 | Backend `/api/chat` desplegado con **LLM real (Gemini)** sobre **corpus oficial**; recuperación local, pgvector + embeddings pendientes. Ver [07-avance-backend](./07-avance-backend.md). |
 | HU-2.3 | Enrutamiento Automático (Chat-Mapa) | Alta | 8 | 🟡 | Backend ya devuelve `draw_route` + `destination`; falta que el frontend lo consuma y trace la ruta. |
 | HU-2.4 | Filtro de Contexto (Guardrails) | Alta | 3 | ✅ | Guardrails de alcance UNMSM por límite de palabra + system prompt (heurística implementada y con pruebas); se reforzará con el LLM real. |
 | HU-2.5 | Sugerencias de preguntas | Media | 3 | ✅ | `SuggestionChips` en `ChatScreen`. |
@@ -129,6 +129,6 @@ gantt
 ## 6.5 Próximos pasos sugeridos
 
 1. **Cerrar la integración Chat→Mapa** (HU-2.3 parcial): que `MapScreen` lea `focusTarget` y recentre la cámara.
-2. **Completar el backend RAG** (HU-2.2): el motor ya corre en modo mock (ver [07-avance-backend](./07-avance-backend.md)); falta la recuperación real con pgvector + embeddings y, en el frontend, apagar `EXPO_PUBLIC_USE_MOCK_CHAT`.
+2. **Completar el backend RAG** (HU-2.2): el LLM real (Gemini) ya corre en producción sobre el corpus oficial (ver [07-avance-backend](./07-avance-backend.md)); falta la recuperación real con pgvector + embeddings y, en el frontend, apagar `EXPO_PUBLIC_USE_MOCK_CHAT`.
 3. **Motor de rutas** (EPIC03): poblar `src/features/routing/` y trazar `polyline` A→B.
 4. **Sensores del avatar** (HU-1.2): magnetómetro + filtro de suavizado.

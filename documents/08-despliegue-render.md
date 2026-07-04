@@ -9,8 +9,10 @@ El despliegue se hace con un **Blueprint** de Render: el archivo
 *Infraestructura como Código*, así que el deploy es **declarativo y
 reproducible** desde el propio repositorio.
 
-> El backend corre en **modo mock** (`RAG_USE_MOCK=true`): sin LLM ni base
-> vectorial externa, sin llaves. Es autocontenido. Ver detalle del motor en
+> El backend corre con **LLM real** (`RAG_USE_MOCK=false`, proveedor **Gemini**):
+> genera respuestas ancladas al corpus oficial del campus. La recuperación es
+> **local** (bag-of-words sobre el corpus); Supabase + pgvector siguen pendientes.
+> Requiere el secreto `LLM_API_KEY` (ver §8.4). Detalle del motor en
 > [07-avance-backend](./07-avance-backend.md).
 
 ---
@@ -64,7 +66,7 @@ Estos ajustes salen del archivo (no se configuran a mano):
 | Ajuste | Valor |
 |--------|-------|
 | Carpeta del servicio (`rootDir`) | `backend` |
-| Build Command | `pip install -r requirements.txt` |
+| Build Command | `pip install -r requirements.txt -r requirements-llm.txt` |
 | Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
 | Health Check | `/health` |
 | Plan / Runtime | `free` · Python |
@@ -77,17 +79,25 @@ Estos ajustes salen del archivo (no se configuran a mano):
 
 ## 8.4 Variables de entorno
 
-Declaradas en `render.yaml` (no son secretas en modo mock):
+Las no secretas se declaran en `render.yaml`; la llave del LLM es un **secreto**
+(`sync: false`) que se ingresa en el dashboard de Render, nunca en el repo:
 
 | Variable | Valor | Para qué |
 |----------|-------|----------|
 | `PYTHON_VERSION` | `3.11.9` | El código requiere Python 3.11+. |
-| `RAG_USE_MOCK` | `true` | Corre el motor sin LLM ni Supabase (no tocar aún). |
+| `RAG_USE_MOCK` | `false` | Usa el LLM real (Gemini) en vez del mock. |
+| `LLM_PROVIDER` | `gemini` | Proveedor del LLM. |
+| `LLM_MODEL` | `gemini-2.5-flash` | Modelo de Gemini. |
+| `LLM_API_KEY` | *(secreto)* | Llave de Google AI Studio. **Se pone en el dashboard** (`sync: false`). |
 | `CORS_ORIGINS` | `*` | Abierto; la app móvil nativa no aplica CORS. |
 | `APP_ENV` | `production` | Marca el entorno. |
 
-Todas tienen valor por defecto seguro en `app/config.py`, así que el servicio
-arranca aunque falte alguna; se declaran explícitas para dejar la intención clara.
+> **Importante:** con `RAG_USE_MOCK=false`, si falta `LLM_API_KEY` el endpoint
+> `/api/chat` responde **503** (`/health` sigue 200). Define el secreto en Render
+> (**Environment → Add Environment Variable**) antes o junto con el primer deploy.
+
+Las demás tienen valor por defecto seguro en `app/config.py`, así que el servicio
+arranca aunque falte alguna.
 
 ---
 
@@ -125,9 +135,10 @@ Pásale a tu equipo la **URL base** + `/docs`: ahí prueban los endpoints sin c�
 En el frontend (Expo) basta apuntar la URL del backend y apagar su mock del chat
 (`EXPO_PUBLIC_API_URL` → URL de Render; `EXPO_PUBLIC_USE_MOCK_CHAT=false`).
 
-> **Nota honesta:** en modo mock las respuestas son **deterministas y limitadas
-> a un corpus de ejemplo**. Sirve para cablear la integración (forma de la
-> respuesta, "Ver en mapa", `draw_route`), no como Q&A real todavía.
+> **Nota honesta:** el LLM real (Gemini) genera respuestas naturales ancladas al
+> **corpus oficial** del campus. La recuperación es **local** (bag-of-words), no
+> aún pgvector, así que la cobertura depende del corpus cargado; suficiente para
+> Q&A real del campus, con margen de mejora al migrar a embeddings + pgvector.
 
 ---
 
@@ -141,19 +152,21 @@ En el frontend (Expo) basta apuntar la URL del backend y apagar su mock del chat
 
 ---
 
-## 8.8 Más adelante: proveedores reales
+## 8.8 Estado actual y siguiente paso (pgvector)
 
-Cuando haya llaves y base vectorial, **sin redesplegar código**, solo cambian
-variables de entorno (ver `app/rag/providers.py` y `requirements-rag.txt`):
+El **LLM real ya está activo** (Gemini, ver §8.4). Lo que falta para el RAG a
+escala es la **recuperación con pgvector**; hoy la recuperación es local
+(bag-of-words sobre el corpus). Cambiar de proveedor de LLM es solo cuestión de
+variables de entorno (`app/rag/providers.py` soporta `gemini`, `openai` y
+`anthropic`):
 
 | Variable | Ejemplo | Nota |
 |----------|---------|------|
-| `RAG_USE_MOCK` | `false` | Activa proveedores reales. |
-| `LLM_PROVIDER` | `openai` / `anthropic` | Proveedor del LLM. |
-| `LLM_API_KEY` | `sk-...` | Llave del proveedor. |
-| `LLM_MODEL` | `gpt-4o-mini` / `claude-haiku-4-5-20251001` | Modelo. |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | — | Para pgvector (recuperación real, **pendiente** de implementar). |
+| `LLM_PROVIDER` | `gemini` / `openai` / `anthropic` | Proveedor del LLM (hoy `gemini`). |
+| `LLM_MODEL` | `gemini-2.5-flash` / `gpt-4o-mini` / `claude-haiku-4-5-20251001` | Modelo. |
+| `LLM_API_KEY` | *(secreto)* | Llave del proveedor. |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | — | Para pgvector (recuperación real, **pendiente**). |
 
-> En modo real habría que añadir `requirements-rag.txt` al build y la
-> recuperación con pgvector todavía no está implementada
-> (`_build_pgvector_retriever` lanza un error con instrucciones).
+> Para el LLM basta `requirements-llm.txt` (ya en el build). La recuperación con
+> pgvector todavía no está implementada (`_build_pgvector_retriever` lanza un
+> error con instrucciones); requiere además `requirements-rag.txt` (supabase).
