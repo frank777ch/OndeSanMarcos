@@ -23,12 +23,15 @@ def test_chat_returns_contract_shape():
 
 
 def test_chat_navigation_returns_destination():
+    from app.knowledge.places import get_place_by_id
+
+    rectorado = get_place_by_id("rectorado")
     response = client.post("/api/chat", json={"query": "cómo llego al rectorado"})
     assert response.status_code == 200
     body = response.json()
     assert body["draw_route"] is True
-    assert body["destination"]["latitude"] == pytest.approx(-12.0578)
-    assert body["destination"]["longitude"] == pytest.approx(-77.084)
+    assert body["destination"]["latitude"] == pytest.approx(rectorado.coordinate.latitude)
+    assert body["destination"]["longitude"] == pytest.approx(rectorado.coordinate.longitude)
 
 
 def test_chat_rejects_empty_query():
