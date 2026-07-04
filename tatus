@@ -1,0 +1,943 @@
+[33mcommit d9d99634692efcd833914dbf75030ed1d3ee7a43[m[33m ([m[1;36mHEAD -> [m[1;32mRenzo[m[33m, [m[1;31morigin/Renzo[m[33m)[m
+Author: xLorenz29 <renzo.29.lp@gmail.com>
+Date:   Thu Jun 25 14:38:15 2026 -0500
+
+    unmsm.ts modificado y unmsm_info.md agregado
+
+[33mcommit a60d09a2760a71c8d3f49f5add3636018e729f67[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Merge: 488407c3 d2774ad2
+Author: Vilberto Patricio Julca <128847686+Vilberto02@users.noreply.github.com>
+Date:   Fri Jun 19 15:11:53 2026 -0500
+
+    Merge pull request #11 from frank777ch/patricio
+    
+    feat: improve avatar placement on the map, route start functionality, and free roam mode
+
+[33mcommit d2774ad2dab3cc36fba3100c1b46e90fdcf7e136[m[33m ([m[1;31morigin/patricio[m[33m)[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri Jun 19 15:06:38 2026 -0500
+
+    fix(map): improve user tracking, avatar visualization, and location services
+    
+    - Implement "My Location" option in the spawn selection menu.
+    - Enhance GPS precision feedback and fix real-time user location rendering.
+    - Add automatic camera centering on active routes to improve navigation experience.
+    - Refine avatar visibility logic across tracking and navigation modes.
+    - Integrate comprehensive technical documentation for the map module architecture and functionality flows.
+
+[33mcommit a317c27de5ae446813c02f2ba8c80ced22526147[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Thu Jun 18 02:26:29 2026 -0500
+
+    feat(map): implement campus place info card, search functionality, and GPS verification
+    
+    - Added `focusedPlace` to `useMapStore` to manage selected location state.
+    - Integrated `setFocusedPlace` in `ChatScreen` to update store upon location selection.
+    - Dynamically adjusted `MapActionButtons` position based on the visibility of the info card.
+    - Prepared state infrastructure for incoming search and GPS verification features.
+
+[33mcommit d1abeee43675104e88ce3da435853db216126f18[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Wed Jun 17 11:38:40 2026 -0500
+
+    fix(route-selection): resolve point selection bugs in routing modal
+    
+    - Add refs to start and end inputs for focus management.
+    - Implement auto-focus on the destination field after selecting a starting point.
+    - Update state validation in query handlers to prevent selection persistence when text changes.
+    - Sync route data to use the complete pathfinder dataset.
+
+[33mcommit 2cce70ae5963f88faf5c350af7febc1f46798a46[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Wed Jun 17 11:37:03 2026 -0500
+
+    fix(routing): add GeoJSON file for campus pathway network
+
+[33mcommit 0b449e6cbd3d4571321f7411389a9f269b32d2a1[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sun May 31 13:13:05 2026 -0500
+
+    refactor(frontend): decouple components and cleanup constants
+    
+    - Relocated AuthHeader to features/auth
+    - Removed obsolete colors.ts and typography.ts constants
+    - Updated MainTabs navigation to utilize local theme tokens
+    - Cleaned up README documentation and sprint tracking files
+
+[33mcommit 9b6b5696fb800c0bdffe7d356dfe5453ef428cf5[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sun May 31 13:10:48 2026 -0500
+
+    refactor(core): remove unnecessary .gitkeep files
+
+[33mcommit 19f79c9bb1e2f0e8270609a5e622385aebc6ebce[m
+Merge: d4e5b62e c3300ff4
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sun May 31 13:09:35 2026 -0500
+
+    Merge branch 'pedro-hu23-chat-mapa' into patricio
+
+[33mcommit 488407c336f0716a98dc7cb5b577e1878bacff83[m
+Merge: dc9f80da d4e5b62e
+Author: Vilberto Patricio Julca <128847686+Vilberto02@users.noreply.github.com>
+Date:   Sat May 30 08:24:07 2026 -0500
+
+    Merge pull request #10 from frank777ch/patricio
+    
+    feat: refine maps, routing, navigation, and chat UI
+
+[33mcommit d4e5b62e7ba7d7b4538826b8d8c92141b1a978f9[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 30 08:15:19 2026 -0500
+
+    feat(map): enhance route visualization, add info card, and improve location search
+    
+    - Add `routeMetadata` to `useMapStore` to track route details (start/end points and distance).
+    - Implement `MapRouteInfoCard` component to display active route summary and estimated travel time.
+    - Update `MapLocationButton` with disabled state support and improved styling.
+    - Refactor `setActiveRoute` to include optional metadata and ensure state consistency.
+
+[33mcommit 4aa53023a1127b00fe7a7ffaec714ea49402be8b[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 30 08:13:34 2026 -0500
+
+    feat(routing): calculate and display route distance and estimated time
+    
+    - Implemented haversineDistance utility to compute path length between coordinate points.
+    - Updated useRouting hook to calculate total route distance and include metadata (start/end points) in the active route state.
+    - Exported haversineDistance for use in routing logic.
+
+[33mcommit dc9f80da12b17e1ee23cde8c6aa73c2c2c422316[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Sat May 30 04:10:40 2026 -0500
+
+    docs: add backend screenshots
+
+[33mcommit 3a4071a7a0405666a63f21fad297d7c7df029aff[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Sat May 30 09:13:41 2026 +0200
+
+    fix (png): move gestion...png from documents to documents\\screenshots
+
+[33mcommit a4147110d6dc5b639c9b5dd17e2c8c5b6aafe312[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 30 02:35:15 2026 -0500
+
+    feat(chat): redesign UI and integrate dynamic theme colors
+
+[33mcommit 5b1fa86558d33b35a81bc21a911f9f08ba2bb4f4[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 30 02:33:18 2026 -0500
+
+    feat(map): enhance camera controls and implement dynamic theme colors
+    
+    - Integrate `useThemeStore` to apply dynamic primary colors to UI action buttons.
+    - Update `MapActionButtons` with routing state handling (Start/Cancel route).
+    - Implement custom styling for campus building category coordinates and UI components.
+
+[33mcommit b89be32dd07ef65b989556933f5f4ea0a2b57cbb[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 30 02:29:36 2026 -0500
+
+    feat(routing): implement campus pathfinding and route rendering
+    
+    - Created useRouting hook to manage route calculation state and integration with the map store.
+    - Implemented Pathfinder utility using Haversine distance for spatial node calculation.
+    - Integrated GeoJSON processing logic to build a traversable graph of campus paths with intersection snapping.
+
+[33mcommit 96c3e20d09984572b29e7e54da2535b69b504133[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 30 02:27:11 2026 -0500
+
+    feat(navigation): implement stack navigation for profile and integrate dynamic primary color
+    
+    - Replace ProfileScreen with ProfileStack to enable nested navigation for profile settings (Edit, Theme, Notifications).
+    - Introduce Zustand theme store to manage and apply dynamic primary colors to tab navigation.
+
+[33mcommit e3ac9e77e94a3c604e38ee5b153ae0213b025083[m
+Author: Guillermocr221 <guillermo.calle@unmsm.edu.pe>
+Date:   Fri May 29 21:56:13 2026 -0500
+
+    docs: Jira was set up and screenshots of the Jira project were uploaded.
+
+[33mcommit ea5883747f468c79a3859aa9a37a2708b2fcf832[m
+Merge: 3311f3ff 47be30e2
+Author: Oscar Macchiavello <124422205+osrcmap@users.noreply.github.com>
+Date:   Fri May 29 19:52:49 2026 -0500
+
+    Merge pull request #9 from frank777ch/oscar
+    
+    chore(docs): planning document title page and index screenshots
+
+[33mcommit 47be30e2acdf32830fa0a699c54e9b07f1c56f6e[m[33m ([m[1;31morigin/oscar[m[33m)[m
+Author: osrcmap <mapeoscar123@gmail.com>
+Date:   Fri May 29 19:51:56 2026 -0500
+
+    chore(docs): planning document title page and index screenshots
+
+[33mcommit 9a2a116227109d605b82e41f8e9691975d785559[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 29 18:13:42 2026 -0500
+
+    fix: update .gitignore
+
+[33mcommit c95590a79f677142308ed588bfeeddfcbc037ae8[m
+Merge: 9b413f9c 3311f3ff
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 29 18:10:42 2026 -0500
+
+    fix(config): clean up virtual environment tracking and update project documentation
+
+[33mcommit 9b413f9c2332882484b7cbde4ae47d6d27b6c853[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 29 18:05:42 2026 -0500
+
+    fix: update .gitignore
+
+[33mcommit a2bd78f9079e48fdbcb2b3a59fe3ff7cc543b4e7[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 29 18:04:17 2026 -0500
+
+    fix: update .gitignore
+
+[33mcommit c3300ff4d522310600eec2666c81f6a9db22e8d5[m[33m ([m[1;31morigin/pedro-hu23-chat-mapa[m[33m)[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 29 23:01:50 2026 +0200
+
+    feat(chat-mapa): consumir drawRoute/destination del backend y centrar la camara (HU-2.3)
+    
+    - useChat: al recibir una respuesta con drawRoute=true y destination, fija
+      el focusTarget en useMapStore y navega a la pestania Mapa (replica el patron
+      del boton manual 'Abrir' de LocationCard, ahora automatico).
+    - MapScreen: useEffect que consume focusTarget con moveToPoint() y limpia
+      el target con clearFocusTarget(). Esto cubre tanto el chat automatico como
+      el boton manual de las LocationCards (cerraba un bug documentado en
+      02-frontend §2.5 donde el MapScreen no leia focusTarget).
+    
+    Sin polyline aun (HU-3.1 'Trazado de ruta A->B' sigue planificado).
+
+[33mcommit 3311f3ff6f1e699d51b229c9b43849f5eef7fa81[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 29 22:50:12 2026 +0200
+
+    feat(chat): consumir la API del backend en lugar del mock
+    
+    - config: por defecto apunta al backend de Render y consume la API
+      (mock solo si EXPO_PUBLIC_USE_MOCK_CHAT=true).
+    - chatApi: normaliza la respuesta del backend (draw_route/destination
+      snake_case -> camelCase).
+    - tipos: ChatResponse incorpora Coordinate + drawRoute/destination (HU-2.3).
+    - .env.example: documenta la URL de Render y el flag de mock.
+
+[33mcommit 82de7810e69d8e6e966c5d633f8e8ca8f8f3beae[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 29 15:00:02 2026 -0500
+
+    docs: add application flow and feature screenshots
+
+[33mcommit 04bc1cdb98a5835b9fd430aa312a0d3a5641dba5[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 29 12:16:04 2026 -0500
+
+    docs: fix project and frontend documentation
+
+[33mcommit 51693264fbc7a258a9f1b5ae858bf798a605eb32[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 29 18:29:51 2026 +0200
+
+    docs: sincronizar estados y fechas (HU-2.4 implementada, backend ya construido)
+    
+    - HU-2.4 pasa a implementada (heuristica con pruebas), coincide con 07 y la expo.
+    - 06 §6.5: el backend ya existe en mock; el pendiente es pgvector + apagar el mock.
+    - Fechas/sprint al 29/05/2026 (Sprint 2 en cierre) en 06 y README.
+    - RESUMEN-AVANCE: corregir '13 tests' -> 37.
+
+[33mcommit 0e081088a800b6bf1becf2b956ed5d77c8fc56ac[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 29 18:19:45 2026 +0200
+
+    docs: diagrama de arquitectura completo en 01 y referencia de diagramas en capturas
+    
+    - 01-arquitectura-general.md: nueva seccion 1.7 (vista completa implementado vs
+      planificado, con leyenda) y nota de estado actualizada (backend en mock).
+    - screenshots/README.md: la seccion de diagramas apunta a los documentos donde
+      ya viven como Mermaid (sin tareas de exportacion manual).
+
+[33mcommit ff0cb0282a54ce00a5c69dd5c5db96eac4245a92[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 29 18:07:42 2026 +0200
+
+    docs: anadir planning document y carpeta de capturas; documentar solo blueprint en despliegue
+    
+    - Nuevo 00-planning-document.md (informe rector con mapa de entregables).
+    - Nueva carpeta documents/screenshots/ con estandar de nombres y checklist.
+    - 08-despliegue-render.md: eliminar Opcion A/B, documentar solo el Blueprint.
+    - README de documents/: indice con la fila 0 y la entrada de capturas.
+
+[33mcommit c9c0f3394b18faec648cff88c2fb1c2b4da30777[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 29 11:55:31 2026 +0200
+
+    chore(deploy): anadir blueprint de Render y guia de despliegue del backend
+    
+    Anade render.yaml (rootDir backend, modo mock, CORS abierto) y la guia
+    documents/08-despliegue-render.md para desplegar el backend de forma
+    independiente; actualiza el indice de documentacion.
+
+[33mcommit c791df6561c0c32eca8ef04ddd8c796138365494[m
+Merge: 3e326782 0cf3613d
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 29 11:17:25 2026 +0200
+
+    merge(chat): integrar pantalla de chat y datos de lugares desde pedro
+    
+    Trae la UI completa del chat (componentes, hook useChat, store y servicio
+    de API mock) y el dataset de lugares del campus para la integracion chat-mapa.
+
+[33mcommit 3e3267826712f4801899ea17cfb5fa0329f450c6[m
+Merge: 9dd05b85 488be9a0
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 29 11:17:01 2026 +0200
+
+    merge(backend): integrar backend RAG, docs y limpieza de venv desde pedro-rag-backend
+    
+    Incorpora el motor RAG (ingesta, proveedores mock/reales, enrutamiento y
+    guardrails), su documentacion en documents/ y deja de versionar venv/.
+
+[33mcommit 9dd05b850a884159e9f90b2e30ec1c14298aa2f2[m
+Merge: b4afd8cc d703762c
+Author: Oscar Macchiavello <124422205+osrcmap@users.noreply.github.com>
+Date:   Thu May 28 23:38:07 2026 -0500
+
+    Merge pull request #8 from frank777ch/oscar
+    
+    Oscar
+
+[33mcommit 488be9a00df61dcfd2e49fed04d0a91f3209e749[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Mon May 25 19:59:41 2026 +0200
+
+    docs(backend): guia de avance del backend RAG y actualizacion de estados
+    
+    Anade documents/07-avance-backend.md (guia viva: arquitectura del codigo,
+    pipeline de ingesta, proveedores, contrato con enrutamiento y como correrlo).
+    Actualiza el indice de documentacion, los estados de HU-2.2/2.3/2.4 en el
+    roadmap, la nota de estado del doc 03 y los README/RESUMEN del backend para
+    reflejar lo ya implementado.
+
+[33mcommit e3f8d2de6529d5c1073c16758fe01dec874ee07a[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Mon May 25 19:57:15 2026 +0200
+
+    feat(rag): guardrails por limite de palabra y errores 503 del endpoint (HU-2.4)
+    
+    Los guardrails ahora usan coincidencia por limite de palabra para evitar
+    falsos positivos (p. ej. "aula" dentro de "jaula"). El endpoint mapea
+    RagProviderError a 503 con un mensaje accionable en vez de un 500 opaco, para
+    que el frontend muestre "Reintentar". Amplia los tests de alcance y de error.
+
+[33mcommit fd505759e30522349688b61a1d3ba33ace96429b[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Mon May 25 19:56:17 2026 +0200
+
+    feat(rag): enrutamiento automatico chat-mapa en el contrato (HU-2.3)
+    
+    Extiende ChatResponse con draw_route y destination (Coordinate). El motor
+    detecta intencion de navegacion ("como llego a...", "llevame a...") mediante
+    un detector lexico determinista y, si hay un lugar, adjunta sus coordenadas
+    para que el frontend trace la ruta en el mapa.
+
+[33mcommit 71fcc0b4b6f82fddd9139ae192cdfff0bee4b478[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Mon May 25 19:55:05 2026 +0200
+
+    feat(rag): pipeline de ingesta y seleccion de proveedores reales (HU-2.2)
+    
+    Anade el pipeline de ingesta (carga, troceado con solapamiento, embeddings e
+    insercion en el almacen) reflejando el flujo offline del documento 03. El
+    Retriever ahora indexa por fragmentos y colapsa al documento padre.
+    
+    Agrega un selector de proveedores (mock vs reales): LLM real OpenAI/Anthropic
+    con import perezoso y system prompt anclado al contexto, retriever local como
+    respaldo, y errores accionables (RagProviderError) cuando falta una llave o
+    dependencia. El modo mock sigue como default.
+
+[33mcommit 970ca64cc4a39ca8989dc130759931d34c5f0a7b[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Mon May 25 19:46:47 2026 +0200
+
+    chore(repo): dejar de versionar venv/ y anadir reglas de Python a .gitignore
+
+[33mcommit 7ed13b7bef88183be4cac954183f54caa80597bc[m
+Merge: b150fef9 b4afd8cc
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Mon May 25 10:57:04 2026 +0200
+
+    merge(backend): integrar avance del frontend desde main en la rama RAG
+
+[33mcommit d703762c33b79d428cf8825aa67b5ff999d7b0ce[m
+Author: osrcmap <mapeoscar123@gmail.com>
+Date:   Sat May 23 10:03:02 2026 -0500
+
+    feat(auth): VerifiedEmailScreen redirection handled
+
+[33mcommit 947bb2952178ceaa8c7cf5fd1184dca261c15408[m
+Author: osrcmap <mapeoscar123@gmail.com>
+Date:   Sat May 23 03:10:25 2026 -0500
+
+    feat(auth): email verification redirects to VerifiedEmailScreen
+
+[33mcommit b4afd8cc6e9e5be51cefd951c2b5659f94c90d7a[m
+Merge: 67d72116 6d55c333
+Author: Vilberto Patricio Julca <128847686+Vilberto02@users.noreply.github.com>
+Date:   Sat May 23 02:15:32 2026 -0500
+
+    Merge pull request #6 from frank777ch/patricio
+    
+    feat(map-ui): improves the map experience and updates the styles of map components.
+
+[33mcommit 6d55c333a17f3c62b5123f6e18cbca3729be67d8[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 23 02:10:30 2026 -0500
+
+    feat(map): display animated avatar and user location on the map
+
+[33mcommit 3eee7b718211faa0d14ff3e2a0b8463d97a6279d[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 23 02:08:21 2026 -0500
+
+    style(map): improve typography, spacing, and colors of the map components
+
+[33mcommit 01acd432c10afd0f92b4174137f490a75db38336[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 23 02:04:16 2026 -0500
+
+    chore: add package vector-icons
+
+[33mcommit 2cb1bf76fc0c5682b3cd924b886ff0760b4d7d29[m
+Merge: 5b278cf4 0226d601
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Sat May 23 02:02:06 2026 -0500
+
+    Merge branch 'frank' into patricio
+
+[33mcommit 67d72116b48998c0cbeca662e0793b6e0b0b53d9[m
+Merge: b79856ef 5b278cf4
+Author: Vilberto Patricio Julca <128847686+Vilberto02@users.noreply.github.com>
+Date:   Fri May 22 23:32:31 2026 -0500
+
+    Merge pull request #5 from frank777ch/patricio
+    
+    feat: integrate user location in map and complete onboarding flow
+
+[33mcommit 5b278cf4b6f607377080211c620d6882c2f54479[m
+Merge: 27701f8e 922407a2
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 22 23:05:49 2026 -0500
+
+    Merge branch 'guillermo' into patricio
+
+[33mcommit 27701f8e89754593c8747cc3b4f50c78bb321f17[m
+Merge: 605f2fb8 b79856ef
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 22 11:16:38 2026 -0500
+
+    Merge branch 'main' into patricio
+
+[33mcommit 605f2fb88a165a74b3bc48b65a24612169a7b77d[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 22 10:53:12 2026 -0500
+
+    style(profile): update visual content of preference options
+
+[33mcommit eb5a1e45e3fe07eb67f7382dd2bdcc6849706c1e[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 22 10:51:55 2026 -0500
+
+    style(onboarding): update text content styles and dots animation
+
+[33mcommit e84535bb93293d57b5cf124f94acb4ad060d2c62[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 22 10:50:14 2026 -0500
+
+    refactor(ui): move border radius customization from base component to instances
+
+[33mcommit b150fef9756822d4d1e60ca41faa5770bb436d24[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:35:26 2026 +0200
+
+    docs(backend): anadir resumen del avance del backend RAG
+
+[33mcommit 9e2f00a7d11c3fac2f2976ca495dab671bad5c3e[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:34:50 2026 +0200
+
+    docs(backend): anadir README con arquitectura, ejecucion y pruebas
+
+[33mcommit df8c3f331e5403db7738066e6e1289fb33100ff1[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:34:19 2026 +0200
+
+    test(backend): anadir pruebas de guardrails, retriever, motor y endpoint /api/chat
+
+[33mcommit 2a57e8c00a12a8850314f6e963885571683d6d26[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:33:29 2026 +0200
+
+    feat(backend): exponer endpoint POST /api/chat conectando el motor RAG
+
+[33mcommit cf07e9825d57625455c4c60cbdcf7cc544634ee7[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:32:59 2026 +0200
+
+    feat(rag): orquestar el motor RAG (guardrails, recuperacion, generacion y lugares)
+
+[33mcommit 591aa3be51cf25f2ef4a5fc1cdc66d48e6e0cb13[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:32:24 2026 +0200
+
+    feat(rag): anadir proveedor LLM mock que genera respuestas ancladas al contexto
+
+[33mcommit 609d548b583fec195f52122d3c40fa078f1ca2c9[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:30:49 2026 +0200
+
+    feat(rag): anadir embeddings mock (bag-of-words), vector store en memoria y retriever por coseno
+
+[33mcommit 5fed98dd610e966c2953d61cf6be09b9ff26096b[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:29:58 2026 +0200
+
+    feat(rag): implementar guardrails de alcance institucional (HU-2.4)
+
+[33mcommit 462172b711852cafc51d9b42a7753b8ec9b8ffb1[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:29:32 2026 +0200
+
+    feat(backend): anadir base de conocimiento del campus (lugares UNMSM y corpus de ejemplo)
+
+[33mcommit 18821d56ce8c4ec0b0d9253fd1af660e4bf9f663[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:28:57 2026 +0200
+
+    feat(backend): definir esquemas del contrato /api/chat (ChatRequest, ChatResponse, LocationResult)
+
+[33mcommit 3b18fe1decfd552b963a860b5b08a9d415115ce4[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:28:34 2026 +0200
+
+    chore(backend): inicializar proyecto FastAPI (config, requirements y healthcheck)
+
+[33mcommit 0cf3613d9481a9a0c30b5b669768a25530568a61[m
+Merge: 75b31341 b79856ef
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:01:25 2026 +0200
+
+    Merge branch 'main' into pedro
+
+[33mcommit b79856ef1f45c0ee5aa3f6582252b584fcf51096[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 10:01:22 2026 +0200
+
+    docs: corregir nota del diagrama de clases para render correcto en GitHub
+
+[33mcommit 75b31341d923f1f850515e614f68849d5e701df6[m
+Merge: 83d707a8 8790e8e0
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:21 2026 +0200
+
+    Merge branch 'main' into pedro
+
+[33mcommit 8790e8e0c652a13f8f149b5e5af2200638393e3d[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:03 2026 +0200
+
+    docs: anadir backlog y roadmap del proyecto
+
+[33mcommit 47146b46e2e0e7135ad8df47a357b32449a0f55f[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:03 2026 +0200
+
+    docs: anadir diagramas de flujo y secuencia
+
+[33mcommit 46689ac7d596cc0da24447410ad95121a611f946[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:02 2026 +0200
+
+    docs: anadir modelo de datos (diagramas de clases y entidades)
+
+[33mcommit eab088c705d2286c04f25cd382a8003e1b6a21ae[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:02 2026 +0200
+
+    docs: anadir diseno del backend y motor RAG
+
+[33mcommit c43a38ee9bd23486147fb9748da7848e44c90bfc[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:02 2026 +0200
+
+    docs: anadir documentacion del frontend (estructura, navegacion y estado)
+
+[33mcommit 6989e6e5074aeb518069fd221260ac4c312bc9bc[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:02 2026 +0200
+
+    docs: anadir arquitectura general (frontend, backend y despliegue)
+
+[33mcommit 827c6c6c8609e693dc1d42436e6d4dea4fefd5ed[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:01 2026 +0200
+
+    docs: anadir indice y vision general de la documentacion
+
+[33mcommit 4328d3a4be3c47777810a03818bc4a9961426974[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:59:01 2026 +0200
+
+    chore(gitignore): ignorar binarios locales (vc_redist.x64.exe) y carpeta temp/
+
+[33mcommit 83d707a8db69ad8672216991681e992a16f5de18[m
+Merge: 745dd63a faffb6ba
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Fri May 22 09:35:29 2026 +0200
+
+    Merge main into pedro: sync chat branch with map redesign
+    
+    Resolved map conflicts keeping the main map redesign while preserving the chat-required exports in unmsm.ts: Coordinate, CampusPlace, CAMPUS_PLACES, getCampusPlaceById.
+
+[33mcommit 0226d6016fcd7f8316514b4b86af82780e854ec1[m
+Author: VapeStation04 <frank.condor@unmsm.edu.pe>
+Date:   Thu May 21 23:53:05 2026 -0500
+
+    Add floating avatar, camera heading, expo-image
+    
+    Adds avatar assets and UI to show a floating avatar with walk/idle states, and enhances camera control.
+    
+    - Added avatar image files (david_idle.webp, david_walk.webp, prueba.png) under frontend/assets/avatar.
+    - Added expo-image to dependencies (package.json) and updated lockfile.
+    - Enhanced useMapCamera hook: added optional heading, default heading (0), adjusted zoom/pitch defaults and animation durations.
+    - Updated MapScreen: introduced isWalking state and a timer to detect user camera movement via onCameraChanged; shows a floating Image (expo-image) overlay switching between walk/idle sprites; passes heading to Mapbox Camera; disables zoom/pitch when not in free mode; cleans up walk timer on unmount.
+    - Minor style and code formatting cleanups and small refactors for readability.
+
+[33mcommit 03fb14541648929e0a7991f1cd4a1e66f56c7e7d[m
+Author: xLorenz29 <renzo.29.lp@gmail.com>
+Date:   Thu May 21 18:09:53 2026 -0500
+
+    Añadir imagenes, cambiar posicion de Dot y Color de Siguiente
+
+[33mcommit 6dbc6cd699f6019d19c8368ad5c7fd08bc2d02de[m
+Author: xLorenz29 <renzo.29.lp@gmail.com>
+Date:   Thu May 21 17:13:45 2026 -0500
+
+    Agregando imagenes a los screen
+
+[33mcommit eb9e052cfd9791edd9243a0377bc8e528ca19f02[m
+Author: xLorenz29 <renzo.29.lp@gmail.com>
+Date:   Thu May 21 13:58:16 2026 -0500
+
+    Primera Version de Onboarding
+
+[33mcommit faffb6ba983ece1c32c5b2842e519de2721ddf2d[m[33m ([m[1;32mmain[m[33m)[m
+Merge: 52600a8c 58e4bff1
+Author: nivek's <150204523+frank777ch@users.noreply.github.com>
+Date:   Wed May 20 23:34:11 2026 -0500
+
+    Merge pull request #4 from frank777ch/frank
+    
+    update
+
+[33mcommit 58e4bff15bcdbf02ebbc9e0a8f0b081817c80c69[m
+Author: VapeStation04 <frank.condor@unmsm.edu.pe>
+Date:   Wed May 20 23:33:07 2026 -0500
+
+    update
+
+[33mcommit 52600a8ca2128f31581bcba60afccba6a8201fb4[m
+Merge: d166055a 2a58699d
+Author: nivek's <150204523+frank777ch@users.noreply.github.com>
+Date:   Wed May 20 22:17:28 2026 -0500
+
+    Merge pull request #3 from frank777ch/frank
+    
+    Add map UI components and POI/3D map features
+
+[33mcommit 2a58699ddac4f0b6ef68e2df834e323a410d5460[m
+Author: VapeStation04 <frank.condor@unmsm.edu.pe>
+Date:   Tue May 19 23:05:38 2026 -0500
+
+    Add map UI components and POI/3D map features
+    
+    Introduce several floating map UI components (MapSearchBar, MapFilterChips, MapLocationButton, MapActionButtons) and integrate them into MapScreen. Refactor MapScreen to use UNMSM constants, enable 3D building extrusion, add a ShapeSource/SymbolLayer for POIs with category filtering (activeCategory), and simplify avatar location handling. Also update map camera pitch and add UNMSM_POIS GeoJSON in constants. Minor Expo config changes: update EAS projectId in app.config.ts and change slug in app.json (removed duplicate extra.eas block). These changes improve map UX, add POI filtering and visual 3D enhancements.
+
+[33mcommit 745dd63a7dbd2e99cf0c1545c2ec09a3f54d3c19[m[33m ([m[1;31morigin/pedro[m[33m)[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Sat May 16 12:22:22 2026 +0200
+
+    feat(chat): build chat screen with idle/asking/answered states
+    
+    Replace the placeholder ChatScreen with the full assistant: animated state transitions, message list with location cards, suggestion chips, conversation history menu, retry on error, auto-scroll and keyboard dismissal.
+
+[33mcommit 0b0c8746f10708c0a81967fcf409bec42f525b26[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Sat May 16 12:22:13 2026 +0200
+
+    feat(chat): add chat UI components
+    
+    Add ChatInput, MessageBubble, AIResponse, LocationCard, SuggestionChips, the animated TypingIndicator, and the ConversationHistory side panel.
+
+[33mcommit beb6040e563772fef5a320d45e16c376b7e81b0f[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Sat May 16 12:22:09 2026 +0200
+
+    feat(chat): add useChat hook
+    
+    Orchestrate the active conversation: input transitions (idle/asking/answered), send, retry on error, and reset. Uses the mock by default and the real backend when Config.chat.useMock is off.
+
+[33mcommit e67d846ce50f48adce25af4e4f4bad6f08d0a246[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Sat May 16 12:22:05 2026 +0200
+
+    feat(chat): add chat API service and conversation store
+    
+    Add sendChatQuery wrapping the existing apiClient. Rework useChatStore into a multi-conversation store persisted to AsyncStorage, keeping the conversation across tab switches.
+
+[33mcommit 5b7a0ed3ffa0c52df66c6872c4af4fe4efb85a7d[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Sat May 16 12:22:01 2026 +0200
+
+    feat(chat): add chat domain types and mock assistant
+    
+    Add Message, LocationResult, ChatResponse, Conversation types and the chat color palette. Add buildMockResponse/mockChatQuery for keyword-based offline answers, gated by the Config.chat.useMock flag.
+
+[33mcommit 0f233367beb34ae9628ce043a68ff2ecb5043656[m
+Author: anycodef <anycodefast1@gmail.com>
+Date:   Sat May 16 12:21:56 2026 +0200
+
+    feat(map): add campus places dataset and map focus target
+    
+    Add CAMPUS_PLACES with names, schedules, keywords and coordinates, plus getCampusPlaceById. Add focusTarget to useMapStore so the map can recenter on a place, and make MapScreen fly to it with a marker.
+
+[33mcommit 922407a219dd5964fd817e0d97f2c143ac8f65eb[m[33m ([m[1;31morigin/guillermo[m[33m)[m
+Author: Guillermocr221 <guillermo.calle@unmsm.edu.pe>
+Date:   Sat May 16 00:46:41 2026 -0500
+
+    HU1.1 - Fin
+    
+    Finalizada localización de usuario y criterios de localización.
+
+[33mcommit d166055a0e305366e1bb34902c2906a740503a10[m
+Merge: 41d1eec5 f71ee3ad
+Author: Vilberto Patricio Julca <128847686+Vilberto02@users.noreply.github.com>
+Date:   Fri May 15 22:13:53 2026 -0500
+
+    Merge pull request #2 from frank777ch/patricio
+    
+    fix(map): correct map display and configure integration with EAS
+
+[33mcommit f71ee3adb2e536ce6a509cb5ca35d5e576ac935c[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 22:11:50 2026 -0500
+
+    chore(eas): Install and configure EAS packages in the project
+
+[33mcommit 329ea8eba2c8a72efbfba1857be1b351dda03af6[m
+Merge: 5c2cec7b d8fe4d42
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 22:06:34 2026 -0500
+
+    fix(map): correct map display
+
+[33mcommit 41d1eec56f1403701ae2b886b94e4252d4f9dd9d[m
+Merge: 1b6ce7e7 5c2cec7b
+Author: Vilberto Patricio Julca <128847686+Vilberto02@users.noreply.github.com>
+Date:   Fri May 15 20:30:51 2026 -0500
+
+    Merge pull request #1 from frank777ch/patricio
+    
+    feat: login, registration and initial 3D map display
+
+[33mcommit 5c2cec7ba05623e9df2f21ae2fa595978ff3e496[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 17:53:04 2026 -0500
+
+    feat(ui): redesign placeholder screens for chat and map modules
+
+[33mcommit fc5d30ee1bb9c250f5dc0394db0984689bdc59fa[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 17:51:10 2026 -0500
+
+    feat(profile): improve profile UI and create SettingsItem component
+
+[33mcommit c72a9c84f69e43ee864df93af63ad911da85b1f2[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 17:49:04 2026 -0500
+
+    feat(ui): redesign navigation bar, update icons and integrate StatusBar
+
+[33mcommit b454e5bc295910153d1d04203709c992f68fcf9e[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 17:46:34 2026 -0500
+
+    chore: remove unnecesarry .gitkeep files from directories
+
+[33mcommit 02e00dc38c7d73efda416eeda0b3f2fa63e65869[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 04:09:59 2026 -0500
+
+    feat: redesign auth screens to match the project design system
+
+[33mcommit 840df472ea769a42c3988f1c5fd0bb9cdcb118a3[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 04:07:32 2026 -0500
+
+    refactor: adapt button, input, and auth header components for login and registration flows
+
+[33mcommit 34dc8f883c93976baba7f67c2940bf0b9bc3f024[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 04:05:39 2026 -0500
+
+    chore: update project configuration for react-native-svg and svg transformer support
+
+[33mcommit 03c51577734dd34bb52d93dfbeca77e11c9b8e05[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 04:03:37 2026 -0500
+
+    feat: add project typography assets
+
+[33mcommit 7545da2b0ae0f96098699b76f8f257e4c0d5856a[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 04:01:43 2026 -0500
+
+    feat: add color variables and illustration assets
+
+[33mcommit 2b0ff1fd22eea358ca71db7f60763e8438db82cb[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Fri May 15 03:59:52 2026 -0500
+
+    chore: remove unnecessary .gitkeep files from populated directories
+
+[33mcommit e69e8a1a15cb85715afe53f6ade05f09ad0b21e0[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Thu May 14 18:27:45 2026 -0500
+
+    add configuration for EAS
+
+[33mcommit 0aa8ef0ff263981a4216e2df6457d29427e95c35[m
+Author: osrcmap <mapeoscar123@gmail.com>
+Date:   Sat May 9 01:34:15 2026 -0500
+
+    feat: register-screen, email-sent-screen, verified-email-screen
+    
+    New shared components (frontend/src/shared/components/)
+    
+    PrimaryButton.tsx
+    AuthTextInput.tsx — animated floating label
+    AuthHeader.tsx — back button
+    StepDots.tsx
+    IllustrationPlaceholder.tsx — gray dashed box, swap when designer delivers
+    New screens
+    
+    EmailSentScreen.tsx — replaces popup
+    VerifiedEmailScreen.tsx — deep-link target
+    Modified
+    
+    RegisterScreen.tsx — new layout + Nombre field, navigates to EmailSent
+    AppNavigator.tsx — linking config wires ondesanmarcos://verified-email → VerifiedEmail screen
+    AuthStack.tsx, types.ts — register new screens
+    auth.service.ts — signUp(email, password, name) passes user_metadata.name + emailRedirectTo
+    Dep: expo-linking installed.
+    
+    Coworker — Supabase dashboard
+    Send this to coworker (project qcsvcxechzmgzcxjcesa):
+    
+    Authentication → URL Configuration → Redirect URLs, add and save:
+    
+    ondesanmarcos://verified-email
+    ondesanmarcos://*
+    exp://* (dev only, remove for prod)
+    Authentication → Email Templates → Confirm signup: keep {{ .ConfirmationURL }} in body.
+
+[33mcommit d8fe4d423c0a3b1c297fa250c0cafc5a05218f6b[m
+Author: Guillermocr221 <guillermo.calle@unmsm.edu.pe>
+Date:   Sat May 2 04:17:54 2026 -0500
+
+    Ajuste variables de entorno
+    
+    - Uso de Constants para evitar hardcodear token publico mapbox.
+
+[33mcommit b857eefca6b47857c3feb36640db2fdb92f95019[m
+Author: Guillermocr221 <guillermo.calle@unmsm.edu.pe>
+Date:   Sat May 2 04:12:46 2026 -0500
+
+    HU1.1 - Avance
+    
+    - Cuenta de mapbox -> tokens
+    - Mostrar mapa
+    - Mostrar ubicación de usuario (hardcodeada)
+    - config de json -> ts
+
+[33mcommit b22c61b943b0f6b8b0a5d2b9ce27564c5d6e7225[m
+Author: VapeStation04 <frank.condor@unmsm.edu.pe>
+Date:   Fri Apr 24 21:47:42 2026 -0500
+
+    Add Profile screen and tab
+    
+    Introduce a new ProfileScreen component (features/profile/screens) that displays user avatar, account info, guest messaging and a logout flow (uses useAuthStore and authService). Wire the screen into the app by adding a Profile tab to MainTabs and add Profile to MainTabsParamList in navigation types. Also add a .gitkeep in the profile feature folder.
+
+[33mcommit a8778ecd92bd3c586340011d30b2174201c63072[m
+Author: VapeStation04 <frank.condor@unmsm.edu.pe>
+Date:   Fri Apr 24 20:45:10 2026 -0500
+
+    Init frontend: TypeScript React Native app
+    
+    Bootstrap a TypeScript Expo frontend and project structure. Replaces App.js with App.tsx and adds navigation (AppNavigator, AuthStack, MainTabs), AuthProvider, Zustand stores (useAuthStore, useMapStore, useChatStore), feature screens (auth, chat, map), services (Supabase clients and auth, API client), and shared/constants files. Adds babel module-resolver, tsconfig, .env.example, README with setup instructions, and updates app.json (slug, scheme, permissions, plugins). Also updates .gitignore and package metadata to include necessary native/dependency support for Mapbox, Supabase and navigation.
+
+[33mcommit 1b6ce7e72b3a391a613f3c30f1a356c1f7c798fd[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Wed Apr 22 21:02:34 2026 -0500
+
+    Modificar titulo del README
+
+[33mcommit 5ea41daf17609d204c560675352110bd83178f52[m
+Author: Vilberto02 <vilberto.patricio@unmsm.edu.pe>
+Date:   Wed Apr 22 21:01:09 2026 -0500
+
+    Agregar estructura inicial del frontend
+
+[33mcommit d94c870ed0452ca4cdf9bf1e07933866b0900391[m
+Author: VapeStation04 <frank.condor@unmsm.edu.pe>
+Date:   Sun Apr 12 23:21:20 2026 -0500
+
+    Add backend requirements and move files to test
+    
+    Add Python venv instructions to README and create backend/requirements.txt (fastapi, uvicorn, supabase, llama-index). Reorganize repository by moving frontend and config files (src/, public/, index.html, package.json, configs, etc.) into a test/ directory.
+
+[33mcommit d276f36e65f3caf2eb8ec96e9b868c5b14f51a44[m
+Author: iriscode2 <150204523+frank777ch@users.noreply.github.com>
+Date:   Tue May 20 16:45:54 2025 -0500
+
+    wasa
+
+[33mcommit 90d12437c8e029ec81580dc40d0cd9064c4639d8[m
+Author: IrisCode <150204523+frank777ch@users.noreply.github.com>
+Date:   Thu May 15 10:21:23 2025 -0500
+
+    waza
+
+[33mcommit e7c3ed3fb07b9891f86bcf81ce3633bf85fbaf09[m
+Author: iriscode2 <150204523+frank777ch@users.noreply.github.com>
+Date:   Mon May 5 11:28:48 2025 -0500
+
+    muros invisibles
+
+[33mcommit 57d2e81c936d7c9b5c8bd69611f87645073832c8[m
+Author: IrisCode <150204523+frank777ch@users.noreply.github.com>
+Date:   Sun May 4 18:30:36 2025 -0500
+
+    first example
+
+[33mcommit d1ebbdb8eff58075c990dd74c2361c50ee91d0f4[m
+Author: IrisCode <150204523+frank777ch@users.noreply.github.com>
+Date:   Wed Feb 12 21:08:55 2025 -0500
+
+    Initial commit
