@@ -152,21 +152,21 @@ En el frontend (Expo) basta apuntar la URL del backend y apagar su mock del chat
 
 ---
 
-## 8.8 Estado actual y siguiente paso (pgvector)
+## 8.8 Recuperación con pgvector (Supabase)
 
-El **LLM real ya está activo** (Gemini, ver §8.4). Lo que falta para el RAG a
-escala es la **recuperación con pgvector**; hoy la recuperación es local
-(bag-of-words sobre el corpus). Cambiar de proveedor de LLM es solo cuestión de
-variables de entorno (`app/rag/providers.py` soporta `gemini`, `openai` y
-`anthropic`):
+El **LLM real (Gemini)** y la **recuperación con pgvector** ya están
+implementados. El `render.yaml` declara `SUPABASE_URL` y activa pgvector cuando
+existe también el secreto `SUPABASE_SERVICE_KEY`; sin ese secreto el servicio cae
+con gracia a la recuperación **local** (bag-of-words), sin romperse.
 
-| Variable | Ejemplo | Nota |
-|----------|---------|------|
-| `LLM_PROVIDER` | `gemini` / `openai` / `anthropic` | Proveedor del LLM (hoy `gemini`). |
-| `LLM_MODEL` | `gemini-2.5-flash` / `gpt-4o-mini` / `claude-haiku-4-5-20251001` | Modelo. |
-| `LLM_API_KEY` | *(secreto)* | Llave del proveedor. |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | — | Para pgvector (recuperación real, **pendiente**). |
+| Variable | Valor | Nota |
+|----------|-------|------|
+| `LLM_PROVIDER` / `LLM_MODEL` | `gemini` / `gemini-2.5-flash` | También soporta `openai`/`anthropic`. |
+| `LLM_API_KEY` | *(secreto)* | Llave de Gemini; también la usan los embeddings. |
+| `SUPABASE_URL` | `https://<ref>.supabase.co` | URL del proyecto (no secreta, en el `render.yaml`). |
+| `SUPABASE_SERVICE_KEY` | *(secreto)* | `service_role` key; se ingresa en el dashboard. |
 
-> Para el LLM basta `requirements-llm.txt` (ya en el build). La recuperación con
-> pgvector todavía no está implementada (`_build_pgvector_retriever` lanza un
-> error con instrucciones); requiere además `requirements-rag.txt` (supabase).
+> El build instala `requirements-llm.txt` (Gemini) y `requirements-pgvector.txt`
+> (cliente `supabase`). La tabla/función de la base se crean con
+> `backend/db/schema.sql` y se pueblan con `python -m app.rag.ingest_pgvector`.
+> Guía completa y evidencia local en [`09-pgvector-supabase.md`](./09-pgvector-supabase.md).

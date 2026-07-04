@@ -13,9 +13,8 @@ services:
     plan: free
     region: oregon
     rootDir: backend
-    # Instala el núcleo + el SDK del LLM real (Gemini). requirements-llm.txt es
-    # ligero (no arrastra supabase/llama-index, que son para pgvector).
-    buildCommand: "pip install -r requirements.txt -r requirements-llm.txt"
+    # Núcleo + SDK del LLM (Gemini) + cliente de Supabase (pgvector).
+    buildCommand: "pip install -r requirements.txt -r requirements-llm.txt -r requirements-pgvector.txt"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     autoDeploy: true
@@ -34,6 +33,12 @@ services:
       # SECRETO: NO se define aquí. Se ingresa en el dashboard de Render
       # (Environment). `sync: false` hace que Render la pida y la guarde cifrada.
       - key: LLM_API_KEY
+        sync: false
+      # Recuperación con pgvector (Supabase). La URL no es secreta; la
+      # service_role key sí (se pone en el dashboard).
+      - key: SUPABASE_URL
+        value: "https://fylkzhkppznydhyudaqf.supabase.co"
+      - key: SUPABASE_SERVICE_KEY
         sync: false
       # CORS abierto: la app móvil nativa no aplica CORS; se restringe cuando
       # el front web tenga una URL fija.

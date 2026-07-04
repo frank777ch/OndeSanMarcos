@@ -163,12 +163,11 @@ curl -X POST http://localhost:8000/api/chat ^
 
 ## 7.8 Próximos pasos
 
-1. **pgvector real** (`_build_pgvector_retriever` en `providers.py`): crear la
-   tabla `documents(content, metadata jsonb, embedding vector)` en Supabase,
-   poblarla con el pipeline de ingesta y un almacén que consulte por similitud.
-2. **Embeddings reales** (modelo neuronal vía LlamaIndex) en vez de bag-of-words.
-3. **Consumo del enrutamiento en el frontend**: leer `draw_route`/`destination`
+1. **Consumo del enrutamiento en el frontend**: leer `draw_route`/`destination`
    en el chat y trazar la `polyline` en el mapa (cierra HU-2.3).
+2. **Afinar el umbral de recuperación** para embeddings densos
+   (`RAG_SCORE_THRESHOLD`, hoy calibrado a bag-of-words).
 
-> ✅ Ya hecho: **corpus oficial real** (desde `sources/unmsm_info.md`) y **LLM
-> real (Gemini)** activo en producción.
+> ✅ Ya hecho: **corpus oficial real** (desde `sources/unmsm_info.md`), **LLM real
+> (Gemini)** y **recuperación semántica con embeddings + pgvector** (Supabase). Ver
+> [`09-pgvector-supabase.md`](./09-pgvector-supabase.md). Cierra el grueso de HU-2.2.
