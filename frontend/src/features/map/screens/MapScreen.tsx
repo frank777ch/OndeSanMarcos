@@ -412,7 +412,7 @@ export function MapScreen() {
       {/* ── CAPA 1: MAPA ── */}
       <MapboxGL.MapView
         style={styles.map}
-        styleURL="mapbox://styles/mapbox/streets-v12"
+        styleURL="mapbox://styles/mapbox/standard"
         zoomEnabled={appMode !== "libre"}
         pitchEnabled={appMode !== "libre"}
         // Detecta cualquier movimiento de cámara (arrastre del usuario)
@@ -428,6 +428,8 @@ export function MapScreen() {
           animationDuration={cameraConfig.animationDuration}
         />
 
+        {/*
+        Ya no compilamos la capa de edificios 3D. El standard style de Mapbox ya incluye edificios 3D, y la capa personalizada generaba problemas de rendimiento y compatibilidad con el estilo actual.
         <MapboxGL.VectorSource
           id="composite"
           url="mapbox://mapbox.mapbox-streets-v8"
@@ -443,7 +445,7 @@ export function MapScreen() {
               fillExtrusionOpacity: 0.9,
             }}
           />
-        </MapboxGL.VectorSource>
+        </MapboxGL.VectorSource>*/}
 
         <MapboxGL.ShapeSource id="route-source" shape={routeData as any}>
           {/* Capa exterior gruesa (brillo/sombra) */}

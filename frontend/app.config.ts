@@ -38,6 +38,7 @@ export default {
         '@rnmapbox/maps',
         {
           RNMAPBOX_MAPS_DOWNLOAD_TOKEN: process.env.RNMAPBOX_MAPS_DOWNLOAD_TOKEN,
+          RNMapboxMapsVersion: '11.8.0',
         },
       ],
     ],
