@@ -33,3 +33,10 @@ def test_in_scope_without_data_returns_no_info(engine):
 def test_query_with_keyword_detects_place(engine):
     result = engine.answer("quiero almorzar en el comedor")
     assert any(loc.id == "comedor-universitario" for loc in result.locations)
+
+
+def test_incidental_place_mentions_are_excluded(engine):
+    # Otros documentos mencionan "biblioteca" de pasada, pero solo la Biblioteca
+    # Central es realmente relevante: no debe arrastrar facultades ni residencia.
+    result = engine.answer("¿a qué hora abre la biblioteca?")
+    assert [loc.id for loc in result.locations] == ["biblioteca-central"]
