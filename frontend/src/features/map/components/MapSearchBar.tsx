@@ -73,6 +73,12 @@ export function MapSearchBar() {
       schedule: place.schedule,
       latitude: place.coordinate.latitude,
       longitude: place.coordinate.longitude,
+      description: place.description,
+      phone: place.phone,
+      careers: place.careers,
+      usage: place.usage,
+      services: place.services,
+      keywords: place.keywords,
     });
   };
 

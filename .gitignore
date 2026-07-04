@@ -42,6 +42,7 @@ __pycache__/
 
 
 .antigravitycli/
+.antigravitycli
 .vscode/
 .gemini/
 .agent/
