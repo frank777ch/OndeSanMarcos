@@ -25,6 +25,14 @@ export interface PlaceInfo {
   schedule?: string;
   latitude: number;
   longitude: number;
+  description?: string;
+  phone?: string;
+  annex?: string;
+  careers?: string[];
+  usage?: string;
+  services?: string[];
+  detailedSchedule?: string[];
+  keywords?: string[];
 }
 
 interface MapState {
