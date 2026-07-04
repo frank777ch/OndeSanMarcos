@@ -24,8 +24,8 @@ def test_out_of_scope_query_is_declined(engine):
 
 
 def test_in_scope_without_data_returns_no_info(engine):
-    # "matricula" es del dominio (in-scope) pero no hay documento ni lugar.
-    result = engine.answer("cómo hago mi matrícula")
+    # "decanato" es del dominio (in-scope) pero no hay documento ni lugar.
+    result = engine.answer("cómo contacto al decanato")
     assert result.answer == NO_INFO_MESSAGE
     assert result.locations == []
 
