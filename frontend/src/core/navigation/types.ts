@@ -10,6 +10,13 @@ export type AuthStackParamList = {
   VerifiedEmail: undefined;
 };
 
+export type ProfileStackParamList = {
+  ProfileMain: undefined;
+  EditProfile: undefined;
+  Theme: undefined;
+  Notifications: undefined;
+};
+
 export type MainTabsParamList = {
   Map: undefined;
   Chat: undefined;
@@ -22,5 +29,11 @@ export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login
 export type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 export type EmailSentScreenProps = NativeStackScreenProps<AuthStackParamList, 'EmailSent'>;
 export type VerifiedEmailScreenProps = NativeStackScreenProps<AuthStackParamList, 'VerifiedEmail'>;
+
+export type ProfileMainScreenProps = NativeStackScreenProps<ProfileStackParamList, 'ProfileMain'>;
+export type EditProfileScreenProps = NativeStackScreenProps<ProfileStackParamList, 'EditProfile'>;
+export type ThemeScreenProps = NativeStackScreenProps<ProfileStackParamList, 'Theme'>;
+export type NotificationsScreenProps = NativeStackScreenProps<ProfileStackParamList, 'Notifications'>;
+
 export type MapScreenProps = BottomTabScreenProps<MainTabsParamList, 'Map'>;
 export type ChatScreenProps = BottomTabScreenProps<MainTabsParamList, 'Chat'>;

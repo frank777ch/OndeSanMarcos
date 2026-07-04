@@ -1,42 +1,48 @@
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
+import { UNMSM_POIS, CAMPUS_PLACES } from "../constants/unmsm";
 
-// Las opciones de lugares donde el usuario puede aparecer
-const SPAWN_POINTS = [
-  {
-    id: "p2",
-    nombre: "Puerta 2 (Av. Universitaria)",
-    coords: [-77.07936395135454, -12.059496369475596] as [number, number],
-  },
-  {
-    id: "p3",
-    nombre: "Puerta 3 (Fac. de Ciencias Contables)",
-    coords: [-77.08001732406147, -12.057136012331654] as [number, number],
-  },
-  {
-    id: "p7",
-    nombre: "Puerta 7 (Fac. de Ing. de Sistemas)",
-    coords: [-77.08454506116111, -12.053801766665373] as [number, number],
-  },
-  {
-    id: "p8",
-    nombre: "Puerta 8 (Fac. de Ing. de Minas)",
-    coords: [-77.08761951511643, -12.051880164062666] as [number, number],
-  },
-];
+// Construir la lista dinámicamente con puertas, comedor, rectorado y gimnasio
+const doors = UNMSM_POIS.features
+  .filter((f) => f.properties?.categoria === "Puertas")
+  .map((f) => ({
+    id: f.properties.id,
+    nombre: f.properties.nombre,
+    coords: f.geometry.coordinates as [number, number],
+  }));
+
+const otherIds = ["comedor-universitario", "rectorado", "museo-historia-natural"];
+const others = CAMPUS_PLACES.filter((p) => otherIds.includes(p.id)).map((p) => ({
+  id: p.id,
+  nombre: p.name,
+  coords: [p.coordinate.longitude, p.coordinate.latitude] as [number, number],
+}));
+
+const SPAWN_POINTS = [...doors, ...others];
 
 interface MapSpawnModalProps {
   visible: boolean;
   onClose: () => void;
-  onSelectPoint: (coords: [number, number]) => void;
+  onSelectPoint: (coords: [number, number], isCurrentLocation?: boolean) => void;
+  isGpsEnabled?: boolean;
+  userLocation?: [number, number] | null;
 }
 
 export function MapSpawnModal({
   visible,
   onClose,
   onSelectPoint,
+  isGpsEnabled,
+  userLocation,
 }: MapSpawnModalProps) {
+  const primaryColor = useThemeStore((s) => s.primaryColor);
+
+  const displayPoints = isGpsEnabled && userLocation
+    ? [{ id: "current-location", nombre: "Mi Ubicación", coords: userLocation }, ...SPAWN_POINTS]
+    : SPAWN_POINTS;
+
   return (
     <Modal
       animationType="slide"
@@ -64,22 +70,23 @@ export function MapSpawnModal({
           Elige un punto para explorar el campus en Modo Libre.
         </Text>
 
-        <View style={styles.optionsContainer}>
-          {SPAWN_POINTS.map((point) => (
-            <TouchableOpacity
-              key={point.id}
-              style={styles.optionButton}
-              activeOpacity={0.7}
-              onPress={() => onSelectPoint(point.coords)}
-            >
-              <Ionicons
-                name="location"
-                size={20}
-                color={lightColors.bgPrimaryBtn}
-              />
-              <Text style={styles.optionText}>{point.nombre}</Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.listContainer}>
+          <FlatList
+            data={displayPoints}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.optionButton}
+                activeOpacity={0.7}
+                onPress={() => onSelectPoint(item.coords, item.id === "current-location")}
+              >
+                <Ionicons name="location" size={20} color={primaryColor} />
+                <Text style={styles.optionText}>{item.nombre}</Text>
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={styles.flatListContent}
+          />
         </View>
       </View>
     </Modal>
@@ -122,9 +129,12 @@ const styles = StyleSheet.create({
     color: lightColors.textInfoP,
     marginBottom: 20,
   },
-  optionsContainer: {
-    gap: 12,
+  listContainer: {
+    maxHeight: 300, // altura máxima para hacer scroll
     marginBottom: 20,
+  },
+  flatListContent: {
+    gap: 12,
   },
   optionButton: {
     flexDirection: "row",

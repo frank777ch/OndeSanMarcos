@@ -1,9 +1,4 @@
-# 🧠 OndeSanMarcos — Contexto Completo del Proyecto
-> Este documento es una guía de contexto para continuar el desarrollo con cualquier IA.  
-> Complementa el `README_FRONTEND.md` que ya existe en el repo.  
-> **Fecha de corte: 24/04/2026**
-
----
+# OndeSanMarcos
 
 ## 1. ¿Qué es OndeSanMarcos?
 
@@ -18,16 +13,16 @@ Aplicación móvil para el campus de la **Universidad Nacional Mayor de San Marc
 
 ## 2. Stack Tecnológico
 
-| Capa | Tecnología | Versión |
-|---|---|---|
-| Mobile Frontend | React Native + TypeScript | Expo SDK 54 |
-| Motor de Mapas | `@rnmapbox/maps` | ^10.3.0 |
-| Navegación | React Navigation | v7 |
-| Estado Global | Zustand | ^5.0.12 |
-| Auth + DB | Supabase (PostgreSQL + pgvector) | ^2.104.1 |
-| Backend | FastAPI (Python) | — |
-| IA | LlamaIndex + RAG | — |
-| Build | Expo EAS | — |
+| Capa            | Tecnología                       | Versión     |
+| --------------- | -------------------------------- | ----------- |
+| Mobile Frontend | React Native + TypeScript        | Expo SDK 54 |
+| Motor de Mapas  | `@rnmapbox/maps`                 | ^10.3.0     |
+| Navegación      | React Navigation                 | v7          |
+| Estado Global   | Zustand                          | ^5.0.12     |
+| Auth + DB       | Supabase (PostgreSQL + pgvector) | ^2.104.1    |
+| Backend         | FastAPI (Python)                 | —           |
+| IA              | LlamaIndex + RAG                 | —           |
+| Build           | Expo EAS                         | —           |
 
 ---
 
@@ -48,8 +43,6 @@ frontend/
 │
 └── src/
     ├── constants/                   ✅ COMPLETO
-    │   ├── colors.ts                ✅ Paleta UNMSM (azul #003087, amarillo #E8B800)
-    │   ├── typography.ts            ✅ FontSize, FontWeight
     │   └── config.ts                ✅ Lee variables de .env
     │
     ├── core/                        ✅ (renombrado desde src/app para evitar conflicto con Expo Router)
@@ -103,25 +96,26 @@ frontend/
 ## 4. Archivos de Configuración — Contenido Exacto
 
 ### `babel.config.js`
+
 ```javascript
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
+    presets: ["babel-preset-expo"],
     plugins: [
       [
-        'module-resolver',
+        "module-resolver",
         {
-          root: ['./src'],
+          root: ["./src"],
           alias: {
-            '@': './src',
-            '@features': './src/features',
-            '@shared': './src/shared',
-            '@services': './src/services',
-            '@constants': './src/constants',
-            '@store': './src/core/store',
-            '@navigation': './src/core/navigation',
-            '@providers': './src/core/providers',
+            "@": "./src",
+            "@features": "./src/features",
+            "@shared": "./src/shared",
+            "@services": "./src/services",
+            "@constants": "./src/constants",
+            "@store": "./src/core/store",
+            "@navigation": "./src/core/navigation",
+            "@providers": "./src/core/providers",
           },
         },
       ],
@@ -131,6 +125,7 @@ module.exports = function (api) {
 ```
 
 ### `tsconfig.json`
+
 ```json
 {
   "extends": "expo/tsconfig.base",
@@ -148,15 +143,12 @@ module.exports = function (api) {
       "@providers/*": ["src/core/providers/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.d.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.d.ts"]
 }
 ```
 
 ### `app.json`
+
 ```json
 {
   "expo": {
@@ -192,6 +184,7 @@ module.exports = function (api) {
 ```
 
 ### `.env.example`
+
 ```bash
 EXPO_PUBLIC_MAPBOX_TOKEN=
 EXPO_PUBLIC_SUPABASE_URL=
@@ -205,6 +198,7 @@ EXPO_PUBLIC_ENABLE_DEV_LOGS=true
 ## 5. Dependencias Instaladas
 
 ### `package.json` actual
+
 ```json
 {
   "name": "frontend",
@@ -248,15 +242,19 @@ EXPO_PUBLIC_ENABLE_DEV_LOGS=true
 ## 6. Decisiones de Arquitectura Tomadas
 
 ### ¿Por qué `src/core` en vez de `src/app`?
+
 Expo Router (el sistema de navegación basado en archivos de Expo) se activa automáticamente cuando detecta una carpeta llamada `src/app`. Como usamos **React Navigation** (más flexible para este proyecto), renombramos la carpeta a `src/core` para evitar el conflicto. Esto se complementa con `"experiments": { "typedRoutes": false }` en `app.json`.
 
 ### ¿Por qué Zustand y no Context API?
+
 Zustand es más simple, no requiere providers anidados, y el estado del mapa (coordenadas GPS actualizándose cada segundo) se beneficia de su sistema de suscripciones granulares sin re-renders innecesarios.
 
 ### ¿Por qué las pantallas son placeholder?
+
 `MapScreen` y `ChatScreen` son placeholders intencionales. Mapbox (`@rnmapbox/maps`) requiere **código nativo** y no funciona en Expo Go. Para activarlo se necesita un **Expo Development Build** via EAS. Esto es el siguiente paso crítico del proyecto.
 
 ### Flujo de autenticación
+
 ```
 App inicia
     └── AuthProvider carga sesión desde Supabase (AsyncStorage)
@@ -269,18 +267,18 @@ App inicia
 
 ## 7. Problemas Resueltos Durante el Setup
 
-| Problema | Causa | Solución |
-|---|---|---|
+| Problema                                              | Causa                                     | Solución                                      |
+| ----------------------------------------------------- | ----------------------------------------- | --------------------------------------------- |
 | `Using src/app as the root directory for Expo Router` | Expo detectaba `src/app` como Expo Router | Renombrar a `src/core` + `typedRoutes: false` |
-| `Cannot find module 'babel-preset-expo'` | No estaba instalado explícitamente | `npm install --save-dev babel-preset-expo` |
-| `babel.config.js` no existía | `create-expo-app` no lo genera siempre | Crear manualmente con `New-Item` |
-| Pantallas en carpeta incorrecta | Error al crear archivos manualmente | Mover con `Move-Item` de PowerShell |
+| `Cannot find module 'babel-preset-expo'`              | No estaba instalado explícitamente        | `npm install --save-dev babel-preset-expo`    |
+| `babel.config.js` no existía                          | `create-expo-app` no lo genera siempre    | Crear manualmente con `New-Item`              |
+| Pantallas en carpeta incorrecta                       | Error al crear archivos manualmente       | Mover con `Move-Item` de PowerShell           |
 
 ---
 
-## 8. Lo que Falta — Próximos Pasos en Orden
+## 8. Próximos pasos en orden
 
-### 🔴 URGENTE — Antes de escribir más código
+### 🔴 URGENTE
 
 **Obtener credenciales y hacer el Development Build:**
 
@@ -308,11 +306,12 @@ App inicia
 
 ---
 
-### 🟡 Sprint 1 — Pantallas reales (una vez que el Dev Build esté listo)
+### 🟡 Sprint 1
 
 **HU-1.1 — Mapa 3D base**
 
 Reemplazar el placeholder de `MapScreen.tsx` con:
+
 ```typescript
 import MapboxGL from '@rnmapbox/maps';
 import { Config } from '@constants/config';
@@ -337,12 +336,14 @@ export function MapScreen() {
 **HU-2.1 — Chat UI real**
 
 Construir en `src/features/chat/`:
+
 - `components/MessageBubble.tsx` — burbuja de mensaje con estilos usuario/bot
 - `components/MessageList.tsx` — FlatList de burbujas
 - `components/ChatInput.tsx` — TextInput + botón enviar
 - `hooks/useChat.ts` — lógica de envío al backend FastAPI
 
 **Contrato del JSON entre backend y frontend (acordar con el equipo de backend):**
+
 ```typescript
 // Respuesta normal del bot
 { "text": "La biblioteca está en el pabellón A." }
@@ -406,32 +407,18 @@ type archivo.json
 
 ## 10. Convenciones del Proyecto
 
-| Elemento | Convención | Ejemplo |
-|---|---|---|
-| Componentes | PascalCase | `MessageBubble.tsx` |
-| Hooks | camelCase con `use` | `useChat.ts` |
-| Stores | camelCase con `use` | `useMapStore.ts` |
-| Constantes | UPPER_SNAKE_CASE | `UNMSM_CENTER_COORDS` |
-| Servicios | camelCase con `.service` | `auth.service.ts` |
-| Commits | Conventional Commits en español | `feat(map): agregar avatar con GPS` |
+| Elemento    | Convención                      | Ejemplo                             |
+| ----------- | ------------------------------- | ----------------------------------- |
+| Componentes | PascalCase                      | `MessageBubble.tsx`                 |
+| Hooks       | camelCase con `use`             | `useChat.ts`                        |
+| Stores      | camelCase con `use`             | `useMapStore.ts`                    |
+| Constantes  | UPPER_SNAKE_CASE                | `UNMSM_CENTER_COORDS`               |
+| Servicios   | camelCase con `.service`        | `auth.service.ts`                   |
+| Commits     | Conventional Commits en español | `feat(map): agregar avatar con GPS` |
 
 **Reglas de código:**
+
 - TypeScript estricto — prohibido `any`
 - Sin lógica de negocio en los screens — solo ensamblan componentes
 - Toda llamada a API va en `/services` — los componentes no hacen `fetch` directo
 - Un componente = un archivo — si supera ~150 líneas, dividir
-
----
-
-## 11. Contexto del Equipo
-
-- **Desarrollador principal frontend:** Frank Kevin Condor Huarhuachi
-- **Metodología:** Scrum
-- **Duración total:** 13 semanas (18/04/2026 — 28/06/2026)
-- **OS del desarrollador:** Windows (PowerShell)
-- **Editor:** VS Code
-- **Repositorio:** GitHub — organización OndeSanMarcos
-
----
-
-*Documento generado el 24/04/2026 — Fin de la sesión de setup inicial del frontend.*

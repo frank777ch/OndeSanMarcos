@@ -1,0 +1,48 @@
+# Blueprint de Render para el backend RAG de OndeSanMarcos.
+# El backend vive en la subcarpeta backend/, por eso se usa `rootDir: backend`:
+# Render ejecuta build y start DENTRO de esa carpeta, así que `requirements.txt`
+# y el paquete `app` se resuelven sin prefijos.
+#
+# Para desplegar: en Render -> New -> Blueprint, apunta a este repo.
+# Render lee este archivo (debe estar en la RAÍZ del repo) y crea el servicio.
+
+services:
+  - type: web
+    name: ondesanmarcos-backend
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: backend
+    # Núcleo + SDK del LLM (Gemini) + cliente de Supabase (pgvector).
+    buildCommand: "pip install -r requirements.txt -r requirements-llm.txt -r requirements-pgvector.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Fija la versión de Python (el código requiere 3.11+).
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      # LLM real activado. Sin Supabase, la recuperación es local (bag-of-words
+      # sobre el corpus). Requiere LLM_API_KEY (abajo, secreto).
+      - key: RAG_USE_MOCK
+        value: "false"
+      - key: LLM_PROVIDER
+        value: "gemini"
+      - key: LLM_MODEL
+        value: "gemini-2.5-flash"
+      # SECRETO: NO se define aquí. Se ingresa en el dashboard de Render
+      # (Environment). `sync: false` hace que Render la pida y la guarde cifrada.
+      - key: LLM_API_KEY
+        sync: false
+      # Recuperación con pgvector (Supabase). La URL no es secreta; la
+      # service_role key sí (se pone en el dashboard).
+      - key: SUPABASE_URL
+        value: "https://fylkzhkppznydhyudaqf.supabase.co"
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      # CORS abierto: la app móvil nativa no aplica CORS; se restringe cuando
+      # el front web tenga una URL fija.
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: APP_ENV
+        value: "production"

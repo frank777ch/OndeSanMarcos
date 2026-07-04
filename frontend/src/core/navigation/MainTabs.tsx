@@ -3,23 +3,24 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type { MainTabsParamList } from "./types";
 import { MapScreen } from "@features/map/screens/MapScreen";
 import { ChatScreen } from "@features/chat/screens/ChatScreen";
-import { Colors } from "@constants/colors";
-import { ProfileScreen } from "@features/profile/screens/ProfileScreen";
+import { ProfileStack } from "./ProfileStack";
 import { MapPinned, MessageCircle, User2 } from "lucide-react-native";
 import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 export function MainTabs() {
+  const primaryColor = useThemeStore((s) => s.primaryColor);
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: lightColors.bgPrimaryBtn,
+        tabBarActiveTintColor: primaryColor,
         tabBarInactiveTintColor: lightColors.textGhostBtn,
         tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
+          backgroundColor: lightColors.bg,
+          borderTopColor: lightColors.strokeSecondaryBtn,
           height: 88,
           paddingTop: 10,
           paddingBottom: 24,
@@ -52,7 +53,7 @@ export function MainTabs() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarLabel: "Perfil",
           tabBarIcon: ({ color }) => <User2 color={color} size={24} />,

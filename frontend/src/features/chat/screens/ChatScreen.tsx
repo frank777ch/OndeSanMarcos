@@ -1,32 +1,276 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ChartNoAxesColumn, RotateCw, SquarePen } from "lucide-react-native";
+import type { ChatScreenProps } from "@navigation/types";
+import { useMapStore } from "@store/useMapStore";
+import { getCampusPlaceById } from "@features/map/constants/unmsm";
+import { useChat } from "../hooks/useChat";
+import { chatColors, type LocationResult, type Message } from "../types";
+import { ChatInput } from "../components/ChatInput";
+import { MessageBubble } from "../components/MessageBubble";
+import { AIResponse } from "../components/AIResponse";
+import { LocationCard } from "../components/LocationCard";
+import { SuggestionChips } from "../components/SuggestionChips";
+import { TypingIndicator } from "../components/TypingIndicator";
+import { ConversationHistory } from "../components/ConversationHistory";
 import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
-export function ChatScreen() {
+const TITLE = "¿En qué puedo ayudarte hoy?";
+
+const IDLE_PLACEHOLDER = "Busca lugares o consulta horarios y oficinas.";
+const ANSWERED_PLACEHOLDER =
+  "Puedes preguntarle cualquier información sobre el campus.";
+
+const SUGGESTIONS = [
+  "Cómo llegar al auditorio Ela Dunbar Temple?",
+  "Cómo llegar al Rectorado?",
+  "Cómo llegar al Comedor Universitario?",
+];
+
+export function ChatScreen({ navigation }: ChatScreenProps): React.JSX.Element {
+  const {
+    messages,
+    chatState,
+    inputText,
+    isLoading,
+    onChangeText,
+    sendMessage,
+    retryMessage,
+    resetChat,
+  } = useChat();
+
+  const listRef = useRef<FlatList<Message>>(null);
+  const [historyVisible, setHistoryVisible] = useState(false);
+  const setFocusTarget = useMapStore((state) => state.setFocusTarget);
+  const setFocusedPlace = useMapStore((state) => state.setFocusedPlace);
+  const primaryColor = useThemeStore((s) => s.primaryColor);
+
+  function handleOpenLocation(location: LocationResult): void {
+    const place = getCampusPlaceById(location.id);
+    if (place) {
+      setFocusTarget(place.coordinate);
+      setFocusedPlace({
+        id: place.id,
+        name: place.name,
+        schedule: place.schedule,
+        latitude: place.coordinate.latitude,
+        longitude: place.coordinate.longitude,
+        description: place.description,
+        phone: place.phone,
+        annex: place.annex,
+        careers: place.careers,
+        usage: place.usage,
+        services: place.services,
+        detailedSchedule: place.detailedSchedule,
+        keywords: place.keywords,
+      });
+    }
+    navigation.navigate("Map");
+  }
+
+  function renderMessage({ item }: { item: Message }): React.JSX.Element {
+    if (item.role === "user") {
+      return <MessageBubble content={item.content} />;
+    }
+    return (
+      <View>
+        <AIResponse content={item.content} />
+        {item.locations?.map((location) => (
+          <LocationCard
+            key={location.id}
+            location={location}
+            onOpen={handleOpenLocation}
+          />
+        ))}
+        {item.isError ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Reintentar"
+            style={[
+              styles.retryButton,
+              { borderWidth: 1, borderColor: primaryColor },
+            ]}
+            disabled={isLoading}
+            onPress={() => retryMessage(item)}
+          >
+            <RotateCw color={primaryColor} size={16} strokeWidth={2} />
+            <Text style={[styles.retryText, { color: primaryColor }]}>
+              Reintentar
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+    );
+  }
+
+  const showResetButton = messages.length > 0 || chatState !== "idle";
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Asistente IA</Text>
-      <Text style={styles.sub}>Chat con RAG</Text>
-    </View>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.header}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ver historial de conversaciones"
+            hitSlop={10}
+            onPress={() => setHistoryVisible(true)}
+          >
+            <ChartNoAxesColumn
+              color={chatColors.textPrimary}
+              size={26}
+              strokeWidth={2}
+              style={{
+                transform: [{ rotate: "90deg" }],
+              }}
+            />
+          </Pressable>
+
+          {showResetButton ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Nueva conversación"
+              hitSlop={10}
+              onPress={resetChat}
+            >
+              <SquarePen
+                color={chatColors.textPrimary}
+                size={24}
+                strokeWidth={2}
+              />
+            </Pressable>
+          ) : null}
+        </View>
+
+        {chatState === "answered" ? (
+          <>
+            <FlatList
+              ref={listRef}
+              data={messages}
+              keyExtractor={(item) => item.id}
+              renderItem={renderMessage}
+              style={styles.flex}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              onContentSizeChange={() =>
+                listRef.current?.scrollToEnd({ animated: true })
+              }
+              ListFooterComponent={isLoading ? <TypingIndicator /> : null}
+            />
+            <View style={styles.inputDock}>
+              <ChatInput
+                value={inputText}
+                onChangeText={onChangeText}
+                onSend={sendMessage}
+                placeholder={ANSWERED_PLACEHOLDER}
+                isLoading={isLoading}
+              />
+            </View>
+          </>
+        ) : (
+          <Pressable
+            style={[
+              styles.centerArea,
+              chatState === "asking" && styles.centerAreaAsking,
+            ]}
+            onPress={Keyboard.dismiss}
+            accessible={false}
+          >
+            <Text style={styles.title}>{TITLE}</Text>
+
+            <ChatInput
+              value={inputText}
+              onChangeText={onChangeText}
+              onSend={sendMessage}
+              placeholder={IDLE_PLACEHOLDER}
+              isLoading={isLoading}
+            />
+
+            {chatState === "idle" ? (
+              <SuggestionChips
+                suggestions={SUGGESTIONS}
+                onSelect={onChangeText}
+              />
+            ) : null}
+          </Pressable>
+        )}
+      </KeyboardAvoidingView>
+
+      <ConversationHistory
+        visible={historyVisible}
+        onClose={() => setHistoryVisible(false)}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: lightColors.bgContainer,
+    padding: 24,
+  },
+  flex: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+  },
+  centerArea: {
+    flex: 1,
     justifyContent: "center",
-    gap: 8,
+    gap: 16,
   },
-  text: {
+  centerAreaAsking: {
+    justifyContent: "flex-start",
+    paddingTop: 80,
+  },
+  title: {
+    fontFamily: "FunnelDisplay_600SemiBold",
     fontSize: 36,
-    fontFamily: "FunnelDisplay_700Bold",
-    color: lightColors.bgPrimaryBtn,
+    color: chatColors.textPrimary,
+    textAlign: "center",
   },
-  sub: {
-    fontSize: 16,
-    fontFamily: "DMSans_400Regular",
-    color: lightColors.textInfoP,
+  listContent: {
+    paddingHorizontal: 4,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  retryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 4,
+    borderRadius: 12,
+  },
+  retryText: {
+    fontFamily: "DMSans_500Medium",
+    fontSize: 14,
+  },
+  inputDock: {
+    paddingHorizontal: 4,
+    paddingTop: 8,
+    paddingBottom: 12,
+    backgroundColor: chatColors.background,
   },
 });

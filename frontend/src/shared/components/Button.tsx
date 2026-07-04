@@ -9,6 +9,7 @@ import {
   TextStyle,
 } from "react-native";
 import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "link";
 
@@ -35,11 +36,16 @@ export function Button({
   style,
   textStyle,
 }: ButtonProps) {
+  const primaryColor = useThemeStore((s) => s.primaryColor);
   const isDisabled = loading || disabled;
+
+  const dynamicStyle =
+    variant === "primary" ? { backgroundColor: primaryColor } : {};
 
   const containerStyle = [
     styles.base,
     variantStyles[variant].container,
+    dynamicStyle,
     isDisabled && styles.disabled,
     style,
   ];

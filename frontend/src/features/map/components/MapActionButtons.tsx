@@ -1,44 +1,90 @@
 import { useState } from "react";
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
-import { Route, Road, Signpost, X, Map } from "lucide-react-native";
+import { View, TouchableOpacity, Text, StyleSheet, Platform, ToastAndroid, Alert } from "react-native";
+import { Route, Road, Signpost, X, Map, Trash2 } from "lucide-react-native";
 import { lightColors } from "@/theme/light";
+import { useThemeStore } from "@/core/store/useThemeStore";
 
-// Definimos los "cables" de comunicación con el mapa principal
+import { useMapStore } from "@/core/store/useMapStore";
+
 interface MapActionButtonsProps {
   onModeSelect: (modo: "ninguno" | "libre" | "guia") => void;
+  onStartRoute?: () => void;
+  onStopRoute?: () => void;
+  isRouteActive?: boolean;
+  isGpsEnabled?: boolean;
 }
 
-export function MapActionButtons({ onModeSelect }: MapActionButtonsProps) {
+export function MapActionButtons({
+  onModeSelect,
+  onStartRoute,
+  onStopRoute,
+  isRouteActive,
+  isGpsEnabled,
+}: MapActionButtonsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const primaryColor = useThemeStore((s) => s.primaryColor);
+  const focusedPlace = useMapStore((s) => s.focusedPlace);
+
+  const bottomPosition = focusedPlace ? 170 : 30;
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.whiteButton} activeOpacity={0.8}>
-        <Route size={20} color={lightColors.textLinkBtn} />
-        <Text style={styles.whiteText}>Iniciar ruta</Text>
-      </TouchableOpacity>
+    <View style={[styles.container, { bottom: bottomPosition }]}>
+      {isRouteActive ? (
+        <TouchableOpacity
+          style={styles.whiteButton}
+          activeOpacity={0.8}
+          onPress={onStopRoute}
+        >
+          <Trash2 size={20} color="red" />
+          <Text style={[styles.whiteText, { color: "red" }]}>
+            Cancelar ruta
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.whiteButton}
+          activeOpacity={0.8}
+          onPress={onStartRoute}
+        >
+          <Route size={20} color={lightColors.textLinkBtn} />
+          <Text style={styles.whiteText}>Iniciar ruta</Text>
+        </TouchableOpacity>
+      )}
 
       {isExpanded ? (
         <>
           <TouchableOpacity
-            style={styles.blueButton}
+            style={[styles.blueButton, { backgroundColor: primaryColor }]}
             activeOpacity={0.8}
-            onPress={() => onModeSelect("libre")} // <--- AVISAMOS QUE QUEREMOS MODO LIBRE
+            onPress={() => {
+              if (!isGpsEnabled) {
+                if (Platform.OS === "android") {
+                  ToastAndroid.show("Debes activar tu GPS para mayor precisión.", ToastAndroid.SHORT);
+                } else {
+                  Alert.alert("GPS desactivado", "Debes activar tu GPS para mayor precisión.");
+                }
+              }
+              onModeSelect("libre");
+            }}
           >
             <Road size={20} color="#FFF" />
             <Text style={styles.blueText}>Modo libre</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.blueButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={[styles.blueButton, { backgroundColor: primaryColor }]}
+            activeOpacity={0.8}
+            onPress={() => onModeSelect("guia")}
+          >
             <Signpost size={20} color="#FFF" />
             <Text style={styles.blueText}>Modo de guía</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.blueButton}
+            style={[styles.blueButton, { backgroundColor: primaryColor }]}
             activeOpacity={0.8}
             onPress={() => {
-              onModeSelect("ninguno"); // <--- APAGAMOS LOS MODOS
+              onModeSelect("ninguno");
               setIsExpanded(false);
             }}
           >
@@ -48,7 +94,7 @@ export function MapActionButtons({ onModeSelect }: MapActionButtonsProps) {
         </>
       ) : (
         <TouchableOpacity
-          style={styles.blueButton}
+          style={[styles.blueButton, { backgroundColor: primaryColor }]}
           activeOpacity={0.8}
           onPress={() => setIsExpanded(true)}
         >
@@ -63,14 +109,12 @@ export function MapActionButtons({ onModeSelect }: MapActionButtonsProps) {
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 30, // Separación desde abajo (para no chocar con tu futuro Bottom Tab Bar)
+    bottom: 30,
     right: 20,
     zIndex: 10,
-    alignItems: "flex-end", // Alinea todos los botones hacia la derecha
-    gap: 16, // Espacio entre los botones
+    alignItems: "flex-end",
+    gap: 16,
   },
-
-  // Estilos del botón blanco
   whiteButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -89,11 +133,10 @@ const styles = StyleSheet.create({
     fontFamily: "DMSans_500Medium",
     fontSize: 15,
   },
-
   blueButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: lightColors.bgPrimaryBtn,
+    // backgroundColor: lightColors.bgPrimaryBtn, // Dynamic
     padding: 16,
     borderRadius: 24,
     shadowColor: "#000",

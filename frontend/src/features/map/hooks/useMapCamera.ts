@@ -37,11 +37,22 @@ export function useMapCamera() {
   const goToFreeMode = (spawnCoordinate: [number, number]) => {
     setCameraConfig({
       centerCoordinate: spawnCoordinate,
-      zoomLevel: 21, // <--- BLOQUEADO CERCANO
-      pitch: 80,       // <--- BLOQUEADO PICADO
-      heading: 0,      // <--- MIRANDO AL NORTE AL INICIAR
+      zoomLevel: 21,
+      pitch: 80,
+      heading: 0,
       animationMode: 'flyTo',
       animationDuration: 2500,
+    });
+  };
+
+  const goToRoutePreview = (startCoordinate: [number, number]) => {
+    setCameraConfig({
+      centerCoordinate: startCoordinate,
+      zoomLevel: 17,
+      pitch: 40,
+      heading: 0,
+      animationMode: 'flyTo',
+      animationDuration: 1500,
     });
   };
 
@@ -54,5 +65,24 @@ export function useMapCamera() {
     }));
   };
 
-  return { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode, moveToPoint };
+  const goToGuideMode = (currentCoordinate: [number, number]) => {
+    setCameraConfig({
+      centerCoordinate: currentCoordinate,
+      zoomLevel: 18,
+      pitch: 60,
+      heading: 0,
+      animationMode: 'flyTo',
+      animationDuration: 2000,
+    });
+  };
+
+  const setHeading = (heading: number) => {
+    setCameraConfig((prev) => ({
+      ...prev,
+      heading,
+      animationDuration: 500,
+    }));
+  };
+
+  return { cameraRef, cameraConfig, goToDefaultMode, goToFreeMode, goToRoutePreview, goToGuideMode, moveToPoint, setHeading };
 }
