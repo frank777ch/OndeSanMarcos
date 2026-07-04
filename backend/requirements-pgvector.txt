@@ -1,0 +1,5 @@
+# Cliente de Supabase para la recuperación con pgvector.
+# Se usa cuando RAG_USE_MOCK=false y SUPABASE_URL/SUPABASE_SERVICE_KEY están
+# configurados. Los embeddings usan google-genai (requirements-llm.txt).
+
+supabase==2.31.0

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import Protocol
 
 from app.knowledge.corpus import DOCUMENTS, Document
 from app.rag.embeddings import (
@@ -27,6 +28,17 @@ class RetrievedChunk:
 
     document: Document
     score: float
+
+
+class SupportsRetrieve(Protocol):
+    """Interfaz de recuperación que consume el motor RAG.
+
+    La implementa tanto el `Retriever` local (mock, bag-of-words en memoria) como
+    `PgVectorRetriever` (Supabase + pgvector), de modo que el motor no depende de
+    una implementación concreta.
+    """
+
+    def retrieve(self, query: str, top_k: int = 4) -> list[RetrievedChunk]: ...
 
 
 class Retriever:

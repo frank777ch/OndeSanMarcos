@@ -15,8 +15,10 @@ configuración:
 from __future__ import annotations
 
 from app.config import Settings
+from app.rag.embeddings import EmbeddingProvider, GeminiEmbedding
 from app.rag.llm import AnthropicLLM, GeminiLLM, LLMProvider, OpenAILLM, TemplateLLM
-from app.rag.retriever import Retriever, build_default_retriever
+from app.rag.pgvector import PgVectorRetriever
+from app.rag.retriever import Retriever, SupportsRetrieve, build_default_retriever
 
 
 class RagProviderError(RuntimeError):
@@ -51,11 +53,26 @@ def build_llm_provider(settings: Settings) -> LLMProvider:
     )
 
 
-def build_retriever(settings: Settings) -> Retriever:
+def build_embedding_provider(settings: Settings) -> EmbeddingProvider:
+    """Embeddings reales para pgvector. Hoy solo Gemini (reusa `LLM_API_KEY`)."""
+    provider = settings.llm_provider.strip().lower()
+    if provider != "gemini":
+        raise RagProviderError(
+            "Los embeddings de pgvector usan Gemini: define LLM_PROVIDER=gemini "
+            f"(actual: {provider or 'vacío'!r})."
+        )
+    if not settings.llm_api_key:
+        raise RagProviderError("Falta LLM_API_KEY para los embeddings de Gemini.")
+    return GeminiEmbedding(
+        settings.llm_api_key, settings.embedding_model, settings.embedding_dim
+    )
+
+
+def build_retriever(settings: Settings) -> SupportsRetrieve:
     """Devuelve el retriever adecuado según la configuración.
 
     - Mock: corpus en código + embedding bag-of-words (determinista).
-    - Real con Supabase configurado: pgvector (pendiente, ver más abajo).
+    - Real con Supabase configurado: pgvector + embeddings Gemini.
     - Real sin Supabase: recuperación local sobre los documentos fuente, útil
       para probar un LLM real sin montar la base vectorial.
     """
@@ -82,14 +99,29 @@ def _build_local_retriever(settings: Settings) -> Retriever:
     )
 
 
-def _build_pgvector_retriever(settings: Settings) -> Retriever:
-    """Recuperación con Supabase + pgvector. Pendiente de implementar."""
-    raise RagProviderError(
-        "La recuperación con pgvector aún no está implementada. Pasos: "
-        "(1) crear en Supabase la tabla "
-        "'documents(content text, metadata jsonb, embedding vector)'; "
-        "(2) correr el pipeline de ingesta (app.rag.ingestion) para poblarla; "
-        "(3) implementar un almacén que consulte por similitud y enchufarlo al "
-        "Retriever. Mientras tanto, deja SUPABASE_URL/SUPABASE_SERVICE_KEY "
-        "vacíos para usar recuperación local, o usa RAG_USE_MOCK=true."
-    )
+def _build_pgvector_retriever(settings: Settings) -> PgVectorRetriever:
+    """Recuperación con Supabase + pgvector (embeddings Gemini + RPC).
+
+    Requiere la tabla `documents` y la función `match_documents` creadas con
+    `backend/db/schema.sql`, y pobladas con `python -m app.rag.ingest_pgvector`.
+    """
+    embedding = build_embedding_provider(settings)
+    try:
+        from supabase import create_client
+    except ImportError as exc:  # pragma: no cover - depende de extra opcional
+        raise RagProviderError(
+            "Falta el paquete 'supabase'. Instálalo con "
+            "`pip install -r requirements-pgvector.txt`."
+        ) from exc
+
+    client = create_client(settings.supabase_url, settings.supabase_service_key)
+    match_fn = settings.pgvector_match_fn
+
+    def matcher(query_vector: list[float], match_count: int) -> list[dict]:
+        response = client.rpc(
+            match_fn,
+            {"query_embedding": query_vector, "match_count": match_count},
+        ).execute()
+        return response.data or []
+
+    return PgVectorRetriever(embedding, matcher)

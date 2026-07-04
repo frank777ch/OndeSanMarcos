@@ -78,3 +78,60 @@ class BagOfWordsEmbedding:
         if norm > 0.0:
             vector = [value / norm for value in vector]
         return vector
+
+
+def _normalize(values: list[float]) -> list[float]:
+    """Devuelve el vector con norma unitaria (0 si es nulo)."""
+    norm = math.sqrt(sum(v * v for v in values))
+    return [v / norm for v in values] if norm > 0.0 else values
+
+
+class GeminiEmbedding:
+    """Proveedor de embeddings real basado en Gemini (`google-genai`).
+
+    Implementa la misma interfaz `EmbeddingProvider`. Usa embeddings
+    **asimétricos**: `RETRIEVAL_DOCUMENT` para los fragmentos del corpus y
+    `RETRIEVAL_QUERY` para la consulta, lo que mejora el recall. El SDK
+    `google-genai` es opcional (`requirements-llm.txt`) y se importa perezosamente.
+    Normaliza a norma unitaria (Gemini no normaliza cuando la dimensión no es la
+    máxima; con norma 1 el coseno de pgvector queda bien definido).
+    """
+
+    def __init__(
+        self, api_key: str, model: str = "gemini-embedding-001", dim: int = 768
+    ) -> None:
+        try:
+            from google import genai  # import perezoso
+        except ImportError as exc:  # pragma: no cover - depende de extra opcional
+            raise ImportError(
+                "Falta el paquete 'google-genai'. Instálalo con "
+                "`pip install -r requirements-llm.txt`."
+            ) from exc
+        self._client = genai.Client(api_key=api_key)
+        self._model = model
+        self._dim = dim
+
+    @property
+    def dim(self) -> int:
+        return self._dim
+
+    def embed(self, text: str) -> list[float]:
+        """Embedding de una consulta (`RETRIEVAL_QUERY`)."""
+        return self._embed(text, "RETRIEVAL_QUERY")
+
+    def embed_document(self, text: str) -> list[float]:
+        """Embedding de un documento del corpus (`RETRIEVAL_DOCUMENT`)."""
+        return self._embed(text, "RETRIEVAL_DOCUMENT")
+
+    def _embed(self, text: str, task_type: str) -> list[float]:  # pragma: no cover - red/llave
+        from google.genai import types
+
+        response = self._client.models.embed_content(
+            model=self._model,
+            contents=text,
+            config=types.EmbedContentConfig(
+                task_type=task_type,
+                output_dimensionality=self._dim,
+            ),
+        )
+        return _normalize(list(response.embeddings[0].values))
