@@ -133,7 +133,10 @@ diga esas palabras.
   con embeddings densos las similitudes son ~0.6–0.7. La detección de lugares ya no
   depende de un umbral relativo (ver `engine._detect_places`), pero para filtrar
   contexto irrelevante en cloud puede subirse vía env.
-- **Cloud:** crear el proyecto en Supabase, correr `backend/db/schema.sql` en el SQL
-  Editor (o `supabase db push`), poblar con `ingest_pgvector`, y definir
-  `SUPABASE_URL`/`SUPABASE_SERVICE_KEY` como secretos en Render (ver
-  [`08-despliegue-render.md`](./08-despliegue-render.md) §8.8).
+- **Cloud (ya aprovisionado, 04/07/2026):** proyecto Supabase `ondesanmarcos`
+  (org `anycodef`, región `sa-east-1`) creado por CLI; esquema aplicado vía
+  Management API y poblado con `ingest_pgvector` (48 fragmentos, mismos scores que
+  local). `SUPABASE_URL` va en el `render.yaml`; falta ingresar el secreto
+  `SUPABASE_SERVICE_KEY` en el dashboard de Render para activarlo en producción
+  (ver [`08-despliegue-render.md`](./08-despliegue-render.md) §8.8). El esquema se
+  recrea con `backend/db/schema.sql` (idempotente).
