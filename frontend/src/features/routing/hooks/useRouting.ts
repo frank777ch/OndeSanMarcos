@@ -15,7 +15,7 @@ export function useRouting() {
       // Pequeña latencia asíncrona simulada para que la UI no se trabe de golpe si el grafo crece
       await new Promise(resolve => setTimeout(resolve, 10));
 
-      const pathCoords = campusPathfinder.findShortestPath(start, end);
+      const { pathCoords, startDashed, endDashed } = campusPathfinder.findShortestPath(start, end);
 
       if (pathCoords && pathCoords.length > 0) {
         // Convertimos el array de tuplas [lon, lat] a objetos Coordinate
@@ -32,7 +32,9 @@ export function useRouting() {
         setActiveRoute(coords, {
           startName,
           endName,
-          distance: Math.round(totalDistance)
+          distance: Math.round(totalDistance),
+          startDashed,
+          endDashed
         });
         
         return coords;

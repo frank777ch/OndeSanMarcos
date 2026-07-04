@@ -100,6 +100,7 @@ export function useChat(): UseChatResult {
             longitude: response.destination.longitude,
             name: response.locations[0]?.name,
             drawRoute: true,
+            entranceCoordinate: response.locations[0]?.entranceCoordinate,
           });
           navigation.navigate('Map');
         }

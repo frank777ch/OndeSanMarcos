@@ -24,6 +24,7 @@ export interface LocationResult {
   id: string;
   name: string;
   schedule?: string;
+  entranceCoordinate?: Coordinate;
 }
 
 /** Coordenada geográfica (para el enrutamiento chat→mapa, HU-2.3). */
