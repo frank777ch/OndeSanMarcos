@@ -169,7 +169,12 @@ def _gemini_client(settings: Settings):
 
 
 def generate_description(client, model: str, place: MapPlace) -> str:
-    """Redacta la ficha del lugar con Gemini, anclada a sus datos."""
+    """Redacta la ficha del lugar con Gemini, anclada a sus datos.
+
+    Desactiva el "thinking" de gemini-2.5-flash (`thinking_budget=0`): en una
+    tarea de formateo no aporta y, con un `max_output_tokens` acotado, los tokens
+    de pensamiento se comían la salida y truncaban la ficha a media frase.
+    """
     from google.genai import types
 
     response = client.models.generate_content(
@@ -178,7 +183,8 @@ def generate_description(client, model: str, place: MapPlace) -> str:
         config=types.GenerateContentConfig(
             system_instruction=_GEN_SYSTEM,
             temperature=0.2,
-            max_output_tokens=400,
+            max_output_tokens=512,
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
         ),
     )
     return (response.text or "").strip()
