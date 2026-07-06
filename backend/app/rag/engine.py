@@ -37,7 +37,7 @@ class RAGEngine:
         llm: LLMProvider,
         *,
         top_k: int = 4,
-        score_threshold: float = 0.12,
+        score_threshold: float = 0.55,
     ) -> None:
         self._retriever = retriever
         self._llm = llm
