@@ -21,12 +21,14 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 from app.config import Settings, get_settings
 from app.knowledge.entries import (
     DEFAULT_REVIEW_FILE,
     SCHEMA,
     STATUS_DRAFT,
+    load_entries_file,
     save_entries_file,
 )
 from app.knowledge.unmsm_ts import DEFAULT_UNMSM_TS, MapPlace, load_map_places
@@ -206,6 +208,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--out", default=str(DEFAULT_REVIEW_FILE), help="Archivo de salida (JSON)."
     )
+    parser.add_argument(
+        "--regenerate",
+        action="store_true",
+        help="Regenera todo, incluso lo ya presente en --out (por defecto se reanuda).",
+    )
     args = parser.parse_args(argv)
 
     settings = get_settings()
@@ -225,24 +232,38 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     model = settings.llm_model or "gemini-2.5-flash"
-    gemini = _gemini_client(settings)
     targets = gaps[: args.limit] if args.limit > 0 else gaps
 
-    entries: list[dict] = []
-    print(f"\nGenerando borradores con {model} (Gemini)…")
-    for place in targets:
+    # Reanudable: conserva borradores previos y ediciones/aprobaciones ya hechas.
+    existing: dict[str, dict] = {}
+    out_path = Path(args.out)
+    if out_path.exists() and not args.regenerate:
+        prev = load_entries_file(out_path)
+        existing = {e["place_id"]: e for e in prev.get("entries", [])}
+    pending = [p for p in targets if p.id not in existing]
+    if existing:
+        print(f"Reanudando: {len(existing)} ya en {out_path.name}; faltan {len(pending)}.")
+
+    # Semilla con lo existente (sobrevive a un corte por rate limit a mitad).
+    result: dict[str, dict] = {p.id: existing[p.id] for p in targets if p.id in existing}
+    gemini = _gemini_client(settings) if pending else None
+    if pending:
+        print(f"\nGenerando {len(pending)} borrador(es) con {model} (Gemini)…")
+    for place in pending:
         try:
             text = generate_description(gemini, model, place)
-        except Exception as exc:  # cuota (429) u otro error de red
-            print(f"  ! {place.id}: generación detenida ({type(exc).__name__}: {exc}).")
-            print("    Guardo lo generado hasta ahora; reintenta luego para el resto.")
+        except Exception as exc:  # rate limit 429 (free tier: 5 req/min) u otro error
+            print(f"  ! {place.id}: generación detenida ({type(exc).__name__}).")
+            print("    Guardo lo generado; reintenta en ~1 min para el resto "
+                  "(se reanuda solo).")
             break
         if not text:
             print(f"  ! {place.id}: respuesta vacía, se omite.")
             continue
-        entries.append(build_entry(place, text, model))
+        result[place.id] = build_entry(place, text, model)
         print(f"  ✓ {place.id} ({grounding_level(place)})")
 
+    entries = [result[p.id] for p in targets if p.id in result]
     data = {
         "schema": SCHEMA,
         "source": "frontend/src/features/map/constants/unmsm.ts",
