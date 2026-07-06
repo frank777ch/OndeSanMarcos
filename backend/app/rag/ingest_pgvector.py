@@ -10,11 +10,16 @@ y las dependencias de `requirements-llm.txt` y `requirements-pgvector.txt`.
 Reusa el pipeline de ingesta (`load_documents` + `split_documents`), embebe cada
 fragmento con Gemini (`RETRIEVAL_DOCUMENT`) y **reemplaza** el contenido de la
 tabla `documents`. Idempotente: correrlo de nuevo repuebla desde cero.
+
+Incluye también las entradas ya aprobadas/subidas en `app/knowledge/entries/`
+(agregadas incrementalmente con `find_gaps` + `upload_entries`), de modo que
+reconstruir la base **no** pierde el conocimiento agregado fuera del corpus base.
 """
 
 from __future__ import annotations
 
 from app.config import Settings, get_settings
+from app.knowledge.entries import load_entry_documents
 from app.rag.ingestion import load_documents, split_documents
 from app.rag.providers import build_embedding_provider
 
