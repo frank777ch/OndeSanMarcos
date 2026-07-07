@@ -77,13 +77,15 @@ un asistente IA confiable, para eliminar la desorientación dentro de la UNMSM.
 - Mapa 3D del campus con POIs, filtros de categoría y modos de cámara.
 - Autenticación (registro con verificación por correo, login, modo invitado).
 - Asistente de chat con respuestas ancladas a una base de conocimiento.
-- Backend RAG con contrato `POST /api/chat` y enrutamiento (`draw_route`).
+- Backend RAG con contrato `POST /api/chat` y enrutamiento (`draw_route`),
+  desplegado en producción con **LLM real (Gemini)** y **recuperación vectorial
+  con pgvector** (embeddings Gemini); el frontend ya consume el backend.
 
 **Fuera del alcance (esta entrega):**
 
-- Recuperación vectorial real con pgvector y embeddings neuronales (planificado).
-- LLM real en producción (el diseño lo soporta; hoy corre en modo mock).
+- Consumo del enrutamiento en el mapa (trazar la `polyline` desde `draw_route`).
 - Rutas paso a paso con instrucciones de voz y modo guía en tiempo real.
+- Rotación del avatar por magnetómetro (sensores).
 
 El estado actual por historia se detalla en
 [06-backlog-y-roadmap §6.3](./06-backlog-y-roadmap.md#63-historias-de-usuario-y-estado)
@@ -129,9 +131,9 @@ _(Completar con los nombres reales del equipo.)_
 | Mapas        | Mapbox (`@rnmapbox/maps`, 3D nativo)                   |
 | Estado       | Zustand                                                |
 | Backend      | FastAPI + Uvicorn (Python 3.11)                        |
-| RAG          | Motor propio (mock) → LlamaIndex / pgvector (objetivo) |
+| RAG          | Motor propio + Supabase `pgvector` (embeddings Gemini) |
 | Datos / Auth | Supabase (Postgres + pgvector + Auth)                  |
-| LLM          | OpenAI / Anthropic (proveedor enchufable)              |
+| LLM          | Gemini (`gemini-2.5-flash`; proveedor enchufable)      |
 | Despliegue   | Render (backend) · EAS Build (app)                     |
 
 Detalle en [01-arquitectura-general](./01-arquitectura-general.md) y
@@ -158,7 +160,7 @@ Mapa de los entregables de gestión y dónde encontrarlos en este repositorio:
 
 | Riesgo / Supuesto                                                         | Mitigación                                                                                                                              |
 | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Dependencia de llaves de LLM y de Supabase pgvector (aún no disponibles). | Diseño **mock-first**: el sistema funciona y se demuestra sin servicios externos; pasar a real es cambiar configuración, no reescribir. |
+| Dependencia de llaves de LLM (Gemini) y de Supabase pgvector, ya en uso en producción. | Diseño **mock-first**: el sistema también funciona y se demuestra sin servicios externos (modo mock); pasar a real es cambiar configuración, no reescribir. |
 | `@rnmapbox/maps` no corre en Expo Go (requiere build nativo).             | Compilación con **EAS Build** (APK/IPA).                                                                                                |
 | Cold-start del backend en el plan gratis de Render.                       | Despertar el servicio antes de la demo; alternativa Railway si molesta.                                                                 |
 | Alcance amplio para el tiempo disponible.                                 | Priorización por épicas y entrega incremental por sprint (MVP primero).                                                                 |

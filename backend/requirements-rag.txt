@@ -11,6 +11,7 @@ openai
 anthropic
 google-genai
 
-# --- Base vectorial / orquestación (pgvector pendiente, ver providers.py) ---
+# --- Base vectorial (pgvector, ya implementado) ---
+# En producción se usa requirements-pgvector.txt (versión pineada). El motor RAG
+# es propio (no LlamaIndex); esta línea queda solo como alternativa suelta.
 supabase
-llama-index
