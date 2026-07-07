@@ -5,23 +5,25 @@
 > objetivo del [03-backend-rag](./03-backend-rag.md): aquí está lo que **ya
 > existe en el código**.
 >
-> Última actualización: **04/07/2026** (LLM real Gemini + corpus oficial en producción).
+> Última actualización: **07/07/2026** (LLM real Gemini + recuperación con pgvector en producción; frontend cableado).
 
 ---
 
 ## 7.1 Resumen del estado
 
-El backend está **desplegado con LLM real (Gemini)** sobre el **corpus oficial**
-del campus: `POST /api/chat` devuelve respuestas naturales ancladas a documentos
-verificados. La recuperación es **local** (bag-of-words sobre el corpus);
-Supabase + pgvector siguen pendientes. El modo mock persiste para los tests
-(hermético, sin red).
+El backend está **desplegado con LLM real (Gemini `gemini-2.5-flash`)** sobre el
+**corpus oficial** del campus y **recuperación semántica con pgvector** (Supabase +
+embeddings Gemini `gemini-embedding-001`, 768 dims, coseno HNSW): `POST /api/chat`
+devuelve respuestas naturales ancladas a documentos verificados. Si Supabase no está
+configurado, cae con gracia a recuperación **local** (bag-of-words). El **frontend ya
+consume este backend por defecto**. El modo mock persiste para los tests (hermético,
+sin red).
 
 | Historia | Estado | Qué se hizo |
 |----------|--------|-------------|
-| **HU-2.2** Consultas RAG | 🟡 Parcial | LLM real (**Gemini**) en producción sobre **corpus oficial** (37 lugares + 41 documentos desde el documento verificado del campus). Recuperación local; **pgvector + embeddings neuronales pendientes**. |
-| **HU-2.4** Guardrails | ✅ (heurística) | Filtro de alcance UNMSM por límite de palabra + system prompt para el LLM real. |
-| **HU-2.3** Enrutamiento | 🟡 Parcial | El contrato ya devuelve `draw_route` + `destination`; el motor detecta intención de navegación. Falta que el frontend lo consuma. |
+| **HU-2.2** Consultas RAG | ✅ | LLM real (**Gemini**) sobre **corpus oficial** (37 lugares + 41 documentos) y **recuperación semántica con pgvector** (embeddings Gemini). Fallback local sin Supabase. |
+| **HU-2.4** Guardrails | ✅ (heurística) | Filtro de alcance UNMSM por léxico + raíces del dominio + system prompt para el LLM real. |
+| **HU-2.3** Enrutamiento | 🟡 Parcial | El contrato ya devuelve `draw_route` + `destination`; el motor detecta intención de navegación. Falta que el **frontend** lo consuma y trace la ruta. |
 
 **Leyenda:** ✅ Implementado · 🟡 Parcial · 🟠 Planificado
 
@@ -36,23 +38,29 @@ backend/app/
 ├── api/chat.py          # Endpoint POST /api/chat
 ├── schemas/chat.py      # Contrato: ChatRequest, ChatResponse, Coordinate, ...
 ├── knowledge/
-│   ├── corpus.py        # Corpus oficial del campus (derivado de sources/unmsm_info.md)
-│   ├── places.py        # Lugares del campus (espejo de CAMPUS_PLACES del front)
+│   ├── corpus.py        # Corpus oficial del campus (41 docs desde sources/unmsm_info.md)
+│   ├── places.py        # Lugares del campus (37, espejo de CAMPUS_PLACES del front)
+│   ├── entries.py       # Modelo de entradas aprobadas (respaldo versionado del conocimiento)
+│   ├── entries/         # JSON de entradas revisadas (gaps_review.json)
 │   └── sources/         # Documento oficial verificado (fuente única del corpus)
 └── rag/
-    ├── engine.py        # Orquestador RAG (guardrails → recuperar → generar)
-    ├── guardrails.py    # Filtro de alcance institucional (HU-2.4)
-    ├── intent.py        # Detección de intención de navegación (HU-2.3)
-    ├── ingestion.py     # Pipeline de ingesta (carga, troceado, embeddings)
-    ├── retriever.py     # Indexa por fragmentos y recupera top-k por coseno
-    ├── embeddings.py    # EmbeddingProvider (mock: bag-of-words)
-    ├── vector_store.py  # InMemoryVectorStore (mock de pgvector)
-    ├── llm.py           # LLMProvider (mock + Gemini/OpenAI/Anthropic reales)
-    └── providers.py     # Selecciona implementaciones mock vs reales
+    ├── engine.py            # Orquestador RAG (guardrails → recuperar → generar)
+    ├── guardrails.py        # Filtro de alcance institucional: léxico + raíces (HU-2.4)
+    ├── intent.py            # Detección de intención de navegación (HU-2.3)
+    ├── ingestion.py         # Pipeline de ingesta (carga, troceado, embeddings)
+    ├── retriever.py         # Indexa por fragmentos y recupera top-k por coseno (local/mock)
+    ├── pgvector.py          # PgVectorRetriever real (Supabase, RPC match_documents)
+    ├── embeddings.py        # EmbeddingProvider (mock bag-of-words + Gemini real)
+    ├── vector_store.py      # InMemoryVectorStore (usado por el retriever mock)
+    ├── llm.py               # LLMProvider (mock + Gemini/OpenAI/Anthropic reales)
+    ├── providers.py         # Selecciona implementaciones mock vs reales
+    ├── ingest_pgvector.py   # Ingesta offline: corpus + entradas → Supabase pgvector
+    ├── find_gaps.py         # Detecta lugares del mapa sin descripción, redacta borradores (Gemini)
+    └── upload_entries.py    # Sube entradas aprobadas a Supabase
 ```
 
 Toda pieza intercambiable está detrás de una interfaz (`EmbeddingProvider`,
-`LLMProvider`, almacén con `add`/`search`), de modo que pasar de mock a real es
+`LLMProvider`, un retriever con `retrieve`), de modo que pasar de mock a real es
 sustituir la implementación, no reescribir el motor.
 
 ---
@@ -64,10 +72,10 @@ Vive en `app/rag/ingestion.py`:
 
 ```mermaid
 flowchart LR
-    load["load_documents()<br/>corpus o carpeta .md/.txt"]
+    load["load_documents()<br/>corpus + entradas o carpeta .md/.txt"]
     split["split_documents()<br/>troceado con solapamiento"]
-    emb["ingest_chunks()<br/>embeddings por fragmento"]
-    store["VectorStore.add()<br/>en memoria hoy · pgvector mañana"]
+    emb["embeddings por fragmento<br/>(Gemini real · bag-of-words en mock)"]
+    store["almacén<br/>Supabase pgvector · en memoria en mock"]
     load --> split --> emb --> store
 ```
 
@@ -87,8 +95,8 @@ flowchart LR
 | `RAG_USE_MOCK` | Supabase configurado | LLM | Recuperación |
 |----------------|----------------------|-----|--------------|
 | `true` (tests) | — | `TemplateLLM` (determinista) | corpus + bag-of-words en memoria |
-| `false` (**producción**) | no | **Gemini** (u OpenAI/Anthropic) real | **local** (bag-of-words) sobre los documentos fuente |
-| `false` | sí | Gemini/OpenAI/Anthropic real | pgvector → **pendiente** (lanza `RagProviderError` con instrucciones) |
+| `false` | no | **Gemini** (u OpenAI/Anthropic) real | **local** (bag-of-words) sobre los documentos fuente |
+| `false` (**producción**) | sí | Gemini/OpenAI/Anthropic real | **Supabase pgvector** + embeddings Gemini (RPC `match_documents`) |
 
 Si falta una llave o una dependencia opcional, se lanza `RagProviderError` con
 un mensaje accionable; el endpoint lo traduce a **HTTP 503** (no 500) para que
@@ -146,7 +154,8 @@ curl -X POST http://localhost:8000/api/chat ^
 
 ## 7.7 Activar proveedores reales
 
-1. Instala el SDK del LLM: `pip install -r requirements-llm.txt` (Gemini). Para
+1. Instala los SDKs: `pip install -r requirements-llm.txt` (Gemini) y
+   `pip install -r requirements-pgvector.txt` (cliente `supabase`). Para
    OpenAI/Anthropic usa `requirements-rag.txt`.
 2. Copia `.env.example` a `.env` y completa (así corre en producción hoy):
    ```ini
@@ -154,10 +163,13 @@ curl -X POST http://localhost:8000/api/chat ^
    LLM_PROVIDER=gemini          # o openai / anthropic
    LLM_API_KEY=...              # NUNCA subir al repo (.env está en .gitignore)
    LLM_MODEL=gemini-2.5-flash   # opcional
+   SUPABASE_URL=...             # activa la recuperación con pgvector
+   SUPABASE_SERVICE_KEY=...     # secreto (service_role)
    ```
-3. Sin `SUPABASE_*`, la recuperación es **local** (es lo que corre hoy en el
-   deploy). Con `SUPABASE_*`, se lanza un error explicando los pasos de pgvector
-   (siguiente sección).
+3. Con `SUPABASE_*` definidos, la recuperación usa **pgvector + embeddings Gemini**
+   (hay que poblar la base con `python -m app.rag.ingest_pgvector`, ver
+   [09-pgvector-supabase](./09-pgvector-supabase.md)). Sin `SUPABASE_*`, cae con
+   gracia a la recuperación **local** (bag-of-words).
 
 ---
 
@@ -165,9 +177,11 @@ curl -X POST http://localhost:8000/api/chat ^
 
 1. **Consumo del enrutamiento en el frontend**: leer `draw_route`/`destination`
    en el chat y trazar la `polyline` en el mapa (cierra HU-2.3).
-2. **Afinar el umbral de recuperación** para embeddings densos
-   (`RAG_SCORE_THRESHOLD`, hoy calibrado a bag-of-words).
+2. **Ampliar el corpus**: cerrar los gaps de lugares del mapa con
+   `find_gaps`/`upload_entries` (respaldo versionado en `app/knowledge/entries/`).
 
 > ✅ Ya hecho: **corpus oficial real** (desde `sources/unmsm_info.md`), **LLM real
-> (Gemini)** y **recuperación semántica con embeddings + pgvector** (Supabase). Ver
-> [`09-pgvector-supabase.md`](./09-pgvector-supabase.md). Cierra el grueso de HU-2.2.
+> (Gemini)**, **recuperación semántica con embeddings + pgvector** (Supabase, ver
+> [`09-pgvector-supabase.md`](./09-pgvector-supabase.md)), **umbral recalibrado**
+> para embeddings densos (`RAG_SCORE_THRESHOLD=0.55`) y **frontend cableado** al
+> backend. Cierra el grueso de HU-2.2.
