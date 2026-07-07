@@ -1,6 +1,6 @@
 # 6. Backlog y roadmap
 
-Consolida la visión del producto, el backlog (épicas e historias de usuario) y el cronograma. La columna **Estado** mapea cada historia contra lo que **ya existe en el código** a la fecha de este documento (29/05/2026).
+Consolida la visión del producto, el backlog (épicas e historias de usuario) y el cronograma. La columna **Estado** mapea cada historia contra lo que **ya existe en el código** a la fecha de este documento (07/07/2026).
 
 > Fuente: *Product Vision Board v1.0* y *Product Backlog v1.1* del equipo. El estado es la lectura del código actual; las historias 🟠 reflejan lo que la documentación dice que **se hará**.
 
@@ -58,8 +58,8 @@ graph LR
 | HU | Nombre | Prioridad | Est. | Estado | Evidencia en código |
 |----|--------|-----------|------|--------|---------------------|
 | HU-2.1 | Interfaz de Chat Dedicada | Alta | 5 | ✅ | Pestaña "Asistente", `ChatScreen`, burbujas, input. |
-| HU-2.2 | Consultas RAG (Base de Conocimiento) | Alta | 13 | 🟡 | Backend `/api/chat` desplegado con **LLM real (Gemini)** sobre **corpus oficial**; recuperación local, pgvector + embeddings pendientes. Ver [07-avance-backend](./07-avance-backend.md). |
-| HU-2.3 | Enrutamiento Automático (Chat-Mapa) | Alta | 8 | 🟡 | Backend ya devuelve `draw_route` + `destination`; falta que el frontend lo consuma y trace la ruta. |
+| HU-2.2 | Consultas RAG (Base de Conocimiento) | Alta | 13 | ✅ | Backend `/api/chat` desplegado con **LLM real (Gemini)** sobre **corpus oficial** y **recuperación semántica con pgvector** (Supabase + embeddings Gemini). Fallback local sin Supabase. Ver [07-avance-backend](./07-avance-backend.md). |
+| HU-2.3 | Enrutamiento Automático (Chat-Mapa) | Alta | 8 | 🟡 | Backend ya devuelve `draw_route` + `destination` y el frontend consume `/api/chat`; falta que el mapa trace la ruta desde esos campos. |
 | HU-2.4 | Filtro de Contexto (Guardrails) | Alta | 3 | ✅ | Guardrails de alcance UNMSM por límite de palabra + system prompt (heurística implementada y con pruebas); se reforzará con el LLM real. |
 | HU-2.5 | Sugerencias de preguntas | Media | 3 | ✅ | `SuggestionChips` en `ChatScreen`. |
 | HU-2.6 | Respuestas enriquecidas | Media | 5 | ✅ | `LocationCard` con botón "Ver en mapa". |
@@ -102,7 +102,7 @@ gantt
     Review + Retro 1                   :s13, 2026-05-16, 2026-05-17
 
     section Sprint 2 · El Cerebro
-    HU-2.2 / 2.4 RAG + Guardrails      :active, s21, 2026-05-19, 2026-05-31
+    HU-2.2 / 2.4 RAG + Guardrails      :done, s21, 2026-05-19, 2026-05-31
     HU-3.1 Trazado de ruta             :s22, 2026-06-01, 2026-06-04
     Review + Retro 2                   :s23, 2026-06-05, 2026-06-07
 
@@ -128,7 +128,7 @@ gantt
 
 ## 6.5 Próximos pasos sugeridos
 
-1. **Cerrar la integración Chat→Mapa** (HU-2.3 parcial): que `MapScreen` lea `focusTarget` y recentre la cámara.
-2. **Completar el backend RAG** (HU-2.2): el LLM real (Gemini) ya corre en producción sobre el corpus oficial (ver [07-avance-backend](./07-avance-backend.md)); falta la recuperación real con pgvector + embeddings y, en el frontend, apagar `EXPO_PUBLIC_USE_MOCK_CHAT`.
+1. **Cerrar la integración Chat→Mapa** (HU-2.3 parcial): que `MapScreen` lea `focusTarget`/`draw_route` y trace la ruta al destino.
+2. **Ampliar el corpus RAG** (HU-2.2 ✅): el backend ya corre en producción con LLM real (Gemini) y pgvector (ver [07-avance-backend](./07-avance-backend.md)); queda seguir cerrando gaps de lugares con `find_gaps`/`upload_entries`.
 3. **Motor de rutas** (EPIC03): poblar `src/features/routing/` y trazar `polyline` A→B.
 4. **Sensores del avatar** (HU-1.2): magnetómetro + filtro de suavizado.
