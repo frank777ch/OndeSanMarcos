@@ -35,6 +35,7 @@ export interface CampusPlace {
   usage?: string;
   services?: string[];
   detailedSchedule?: string[];
+  entranceCoordinate?: Coordinate;
 }
 
 /**
@@ -99,6 +100,7 @@ export const CAMPUS_PLACES: CampusPlace[] = [
     phone: "956 285 709 / 992 455 977",
 
     coordinate: { latitude: -12.055662, longitude: -77.082159 },
+    entranceCoordinate: { latitude: -12.055811, longitude: -77.081898 }, // Puerta principal
   },
   {
     id: "clinica-odontologia",
@@ -396,6 +398,7 @@ export const CAMPUS_PLACES: CampusPlace[] = [
     careers: ["Ingeniería de Sistemas", "Ingeniería de Software"],
 
     coordinate: { latitude: -12.053317, longitude: -77.085456 },
+    entranceCoordinate: { latitude: -12.053229, longitude: -77.085028 }, // Puerta lado estadio
   },
   {
     id: "fic",

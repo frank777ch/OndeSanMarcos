@@ -38,6 +38,7 @@ export function buildMockResponse(query: string): ChatResponse {
     id: place.id,
     name: place.name,
     schedule: place.schedule,
+    entranceCoordinate: place.entranceCoordinate,
   }));
 
   const answer =

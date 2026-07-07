@@ -120,13 +120,16 @@ class Pathfinder {
   }
 
   // Algoritmo de Dijkstra
-  public findShortestPath(startPoint: Coord, endPoint: Coord): Coord[] {
+  public findShortestPath(
+    startPoint: Coord,
+    endPoint: Coord
+  ): { pathCoords: Coord[]; startDashed: boolean; endDashed: boolean } {
     const startNodeId = this.getClosestNode(startPoint);
     const endNodeId = this.getClosestNode(endPoint);
 
     if (!startNodeId || !endNodeId) {
       console.warn("No se encontraron nodos cercanos");
-      return [];
+      return { pathCoords: [], startDashed: false, endDashed: false };
     }
 
     const distances = new Map<string, number>();
@@ -187,21 +190,29 @@ class Pathfinder {
     if (pathIds[0] !== startNodeId) {
       // No hay camino válido
       console.warn("No hay ruta directa");
-      // Fallback: trazamos una línea recta directa
-      return [startPoint, endPoint];
+      return {
+        pathCoords: [startPoint, endPoint],
+        startDashed: true,
+        endDashed: true,
+      };
     }
 
     const pathCoords = pathIds.map((id) => this.nodes.get(id)!.coord);
 
+    let startDashed = false;
+    let endDashed = false;
+
     // Para mayor precisión visual, añadimos el punto exacto de inicio y fin si está muy lejos
     if (haversineDistance(startPoint, pathCoords[0]) > 2) {
       pathCoords.unshift(startPoint);
+      startDashed = true;
     }
     if (haversineDistance(endPoint, pathCoords[pathCoords.length - 1]) > 2) {
       pathCoords.push(endPoint);
+      endDashed = true;
     }
 
-    return pathCoords;
+    return { pathCoords, startDashed, endDashed };
   }
 }
 
