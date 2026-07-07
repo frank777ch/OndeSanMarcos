@@ -36,7 +36,7 @@ graph TD
     class app cli;
 ```
 
-> **Nota de estado:** hoy el cliente funciona en **modo mock** (`EXPO_PUBLIC_USE_MOCK_CHAT` por defecto `true`): el chat responde localmente sin llamar al backend. El **backend ya existe y funciona en modo mock** (ver [§1.7](#17-vista-completa-implementado-vs-planificado) y [07-avance-backend](./07-avance-backend.md)); el **LLM real** y **pgvector** siguen **planificados**. Este diagrama representa la arquitectura objetivo.
+> **Nota de estado:** este diagrama ya es el estado **real**. El backend está **desplegado en Render** con **LLM real (Gemini)** y **recuperación semántica con Supabase pgvector** (embeddings Gemini). El **cliente consume el backend por defecto** (`Config.api.baseUrl` → URL de Render; el mock del chat solo se fuerza con `EXPO_PUBLIC_USE_MOCK_CHAT=true`). Ver [§1.7](#17-vista-completa-implementado-vs-planificado) y [07-avance-backend](./07-avance-backend.md).
 
 ---
 
@@ -59,26 +59,27 @@ graph LR
     subgraph BE["BACKEND — FastAPI"]
         direction TB
         api["Routers / Endpoints<br/>/api/chat · /health"]
-        rag["Motor RAG<br/>(LlamaIndex)"]
-        guard["Guardrails<br/>(system prompt + filtros)"]
-        api --> guard --> rag
+        guard["Guardrails<br/>(léxico + raíces + system prompt)"]
+        rag["Motor RAG propio<br/>retriever + generación"]
+        emb["Embeddings Gemini<br/>+ LLM Gemini"]
+        api --> guard --> rag --> emb
     end
 
     subgraph DATA["DATOS"]
         direction TB
         auth["Supabase Auth"]
-        vector["Supabase Postgres<br/>+ pgvector"]
+        vector["Supabase Postgres<br/>+ pgvector (documents)"]
     end
 
     svc -->|"SDK supabase-js"| auth
     svc -->|"POST /api/chat { query }"| api
-    rag -->|"similarity search"| vector
+    rag -->|"match_documents (coseno)"| vector
     mapbox["Mapbox SDK"]
     ui -->|render| mapbox
 
     classDef be fill:#fff7ed,stroke:#ea580c,color:#1e293b;
     classDef data fill:#eef2ff,stroke:#3b5bdb,color:#1e293b;
-    class api,rag,guard be;
+    class api,rag,guard,emb be;
     class auth,vector data;
 ```
 
@@ -89,18 +90,18 @@ graph LR
 | **Frontend** | `services/supabase/auth.service`         | signUp, signIn, signOut, sesión, listener de auth.                  | ✅                           |
 | **Frontend** | `services/supabase/client`               | Cliente Supabase con persistencia en AsyncStorage.                  | ✅                           |
 | **Frontend** | `services/api/client` (`apiClient`)      | Wrapper `fetch` genérico (GET/POST, JSON, errores).                 | ✅                           |
-| **Frontend** | `services/api/chatApi` (`sendChatQuery`) | Llama `POST /api/chat` con `{ query }`.                             | ✅ (a la espera del backend) |
-| **Backend**  | Router `/api/chat`                       | Recibe la consulta, orquesta RAG, responde `{ answer, locations }`. | 🟠                           |
-| **Backend**  | Guardrails                               | Limita el alcance a temas UNMSM (HU-2.4).                           | 🟠                           |
-| **Backend**  | Motor RAG (LlamaIndex)                   | Recupera fragmentos relevantes y genera la respuesta.               | 🟠                           |
+| **Frontend** | `services/api/chatApi` (`sendChatQuery`) | Llama `POST /api/chat` con `{ query }`.                             | ✅ (consume el backend real) |
+| **Backend**  | Router `/api/chat`                       | Recibe la consulta, orquesta RAG, responde `{ answer, locations, draw_route, destination }`. | ✅                 |
+| **Backend**  | Guardrails                               | Limita el alcance a temas UNMSM (HU-2.4).                           | ✅                           |
+| **Backend**  | Motor RAG propio                         | Recupera fragmentos relevantes (pgvector) y genera la respuesta (Gemini). | ✅                    |
 | **Datos**    | Supabase Auth                            | Usuarios, verificación por correo, sesiones JWT.                    | ✅                           |
-| **Datos**    | Supabase Postgres + `pgvector`           | Documentos institucionales + embeddings.                            | 🟠                           |
+| **Datos**    | Supabase Postgres + `pgvector`           | Documentos institucionales + embeddings Gemini (tabla `documents`). | ✅                          |
 
 ---
 
 ## 1.3 El contrato Frontend ↔ Backend
 
-La frontera entre app y backend es **un único endpoint HTTP** hoy por hoy. El cliente ya está preparado para consumirlo (`chatApi.ts`); cuando el backend exista, basta con apagar el modo mock.
+La frontera entre app y backend es **un único endpoint HTTP**. El cliente ya lo consume (`chatApi.ts`) apuntando por defecto al backend desplegado en Render; el modo mock del chat solo se activa manualmente (`EXPO_PUBLIC_USE_MOCK_CHAT=true`).
 
 **Petición**
 
@@ -126,7 +127,7 @@ Content-Type: application/json
 }
 ```
 
-> **Evolución prevista (HU-2.3):** la respuesta incorporará un flag `draw_route` y coordenadas para que el frontend cambie automáticamente a la pestaña del Mapa y trace la ruta. Ver [05-flujos](./05-flujos.md#54-enrutamiento-automático-chat--mapa).
+> **Enrutamiento (HU-2.3):** la respuesta ya incorpora el flag `draw_route` y las coordenadas `destination` para las consultas de navegación. Falta que el **frontend** las consuma para cambiar a la pestaña del Mapa y trazar la ruta automáticamente. Ver [05-flujos](./05-flujos.md#54-enrutamiento-automático-chat--mapa).
 
 ---
 
@@ -214,7 +215,7 @@ sequenceDiagram
 | **Arquitectura por features** en el front | Escala por dominio (auth/map/chat) y aísla responsabilidades.              |
 | **Zustand** en vez de Redux               | Mínimo boilerplate; selectores simples; persistencia con middleware.       |
 | **Supabase como BaaS**                    | Auth + Postgres + `pgvector` en un solo servicio con tier gratuito.        |
-| **RAG con LlamaIndex**                    | Respuestas ancladas a documentos oficiales → evita alucinaciones (HU-2.2). |
+| **RAG con motor propio + pgvector**       | Respuestas ancladas a documentos oficiales → evita alucinaciones (HU-2.2). |
 | **Backend separado para el LLM**          | Oculta llaves del LLM y centraliza guardrails fuera del cliente.           |
 | **Modo mock conmutable**                  | Permite avanzar la UI del chat sin depender del backend.                   |
 
@@ -235,31 +236,30 @@ graph TB
         onb["Onboarding + Auth (Supabase)"]:::done
         tabs["MainTabs: Mapa · Asistente · Perfil"]:::done
         map3d["Mapa 3D Mapbox<br/>POIs · cámara · avatar"]:::done
-        chatui["UI Chat (historial, sugerencias)"]:::done
+        chatui["UI Chat (consume backend real)"]:::done
         stores["Estado Zustand (auth/chat/map)"]:::done
         c2m["Chat→Mapa: consumir draw_route"]:::planned
         route["Motor de rutas (polyline A→B)"]:::planned
         sensors["Avatar + brújula (magnetómetro)"]:::planned
     end
 
-    subgraph be["Backend FastAPI — modo mock (desplegable en Render)"]
+    subgraph be["Backend FastAPI — desplegado en Render (LLM real)"]
         direction TB
         api["POST /api/chat · /health"]:::done
-        guard["Guardrails (alcance UNMSM)"]:::done
-        engine["Motor RAG"]:::done
-        ingest["Pipeline de ingesta"]:::done
-        retr["Retriever in-memory"]:::done
-        tllm["TemplateLLM determinista"]:::done
+        guard["Guardrails (léxico + raíces)"]:::done
+        engine["Motor RAG propio"]:::done
+        ingest["Ingesta a pgvector (corpus + entradas)"]:::done
+        pgr["Retriever pgvector<br/>(embeddings Gemini)"]:::done
+        realllm["LLM real Gemini"]:::done
         prov["Selección de proveedores"]:::done
-        realllm["LLM real OpenAI/Anthropic"]:::planned
-        pgr["Recuperación pgvector"]:::planned
+        tooling["Tooling: find_gaps · upload_entries"]:::done
     end
 
     subgraph cloud["Servicios externos"]
         sbauth["Supabase Auth"]:::done
         mapbox["Mapbox SDK"]:::done
-        sbvec["Supabase pgvector (conocimiento)"]:::planned
-        llmapi["Proveedor LLM (producción)"]:::planned
+        sbvec["Supabase pgvector (documents)"]:::done
+        llmapi["Gemini (Google AI Studio)"]:::done
     end
 
     subgraph leg["Leyenda"]
@@ -273,12 +273,11 @@ graph TB
     chatui --> stores
     chatui -->|"POST /api/chat"| api
     api --> guard --> engine
-    engine --> ingest --> retr
     engine --> prov
-    prov --> tllm
-    prov -.-> realllm
-    retr -.-> pgr -.-> sbvec
-    realllm -.-> llmapi
+    prov --> pgr --> sbvec
+    prov --> realllm --> llmapi
+    ingest --> sbvec
+    tooling --> sbvec
     c2m -.-> map3d
     route -.-> map3d
 
@@ -286,6 +285,7 @@ graph TB
     classDef planned fill:#f1f5f9,stroke:#94a3b8,stroke-dasharray:5 5,color:#64748b;
 ```
 
-> El esqueleto completo del sistema ya existe; lo punteado (LLM real, pgvector,
-> consumo del enrutamiento en el mapa, sensores del avatar) es el trabajo de los
-> siguientes sprints. Estado por historia en [06-backlog-y-roadmap §6.3](./06-backlog-y-roadmap.md#63-historias-de-usuario-y-estado).
+> El backend está completo y en producción (LLM real Gemini + recuperación con
+> pgvector). Lo punteado que resta es del **frontend/mapa**: consumir el
+> enrutamiento (`draw_route`) en el mapa, el motor de rutas y los sensores del
+> avatar. Estado por historia en [06-backlog-y-roadmap §6.3](./06-backlog-y-roadmap.md#63-historias-de-usuario-y-estado).
