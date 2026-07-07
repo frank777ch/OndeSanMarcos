@@ -8,15 +8,19 @@ import { useThemeStore } from "@/core/store/useThemeStore";
 interface CustomSwitchProps {
   value: boolean;
   onValueChange: (value: boolean) => void;
+  accessibilityLabel?: string;
 }
 
-const CustomSwitch: React.FC<CustomSwitchProps> = ({ value, onValueChange }) => {
+const CustomSwitch: React.FC<CustomSwitchProps> = ({ value, onValueChange, accessibilityLabel }) => {
   const primaryColor = useThemeStore((s) => s.primaryColor);
-  
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={() => onValueChange(!value)}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
+      accessibilityLabel={accessibilityLabel}
       style={[
         switchStyles.track,
         value ? [switchStyles.trackActive, { backgroundColor: primaryColor, borderColor: primaryColor }] : switchStyles.trackInactive
@@ -81,9 +85,10 @@ export function NotificationsScreen() {
             <Text style={styles.optionLabel}>Permitir notificaciones</Text>
           </View>
           
-          <CustomSwitch 
+          <CustomSwitch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
+            accessibilityLabel="Permitir notificaciones"
           />
         </View>
       </View>
