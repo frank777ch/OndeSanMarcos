@@ -134,6 +134,8 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
         {pageIndex > 0 ? (
           <Pressable
             onPress={goBack}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
             style={({ pressed }) => [
               styles.buttonBack,
               pressed && styles.buttonBackPressed,
@@ -145,7 +147,12 @@ export function OnboardingScreen({ navigation }: OnboardingScreenProps) {
           <View />
         )}
         {page.showSkip && (
-          <TouchableOpacity onPress={goToWelcome} style={styles.skipButton}>
+          <TouchableOpacity
+            onPress={goToWelcome}
+            style={styles.skipButton}
+            accessibilityRole="button"
+            accessibilityLabel="Omitir introducción"
+          >
             <Text style={styles.skipText}>Omitir</Text>
           </TouchableOpacity>
         )}

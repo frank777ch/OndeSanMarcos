@@ -23,6 +23,7 @@ type ButtonProps = {
   disabled?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  accessibilityLabel?: string;
 };
 
 export function Button({
@@ -35,6 +36,7 @@ export function Button({
   disabled = false,
   style,
   textStyle,
+  accessibilityLabel,
 }: ButtonProps) {
   const primaryColor = useThemeStore((s) => s.primaryColor);
   const isDisabled = loading || disabled;
@@ -65,6 +67,9 @@ export function Button({
       onPress={onPress}
       disabled={isDisabled}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? text}
+      accessibilityState={{ disabled: isDisabled }}
     >
       {loading ? (
         <ActivityIndicator color={spinnerColor} />

@@ -16,6 +16,8 @@ export function AuthHeader({ onBack }: Props) {
     <View style={styles.container}>
       <Pressable
         onPress={handleBack}
+        accessibilityRole="button"
+        accessibilityLabel="Volver"
         style={({ pressed }) => [
           styles.button,
           pressed && styles.buttonPressed,

@@ -53,6 +53,9 @@ export function MapFilterChips({
               style={[styles.chip, isActive && [styles.chipActive, { backgroundColor: primaryColor }]]}
               activeOpacity={0.8}
               onPress={() => onFilterChange(filter.value)}
+              accessibilityRole="button"
+              accessibilityLabel={`Filtrar por ${filter.label}`}
+              accessibilityState={{ selected: isActive }}
             >
               <Ionicons
                 name={filter.icon as any}

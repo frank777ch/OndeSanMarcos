@@ -34,6 +34,8 @@ export function MapActionButtons({
           style={styles.whiteButton}
           activeOpacity={0.8}
           onPress={onStopRoute}
+          accessibilityRole="button"
+          accessibilityLabel="Cancelar ruta"
         >
           <Trash2 size={20} color="red" />
           <Text style={[styles.whiteText, { color: "red" }]}>
@@ -45,6 +47,8 @@ export function MapActionButtons({
           style={styles.whiteButton}
           activeOpacity={0.8}
           onPress={onStartRoute}
+          accessibilityRole="button"
+          accessibilityLabel="Iniciar ruta"
         >
           <Route size={20} color={lightColors.textLinkBtn} />
           <Text style={styles.whiteText}>Iniciar ruta</Text>
@@ -66,6 +70,8 @@ export function MapActionButtons({
               }
               onModeSelect("libre");
             }}
+            accessibilityRole="button"
+            accessibilityLabel="Activar modo libre"
           >
             <Road size={20} color="#FFF" />
             <Text style={styles.blueText}>Modo libre</Text>
@@ -75,6 +81,8 @@ export function MapActionButtons({
             style={[styles.blueButton, { backgroundColor: primaryColor }]}
             activeOpacity={0.8}
             onPress={() => onModeSelect("guia")}
+            accessibilityRole="button"
+            accessibilityLabel="Activar modo de guía"
           >
             <Signpost size={20} color="#FFF" />
             <Text style={styles.blueText}>Modo de guía</Text>
@@ -87,6 +95,8 @@ export function MapActionButtons({
               onModeSelect("ninguno");
               setIsExpanded(false);
             }}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar los modos de seguimiento"
           >
             <X size={20} color="#FFF" />
             <Text style={styles.blueText}>Cerrar los modos</Text>
@@ -97,6 +107,8 @@ export function MapActionButtons({
           style={[styles.blueButton, { backgroundColor: primaryColor }]}
           activeOpacity={0.8}
           onPress={() => setIsExpanded(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Modos de seguimiento"
         >
           <Map size={20} color="#FFF" />
           <Text style={styles.blueText}>Modos de seguimiento</Text>

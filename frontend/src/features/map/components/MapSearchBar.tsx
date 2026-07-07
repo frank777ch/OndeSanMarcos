@@ -97,6 +97,8 @@ export function MapSearchBar() {
         style={styles.container}
         activeOpacity={0.8}
         onPress={handleOpen}
+        accessibilityRole="search"
+        accessibilityLabel="Buscar lugar"
       >
         <Ionicons name="search" size={20} color={primaryColor} />
         <Text
@@ -116,6 +118,8 @@ export function MapSearchBar() {
               setFocusedPlace(null);
             }}
             style={{ padding: 4 }}
+            accessibilityRole="button"
+            accessibilityLabel="Borrar búsqueda"
           >
             <X size={20} color="#999" />
           </TouchableOpacity>
@@ -135,7 +139,12 @@ export function MapSearchBar() {
               { paddingTop: Constants.statusBarHeight + 10 },
             ]}
           >
-            <TouchableOpacity onPress={handleClose} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={handleClose}
+              style={styles.backButton}
+              accessibilityRole="button"
+              accessibilityLabel="Volver"
+            >
               <Ionicons name="arrow-back" size={24} color={lightColors.textH1} />
             </TouchableOpacity>
             <TextInput
@@ -154,6 +163,8 @@ export function MapSearchBar() {
                   setFocusedPlace(null);
                 }}
                 style={styles.clearButton}
+                accessibilityRole="button"
+                accessibilityLabel="Borrar búsqueda"
               >
                 <Ionicons name="close-circle" size={20} color="#999" />
               </TouchableOpacity>
@@ -169,6 +180,8 @@ export function MapSearchBar() {
                 key={place.id}
                 style={styles.resultItem}
                 onPress={() => handleSelectPlace(place)}
+                accessibilityRole="button"
+                accessibilityLabel={place.name}
               >
                 <View
                   style={[

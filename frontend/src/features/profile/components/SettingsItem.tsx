@@ -15,6 +15,7 @@ type SettingsItemProps = {
   onPress?: () => void;
   destructive?: boolean;
   style?: ViewStyle;
+  accessibilityLabel?: string;
 };
 
 export function SettingsItem({
@@ -24,6 +25,7 @@ export function SettingsItem({
   onPress,
   destructive = false,
   style,
+  accessibilityLabel,
 }: SettingsItemProps) {
   const titleColor = destructive ? "#EF4444" : lightColors.textH1;
   const iconTintStyle = destructive ? { color: "#EF4444" } : {};
@@ -34,6 +36,9 @@ export function SettingsItem({
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
       disabled={!onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityState={{ disabled: !onPress }}
     >
       <View
         style={[

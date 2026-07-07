@@ -55,13 +55,19 @@ export function MapSpawnModal({
         style={styles.overlay}
         activeOpacity={1}
         onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Cerrar"
       />
 
       {/* Panel blanco inferior */}
       <View style={styles.sheet}>
         <View style={styles.header}>
           <Text style={styles.title}>¿Dónde quieres empezar?</Text>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar"
+          >
             <Ionicons name="close-circle" size={28} color="#C4C4C4" />
           </TouchableOpacity>
         </View>
@@ -80,6 +86,8 @@ export function MapSpawnModal({
                 style={styles.optionButton}
                 activeOpacity={0.7}
                 onPress={() => onSelectPoint(item.coords, item.id === "current-location")}
+                accessibilityRole="button"
+                accessibilityLabel={`Empezar en ${item.nombre}`}
               >
                 <Ionicons name="location" size={20} color={primaryColor} />
                 <Text style={styles.optionText}>{item.nombre}</Text>

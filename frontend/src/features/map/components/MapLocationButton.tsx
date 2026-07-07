@@ -28,6 +28,9 @@ export function MapLocationButton({ disabled, onPress }: MapLocationButtonProps)
       style={[styles.button, disabled && styles.buttonDisabled]}
       activeOpacity={0.8}
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel="Centrar en mi ubicación"
+      accessibilityState={{ disabled: !!disabled }}
     >
       <Icon size={20} color={disabled ? "#A0A0A0" : lightColors.textGhostBtn} />
       <Text style={[styles.text, disabled && styles.textDisabled]}>Mi ubicación</Text>
