@@ -99,9 +99,13 @@ service_role: INSERT, SELECT, UPDATE, DELETE
 
 **Ingesta:**
 ```
-Ingeridos 48 fragmentos de 41 documentos en la tabla 'documents'.
+Ingeridos 48 fragmentos de 41 documentos (corpus base) en la tabla 'documents'.
 select count(*) from documents;  -> 48
 ```
+> Desde entonces se agregaron **7 lugares** vía `find_gaps` + `upload_entries`
+> (rectorado, clínica de odontología y 5 cafeterías de facultad), por lo que la
+> tabla tiene hoy **55 filas** (48 del corpus base + 7 entradas aprobadas). Un
+> re-ingest completo (`ingest_pgvector`) reincorpora esas entradas junto al corpus.
 
 **Recuperación semántica** (retriever = `PgVectorRetriever`):
 ```
@@ -119,7 +123,7 @@ diga esas palabras.
 '¿cómo llego al rectorado?'       -> locs=['rectorado'] draw_route=True
 ```
 
-**Tests:** `pytest` → `43 passed` (herméticos, en modo mock, sin red).
+**Tests:** `pytest` → `76 passed` (herméticos, en modo mock, sin red).
 
 ---
 
@@ -129,14 +133,18 @@ diga esas palabras.
 - **Cuota del free tier de Gemini:** `gemini-2.5-flash` permite ~20 generaciones/día
   gratis; los embeddings tienen cuota aparte. Si aparece `429 RESOURCE_EXHAUSTED`,
   es límite de cuota (no un bug): esperar o habilitar billing.
-- **Umbral de score:** `RAG_SCORE_THRESHOLD` (0.12) está calibrado para bag-of-words;
-  con embeddings densos las similitudes son ~0.6–0.7. La detección de lugares ya no
-  depende de un umbral relativo (ver `engine._detect_places`), pero para filtrar
-  contexto irrelevante en cloud puede subirse vía env.
-- **Cloud (ya aprovisionado, 04/07/2026):** proyecto Supabase `ondesanmarcos`
+- **Umbral de score:** `RAG_SCORE_THRESHOLD` ya está en **0.55**, calibrado para los
+  embeddings densos Gemini (coincidencias ~0.63–0.77, ruido ~0.50–0.57); el antiguo
+  0.12 era para bag-of-words. La detección de lugares no depende de un umbral relativo
+  (ver `engine._detect_places`); el umbral solo filtra contexto irrelevante.
+- **Modelo de entradas de conocimiento:** para sumar lugares del mapa que el corpus
+  base aún no describe, `find_gaps` redacta borradores anclados (Gemini, *grounded*)
+  en `app/knowledge/entries/gaps_review.json`; tras revisión humana, `upload_entries`
+  sube las entradas aprobadas a Supabase y las marca `uploaded`. Es un respaldo
+  versionado: `ingest_pgvector` las reincorpora al reconstruir la base.
+- **Cloud (aprovisionado, 04/07/2026):** proyecto Supabase `ondesanmarcos`
   (org `anycodef`, región `sa-east-1`) creado por CLI; esquema aplicado vía
-  Management API y poblado con `ingest_pgvector` (48 fragmentos, mismos scores que
-  local). `SUPABASE_URL` va en el `render.yaml`; falta ingresar el secreto
-  `SUPABASE_SERVICE_KEY` en el dashboard de Render para activarlo en producción
-  (ver [`08-despliegue-render.md`](./08-despliegue-render.md) §8.8). El esquema se
-  recrea con `backend/db/schema.sql` (idempotente).
+  Management API y poblado con `ingest_pgvector`. `SUPABASE_URL` va en el `render.yaml`;
+  la activación en producción requiere el secreto `SUPABASE_SERVICE_KEY` en el
+  dashboard de Render (ver [`08-despliegue-render.md`](./08-despliegue-render.md) §8.8).
+  El esquema se recrea con `backend/db/schema.sql` (idempotente).
