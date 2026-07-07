@@ -227,12 +227,15 @@ Toda la configuración se centraliza en `src/constants/config.ts`, que lee varia
 
 | Variable                        | Uso                                          | Default                 |
 | ------------------------------- | -------------------------------------------- | ----------------------- |
-| `EXPO_PUBLIC_API_URL`           | Base del backend (`apiClient`).              | `http://localhost:8000` |
+| `EXPO_PUBLIC_API_URL`           | Base del backend (`apiClient`).              | backend en Render¹      |
 | `EXPO_PUBLIC_MAPBOX_TOKEN`      | Token público de Mapbox.                     | `''`                    |
 | `EXPO_PUBLIC_SUPABASE_URL`      | URL del proyecto Supabase.                   | `''`                    |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Llave anónima de Supabase.                   | `''`                    |
-| `EXPO_PUBLIC_USE_MOCK_CHAT`     | Si `≠ 'false'`, el chat usa respuestas mock. | mock activo             |
+| `EXPO_PUBLIC_USE_MOCK_CHAT`     | Si `= 'true'`, el chat usa respuestas mock.  | backend real²           |
 | `EXPO_PUBLIC_ENABLE_DEV_LOGS`   | Logs de desarrollo.                          | `false`                 |
+
+¹ Por defecto apunta al backend desplegado (`https://ondesanmarcos-backend.onrender.com`); define `EXPO_PUBLIC_API_URL` para usar un backend local.
+² El chat consume el backend real por defecto; el mock solo se activa con `EXPO_PUBLIC_USE_MOCK_CHAT=true`.
 
 Además, `app.config.ts` expone `mapboxPublicToken` y el `projectId` de EAS vía `expo.extra`.
 
