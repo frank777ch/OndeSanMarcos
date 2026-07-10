@@ -1,0 +1,265 @@
+{
+  "schema": "ondesanmarcos.knowledge-entries/v1",
+  "source": "frontend/src/features/map/constants/unmsm.ts",
+  "model": "gemini-2.5-flash",
+  "note": "Borradores generados por Gemini y anclados a unmsm.ts. Revisar la veracidad y ajustar 'status' a 'approved' antes de subir con upload_entries.",
+  "entries": [
+    {
+      "place_id": "rectorado",
+      "status": "uploaded",
+      "grounding": "low",
+      "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
+      "model": "assistant-reasoning (grounded, manual, one-off)",
+      "document": {
+        "id": "doc-rectorado",
+        "title": "Rectorado (Edificio Jorge Basadre)",
+        "place_id": "rectorado",
+        "text": "El Rectorado, también conocido como Edificio Jorge Basadre, es la sede de la administración central de la Universidad Nacional Mayor de San Marcos, donde funcionan las autoridades y el gobierno universitario. Atiende de lunes a viernes de 8:00 a 16:00."
+      },
+      "source_fields": {
+        "name": "Rectorado (Edificio Jorge Basadre)",
+        "schedule": "Lun–Vie 8:00–16:00",
+        "detailed_schedule": [],
+        "description": "",
+        "phone": "",
+        "annex": "",
+        "usage": "",
+        "careers": [],
+        "services": [],
+        "keywords": [
+          "rectorado",
+          "rector",
+          "administracion central",
+          "jorge basadre",
+          "autoridades",
+          "gobierno universitario"
+        ]
+      },
+      "uploaded_chunks": 1
+    },
+    {
+      "place_id": "clinica-odontologia",
+      "status": "uploaded",
+      "grounding": "high",
+      "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
+      "model": "gemini-2.5-flash",
+      "document": {
+        "id": "doc-clinica-odontologia",
+        "title": "Clínica de Odontología UNMSM",
+        "place_id": "clinica-odontologia",
+        "text": "La Clínica de Odontología UNMSM es un centro donde se forman odontólogos y los estudiantes realizan prácticas supervisadas. Cuenta con clínica propia que ofrece atenciones dentales a precios accesibles para la comunidad universitaria y el público general. Su horario de atención es de lunes a viernes, de 9:00 a 18:00. Para consultas, puede llamar al 619-7000, anexo 3408."
+      },
+      "source_fields": {
+        "name": "Clínica de Odontología UNMSM",
+        "schedule": "Lun–Vie 9:00–18:00",
+        "detailed_schedule": [],
+        "description": "Forma odontólogos y cuenta con clínica propia donde los estudiantes realizan prácticas supervisadas. Ofrece atenciones a precios accesibles para la comunidad universitaria y público general.",
+        "phone": "619-7000",
+        "annex": "3408",
+        "usage": "",
+        "careers": [],
+        "services": [],
+        "keywords": [
+          "odontologia",
+          "dentista",
+          "dientes",
+          "dental",
+          "clinica odontologica",
+          "ortodoncia",
+          "endodoncia"
+        ]
+      },
+      "uploaded_chunks": 1
+    },
+    {
+      "place_id": "cafeteria-fqiq",
+      "status": "uploaded",
+      "grounding": "high",
+      "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
+      "model": "assistant-reasoning (grounded, manual, one-off)",
+      "document": {
+        "id": "doc-cafeteria-fqiq",
+        "title": "Cafetería de la Facultad de Química e Ingeniería Química",
+        "place_id": "cafeteria-fqiq",
+        "text": "La Cafetería de la Facultad de Química e Ingeniería Química es la cafetería principal de dicha facultad. Ofrece venta de alimentos, snacks, bebidas y postres. Atiende de lunes a sábado de 9:00 a 20:00."
+      },
+      "source_fields": {
+        "name": "Cafetería de la Facultad de Química e Ingeniería Química",
+        "schedule": "Lun–Sáb 9:00–20:00",
+        "detailed_schedule": [],
+        "description": "Cafetería principal de la Facultad de Química e Ingeniería Química.",
+        "phone": "",
+        "annex": "",
+        "usage": "",
+        "careers": [],
+        "services": [
+          "Venta de alimentos",
+          "Snacks",
+          "Bebidas",
+          "Postres"
+        ],
+        "keywords": [
+          "cafeteria",
+          "ingenieria quimica",
+          "fqiq",
+          "comida",
+          "almuerzo",
+          "bebidas",
+          "snacks"
+        ]
+      },
+      "uploaded_chunks": 1
+    },
+    {
+      "place_id": "cafeteria-civil",
+      "status": "uploaded",
+      "grounding": "high",
+      "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
+      "model": "assistant-reasoning (grounded, manual, one-off)",
+      "document": {
+        "id": "doc-cafeteria-civil",
+        "title": "Cafetería de la Facultad de Ingeniería Civil",
+        "place_id": "cafeteria-civil",
+        "text": "La Cafetería de la Facultad de Ingeniería Civil es la cafetería principal de dicha facultad. Ofrece venta de alimentos, snacks y bebidas. Atiende de lunes a sábado de 9:00 a 20:00."
+      },
+      "source_fields": {
+        "name": "Cafetería de la Facultad de Ingeniería Civil",
+        "schedule": "Lun–Sáb 9:00–20:00",
+        "detailed_schedule": [],
+        "description": "Cafetería principal de la Facultad de Ingeniería Civil.",
+        "phone": "",
+        "annex": "",
+        "usage": "",
+        "careers": [],
+        "services": [
+          "Venta de alimentos",
+          "Snacks",
+          "Bebidas"
+        ],
+        "keywords": [
+          "cafeteria",
+          "ingenieria civil",
+          "civil",
+          "comida",
+          "bebidas",
+          "snacks"
+        ]
+      },
+      "uploaded_chunks": 1
+    },
+    {
+      "place_id": "cafeteria-odontologia",
+      "status": "uploaded",
+      "grounding": "high",
+      "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
+      "model": "assistant-reasoning (grounded, manual, one-off)",
+      "document": {
+        "id": "doc-cafeteria-odontologia",
+        "title": "Cafetería de la Facultad de Odontología",
+        "place_id": "cafeteria-odontologia",
+        "text": "La Cafetería de la Facultad de Odontología es la cafetería principal de dicha facultad. Ofrece venta de alimentos, snacks y bebidas. Atiende de lunes a sábado de 9:00 a 20:00."
+      },
+      "source_fields": {
+        "name": "Cafetería de la Facultad de Odontología",
+        "schedule": "Lun–Sáb 9:00–20:00",
+        "detailed_schedule": [],
+        "description": "Cafetería principal de la Facultad de Odontología.",
+        "phone": "",
+        "annex": "",
+        "usage": "",
+        "careers": [],
+        "services": [
+          "Venta de alimentos",
+          "Snacks",
+          "Bebidas"
+        ],
+        "keywords": [
+          "cafeteria",
+          "odontologia",
+          "comida",
+          "bebidas",
+          "snacks",
+          "almuerzo"
+        ]
+      },
+      "uploaded_chunks": 1
+    },
+    {
+      "place_id": "cafeteria-clinica-universitaria",
+      "status": "uploaded",
+      "grounding": "high",
+      "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
+      "model": "gemini-2.5-flash",
+      "document": {
+        "id": "doc-cafeteria-clinica-universitaria",
+        "title": "Cafetería de la Clínica Universitaria",
+        "place_id": "cafeteria-clinica-universitaria",
+        "text": "La Cafetería de la Clínica Universitaria es un establecimiento ubicado dentro de la Clínica Universitaria UNMSM. Ofrece venta de almuerzos, postres y jugos. Atiende de lunes a sábado, en un horario de 9:00 a 20:00."
+      },
+      "source_fields": {
+        "name": "Cafetería de la Clínica Universitaria",
+        "schedule": "Lun–Sáb 9:00–20:00",
+        "detailed_schedule": [],
+        "description": "Cafetería ubicada en la Clínica Universitaria UNMSM.",
+        "phone": "",
+        "annex": "",
+        "usage": "",
+        "careers": [],
+        "services": [
+          "Venta de almuerzos",
+          "Postres",
+          "Jugos"
+        ],
+        "keywords": [
+          "cafeteria",
+          "clinica universitaria",
+          "clinica",
+          "comida",
+          "bebidas",
+          "snacks",
+          "almuerzo"
+        ]
+      },
+      "uploaded_chunks": 1
+    },
+    {
+      "place_id": "cafeteria-industrial",
+      "status": "uploaded",
+      "grounding": "high",
+      "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
+      "model": "assistant-reasoning (grounded, manual, one-off)",
+      "document": {
+        "id": "doc-cafeteria-industrial",
+        "title": "Cafetería de la Facultad de Ingeniería Industrial",
+        "place_id": "cafeteria-industrial",
+        "text": "La Cafetería de la Facultad de Ingeniería Industrial es conocida por sus sándwiches y café, y cuenta con máquinas expendedoras (vending machines) en el lobby. Ofrece además venta de alimentos, snacks y bebidas. Atiende de lunes a sábado de 9:00 a 20:00."
+      },
+      "source_fields": {
+        "name": "Cafetería de la Facultad de Ingeniería Industrial",
+        "schedule": "Lun–Sáb 9:00–20:00",
+        "detailed_schedule": [],
+        "description": "Cafetería famosa por sus sándwiches y café. Cuenta con vending machines en el lobby.",
+        "phone": "",
+        "annex": "",
+        "usage": "",
+        "careers": [],
+        "services": [
+          "Venta de alimentos",
+          "Snacks",
+          "Bebidas"
+        ],
+        "keywords": [
+          "cafeteria",
+          "ingenieria industrial",
+          "industrial",
+          "fii",
+          "comida",
+          "bebidas",
+          "snacks",
+          "almuerzo"
+        ]
+      },
+      "uploaded_chunks": 1
+    }
+  ]
+}

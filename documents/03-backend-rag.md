@@ -1,6 +1,6 @@
 # 3. Backend y RAG
 
-> **Estado:** el backend ya **funciona en modo mock** (`POST /api/chat` operativo, motor RAG y pipeline de ingesta implementados; proveedores LLM reales listos, pgvector pendiente). Este documento describe la **arquitectura objetivo**; para el detalle de **lo que ya existe en el código** y cómo correrlo, ver [07-avance-backend](./07-avance-backend.md).
+> **Estado:** el backend está **en producción** (`POST /api/chat` desplegado en Render) con **LLM real (Gemini)** y **recuperación semántica con Supabase pgvector** (embeddings Gemini). El modo mock persiste para los tests. Este documento describe la arquitectura conceptual; para el detalle de **lo que existe en el código** y cómo correrlo, ver [07-avance-backend](./07-avance-backend.md).
 
 El asistente responde **solo con información oficial de la UNMSM**. Para lograrlo se usa **RAG (Retrieval-Augmented Generation)**: en vez de dejar que el modelo "invente", primero se **recuperan** fragmentos de documentos institucionales y luego se le pide al LLM que **genere** la respuesta usando ese contexto.
 
@@ -35,9 +35,9 @@ graph TD
         direction TB
         router["Routers<br/>/api/chat · /health"]
         schema["Schemas (Pydantic)<br/>ChatRequest · ChatResponse"]
-        guard["Guardrails<br/>system prompt + filtro de alcance"]
-        engine["RAG Engine (LlamaIndex)<br/>retriever + query engine"]
-        embed["Embeddings<br/>(modelo de vectorización)"]
+        guard["Guardrails<br/>léxico + raíces + system prompt"]
+        engine["Motor RAG propio<br/>retriever + orquestación"]
+        embed["Embeddings Gemini<br/>gemini-embedding-001 (768d)"]
         router --> schema
         router --> guard
         guard --> engine
@@ -45,12 +45,12 @@ graph TD
     end
 
     subgraph supa["Supabase"]
-        vstore["Postgres + pgvector<br/>tabla documents(embedding)"]
+        vstore["Postgres + pgvector<br/>tabla documents(embedding vector(768))<br/>RPC match_documents (coseno HNSW)"]
     end
 
-    llm["Proveedor LLM"]
+    llm["Gemini (gemini-2.5-flash)"]
 
-    engine -->|"similarity search"| vstore
+    engine -->|"match_documents (coseno)"| vstore
     engine -->|"prompt final"| llm
     client["App React Native"] -->|"POST /api/chat"| router
 
@@ -62,10 +62,10 @@ graph TD
 | --------------------------- | ---------------------------------------------------------------------------------- |
 | **Routers**                 | Exponen los endpoints HTTP (`/api/chat`, `/health`).                               |
 | **Schemas (Pydantic)**      | Validan y tipan request/response.                                                  |
-| **Guardrails**              | Aplican el _system prompt_ y descartan consultas fuera del dominio UNMSM (HU-2.4). |
-| **RAG Engine (LlamaIndex)** | Recupera contexto y coordina la llamada al LLM.                                    |
-| **Embeddings**              | Convierten texto en vectores para la búsqueda semántica.                           |
-| **pgvector**                | Almacena e indexa los embeddings de los documentos.                                |
+| **Guardrails**              | Aplican el filtro de alcance (léxico + raíces) y el _system prompt_ (HU-2.4).      |
+| **Motor RAG propio**        | Recupera contexto y coordina la llamada al LLM.                                    |
+| **Embeddings Gemini**       | Convierten texto en vectores (`gemini-embedding-001`, 768 dims) para la búsqueda.  |
+| **pgvector**                | Almacena e indexa los embeddings (tabla `documents`, índice HNSW coseno).          |
 
 ---
 
@@ -75,12 +75,12 @@ Proceso **previo y periódico** que alimenta la base de conocimiento. No ocurre 
 
 ```mermaid
 flowchart TD
-    docs["Documentos oficiales UNMSM<br/>(PDF, web, reglamentos, horarios)"]
-    load["1 · Carga<br/>(LlamaIndex readers)"]
-    chunk["2 · Troceado<br/>(chunking en fragmentos)"]
-    emb["3 · Embeddings<br/>(vectorización de cada fragmento)"]
-    store["4 · Almacenamiento<br/>(insert en pgvector)"]
-    idx["5 · Índice listo<br/>para búsqueda semántica"]
+    docs["Corpus oficial UNMSM<br/>(sources/unmsm_info.md + entradas aprobadas)"]
+    load["1 · Carga<br/>(load_documents)"]
+    chunk["2 · Troceado<br/>(split_documents, con solapamiento)"]
+    emb["3 · Embeddings Gemini<br/>(gemini-embedding-001, por fragmento)"]
+    store["4 · Almacenamiento<br/>(insert en Supabase pgvector)"]
+    idx["5 · Índice HNSW listo<br/>para búsqueda semántica"]
 
     docs --> load --> chunk --> emb --> store --> idx
 
@@ -88,7 +88,10 @@ flowchart TD
     class docs,idx io;
 ```
 
-> Agregar nueva información institucional = volver a correr la ingesta con los documentos nuevos. La app no cambia (objetivo de negocio del [Product Vision Board](./06-backlog-y-roadmap.md)).
+> En el código, `python -m app.rag.ingest_pgvector` reconstruye la base (corpus +
+> entradas aprobadas → pgvector). Para sumar lugares del mapa que aún no están en el
+> corpus, `find_gaps` redacta borradores anclados (Gemini) y `upload_entries` sube los
+> aprobados. Agregar información no cambia la app (objetivo del [Product Vision Board](./06-backlog-y-roadmap.md)).
 
 ---
 
@@ -100,10 +103,10 @@ sequenceDiagram
     participant C as App
     participant API as FastAPI /api/chat
     participant G as Guardrails
-    participant E as RAG Engine (LlamaIndex)
-    participant EMB as Embeddings
-    participant V as pgvector
-    participant L as LLM
+    participant E as Motor RAG propio
+    participant EMB as Embeddings Gemini
+    participant V as Supabase pgvector
+    participant L as LLM Gemini
 
     C->>API: POST { query }
     API->>G: validar alcance (¿tema UNMSM?)
@@ -152,7 +155,7 @@ erDiagram
     }
 ```
 
-> En la práctica con LlamaIndex + Supabase suele usarse **una sola tabla** (p. ej. `documents`) con columnas `content`, `metadata (jsonb)` y `embedding (vector)`. El diagrama anterior muestra el modelo conceptual; la implementación puede aplanarlo.
+> La implementación **aplana** este modelo en **una sola tabla** `documents` con columnas `content`, `metadata (jsonb)` y `embedding (vector(768))`, más la función RPC `match_documents` (similitud coseno, índice HNSW). El esquema real está en `backend/db/schema.sql`; ver [09-pgvector-supabase](./09-pgvector-supabase.md). El diagrama anterior muestra el modelo conceptual.
 
 ---
 
@@ -174,10 +177,10 @@ flowchart TD
 
 ## 3.7 Contrato de la API
 
-| Método | Ruta        | Body                  | Respuesta                                             |
-| ------ | ----------- | --------------------- | ----------------------------------------------------- |
-| `POST` | `/api/chat` | `{ "query": string }` | `{ "answer": string, "locations": LocationResult[] }` |
-| `GET`  | `/health`   | —                     | `{ "status": "ok" }`                                  |
+| Método | Ruta        | Body                  | Respuesta                                                                              |
+| ------ | ----------- | --------------------- | -------------------------------------------------------------------------------------- |
+| `POST` | `/api/chat` | `{ "query": string }` | `{ "answer": string, "locations": LocationResult[], "draw_route": bool, "destination": Coordinate? }` |
+| `GET`  | `/health`   | —                     | `{ "status": "ok", "service": string, "version": string }`                             |
 
 `LocationResult` (compartido con el frontend, ver [04-modelo-de-datos](./04-modelo-de-datos.md)):
 
@@ -189,9 +192,9 @@ interface LocationResult {
 }
 ```
 
-### Evolución (HU-2.3 — enrutamiento automático)
+### Enrutamiento automático (HU-2.3 — ya en el contrato)
 
-La respuesta crecerá para soportar el dibujo automático de rutas:
+La respuesta **ya** incluye los campos de enrutamiento para consultas de navegación:
 
 ```jsonc
 {
@@ -202,7 +205,7 @@ La respuesta crecerá para soportar el dibujo automático de rutas:
 }
 ```
 
-El frontend detectará `draw_route` para cambiar a la pestaña Mapa y trazar el camino. Ver [05-flujos §5.4](./05-flujos.md#54-enrutamiento-automático-chat--mapa).
+`draw_route` se activa solo cuando hay intención de navegación **y** un lugar detectado. Falta que el **frontend** consuma `draw_route`/`destination` para cambiar a la pestaña Mapa y trazar el camino. Ver [05-flujos §5.4](./05-flujos.md#54-enrutamiento-automático-chat--mapa).
 
 ---
 
@@ -213,7 +216,7 @@ cd backend
 python -m venv venv
 venv\Scripts\activate        # Windows
 pip install -r requirements.txt
-uvicorn main:app --reload    # cuando exista main.py
+uvicorn app.main:app --reload
 ```
 
 > Variables sensibles (URL de Supabase, llave de servicio, API key del LLM) deben ir en variables de entorno del backend, **nunca** en el cliente móvil.

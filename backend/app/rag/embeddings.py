@@ -6,8 +6,8 @@ frecuencias de términos (norma unitaria). No captura semántica profunda como
 un modelo neuronal, pero sí la coincidencia léxica de forma **exacta** (sin
 colisiones), lo que basta para probar el pipeline RAG de forma aislada.
 
-El proveedor real (LlamaIndex + un modelo de embeddings) se enchufa en la
-misma interfaz `EmbeddingProvider`.
+El proveedor real (`GeminiEmbedding`, embeddings densos de Gemini) se enchufa
+en la misma interfaz `EmbeddingProvider`.
 """
 
 from __future__ import annotations

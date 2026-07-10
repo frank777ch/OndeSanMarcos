@@ -9,10 +9,11 @@ El despliegue se hace con un **Blueprint** de Render: el archivo
 *Infraestructura como Código*, así que el deploy es **declarativo y
 reproducible** desde el propio repositorio.
 
-> El backend corre con **LLM real** (`RAG_USE_MOCK=false`, proveedor **Gemini**):
-> genera respuestas ancladas al corpus oficial del campus. La recuperación es
-> **local** (bag-of-words sobre el corpus); Supabase + pgvector siguen pendientes.
-> Requiere el secreto `LLM_API_KEY` (ver §8.4). Detalle del motor en
+> El backend corre con **LLM real** (`RAG_USE_MOCK=false`, proveedor **Gemini**) y
+> **recuperación semántica con Supabase pgvector** (embeddings Gemini): genera
+> respuestas ancladas al corpus oficial del campus. Si falta la configuración de
+> Supabase, cae con gracia a recuperación **local** (bag-of-words). Requiere los
+> secretos `LLM_API_KEY` y `SUPABASE_SERVICE_KEY` (ver §8.4). Detalle del motor en
 > [07-avance-backend](./07-avance-backend.md).
 
 ---
@@ -66,7 +67,7 @@ Estos ajustes salen del archivo (no se configuran a mano):
 | Ajuste | Valor |
 |--------|-------|
 | Carpeta del servicio (`rootDir`) | `backend` |
-| Build Command | `pip install -r requirements.txt -r requirements-llm.txt` |
+| Build Command | `pip install -r requirements.txt -r requirements-llm.txt -r requirements-pgvector.txt` |
 | Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
 | Health Check | `/health` |
 | Plan / Runtime | `free` · Python |
@@ -86,9 +87,12 @@ Las no secretas se declaran en `render.yaml`; la llave del LLM es un **secreto**
 |----------|-------|----------|
 | `PYTHON_VERSION` | `3.11.9` | El código requiere Python 3.11+. |
 | `RAG_USE_MOCK` | `false` | Usa el LLM real (Gemini) en vez del mock. |
-| `LLM_PROVIDER` | `gemini` | Proveedor del LLM. |
+| `RAG_SCORE_THRESHOLD` | `0.55` | Umbral de similitud para embeddings densos Gemini (el antiguo 0.12 era para bag-of-words). |
+| `LLM_PROVIDER` | `gemini` | Proveedor del LLM y de los embeddings. |
 | `LLM_MODEL` | `gemini-2.5-flash` | Modelo de Gemini. |
-| `LLM_API_KEY` | *(secreto)* | Llave de Google AI Studio. **Se pone en el dashboard** (`sync: false`). |
+| `LLM_API_KEY` | *(secreto)* | Llave de Google AI Studio (LLM + embeddings). **Se pone en el dashboard** (`sync: false`). |
+| `SUPABASE_URL` | `https://<ref>.supabase.co` | Proyecto Supabase con pgvector (no secreta, en `render.yaml`). |
+| `SUPABASE_SERVICE_KEY` | *(secreto)* | `service_role` key para pgvector. **Se pone en el dashboard** (`sync: false`). |
 | `CORS_ORIGINS` | `*` | Abierto; la app móvil nativa no aplica CORS. |
 | `APP_ENV` | `production` | Marca el entorno. |
 
@@ -135,10 +139,11 @@ Pásale a tu equipo la **URL base** + `/docs`: ahí prueban los endpoints sin c�
 En el frontend (Expo) basta apuntar la URL del backend y apagar su mock del chat
 (`EXPO_PUBLIC_API_URL` → URL de Render; `EXPO_PUBLIC_USE_MOCK_CHAT=false`).
 
-> **Nota honesta:** el LLM real (Gemini) genera respuestas naturales ancladas al
-> **corpus oficial** del campus. La recuperación es **local** (bag-of-words), no
-> aún pgvector, así que la cobertura depende del corpus cargado; suficiente para
-> Q&A real del campus, con margen de mejora al migrar a embeddings + pgvector.
+> **Nota:** el LLM real (Gemini) genera respuestas naturales ancladas al **corpus
+> oficial** del campus, y la recuperación es **semántica con pgvector** (embeddings
+> Gemini): recupera por significado, no solo por coincidencia de palabras. Si el
+> secreto `SUPABASE_SERVICE_KEY` no está presente, el servicio cae con gracia a la
+> recuperación **local** (bag-of-words) sin romperse.
 
 ---
 

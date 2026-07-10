@@ -3,7 +3,8 @@
 El `Retriever` alimenta el almacén vectorial usando el pipeline de ingesta
 (troceado + embeddings) y, dada una consulta, devuelve los documentos más
 relevantes por similitud coseno. Es el equivalente aislado del índice que en
-producción gestionará LlamaIndex sobre pgvector.
+producción resuelve `PgVectorRetriever` (embeddings Gemini + Supabase/pgvector),
+intercambiable por el `Protocol` `SupportsRetrieve`.
 """
 
 from __future__ import annotations

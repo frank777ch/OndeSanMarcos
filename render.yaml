@@ -26,6 +26,11 @@ services:
       # sobre el corpus). Requiere LLM_API_KEY (abajo, secreto).
       - key: RAG_USE_MOCK
         value: "false"
+      # Umbral de similitud para conservar fragmentos recuperados. Calibrado para
+      # los embeddings densos Gemini sobre pgvector (coincidencias ~0.63–0.77,
+      # ruido ~0.50–0.57). Coincide con el default de app/config.py.
+      - key: RAG_SCORE_THRESHOLD
+        value: "0.55"
       - key: LLM_PROVIDER
         value: "gemini"
       - key: LLM_MODEL
