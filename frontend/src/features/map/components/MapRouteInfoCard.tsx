@@ -53,6 +53,8 @@ export function MapRouteInfoCard() {
         style={[styles.stopButton, { backgroundColor: primaryColor }]}
         activeOpacity={0.8}
         onPress={handleStop}
+        accessibilityRole="button"
+        accessibilityLabel="Terminar ruta"
       >
         <Ionicons name="close-circle-outline" size={20} color="white" />
         <Text style={styles.stopButtonText}>Terminar Ruta</Text>

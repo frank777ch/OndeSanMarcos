@@ -143,11 +143,17 @@ export function MapRouteSelectionModal({
         style={styles.overlay}
         activeOpacity={1}
         onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Cerrar planificador de ruta"
       />
       <View style={styles.sheet}>
         <View style={styles.header}>
           <Text style={styles.title}>Planificar ruta</Text>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar"
+          >
             <Ionicons name="close-circle" size={28} color="#C4C4C4" />
           </TouchableOpacity>
         </View>
@@ -177,7 +183,11 @@ export function MapRouteSelectionModal({
               onFocus={() => setActiveField("start")}
             />
             {startQuery.length > 0 && (
-              <TouchableOpacity onPress={() => handleStartQueryChange("")}>
+              <TouchableOpacity
+                onPress={() => handleStartQueryChange("")}
+                accessibilityRole="button"
+                accessibilityLabel="Borrar punto de partida"
+              >
                 <Ionicons name="close-circle" size={20} color="#C4C4C4" />
               </TouchableOpacity>
             )}
@@ -207,7 +217,11 @@ export function MapRouteSelectionModal({
               onFocus={() => setActiveField("end")}
             />
             {endQuery.length > 0 && (
-              <TouchableOpacity onPress={() => handleEndQueryChange("")}>
+              <TouchableOpacity
+                onPress={() => handleEndQueryChange("")}
+                accessibilityRole="button"
+                accessibilityLabel="Borrar destino"
+              >
                 <Ionicons name="close-circle" size={20} color="#C4C4C4" />
               </TouchableOpacity>
             )}
@@ -227,6 +241,8 @@ export function MapRouteSelectionModal({
                 style={styles.optionButton}
                 activeOpacity={0.7}
                 onPress={handleSelectCurrentLocation}
+                accessibilityRole="button"
+                accessibilityLabel="Usar mi ubicación actual como punto de partida"
               >
                 <Ionicons name="navigate" size={20} color={primaryColor} />
                 <Text style={styles.optionText}>Ubicación actual</Text>
@@ -239,6 +255,8 @@ export function MapRouteSelectionModal({
               style={styles.optionButton}
               activeOpacity={0.7}
               onPress={() => handleSelectPlace(place)}
+              accessibilityRole="button"
+              accessibilityLabel={`Seleccionar ${place.name}`}
             >
               <Ionicons name="business" size={20} color={primaryColor} />
               <Text style={styles.optionText}>{place.name}</Text>
@@ -258,6 +276,9 @@ export function MapRouteSelectionModal({
           ]}
           disabled={!isReady}
           onPress={handleConfirm}
+          accessibilityRole="button"
+          accessibilityLabel="Iniciar ruta"
+          accessibilityState={{ disabled: !isReady }}
         >
           <Text style={styles.confirmButtonText}>Iniciar Ruta</Text>
         </TouchableOpacity>

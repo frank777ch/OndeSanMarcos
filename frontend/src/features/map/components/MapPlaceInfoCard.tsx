@@ -148,6 +148,8 @@ export function MapPlaceInfoCard() {
             style={styles.closeButton}
             onPress={() => setFocusedPlace(null)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar información del lugar"
           >
             <X size={24} color={lightColors.textH1} />
           </TouchableOpacity>

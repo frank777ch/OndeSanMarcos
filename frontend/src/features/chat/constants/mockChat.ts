@@ -44,9 +44,9 @@ export function buildMockResponse(query: string): ChatResponse {
   const answer =
     matches.length === 1
       ? `Claro, te ubico ${matches[0].name}. Su horario de atención es ` +
-        `${matches[0].schedule}. Toca "Abrir" para verlo en el mapa.`
+        `${matches[0].schedule}. Toca "Ver en mapa" para verlo.`
       : `Encontré ${matches.length} lugares relacionados con tu consulta. ` +
-        'Toca "Abrir" en cualquiera para verlo en el mapa.';
+        'Toca "Ver en mapa" en cualquiera para verlo.';
 
   return { answer, locations };
 }

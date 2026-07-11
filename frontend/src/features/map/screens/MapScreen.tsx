@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Alert } from "react-native";
 import { Image } from "expo-image";
 import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
@@ -75,7 +75,9 @@ export function MapScreen() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isWalking, setIsWalking] = useState(false);
   const [isGpsEnabled, setIsGpsEnabled] = useState(false);
-  const [exploreLocation, setExploreLocation] = useState<[number, number] | null>(null);
+  const [exploreLocation, setExploreLocation] = useState<
+    [number, number] | null
+  >(null);
 
   // "guia" se controla por separado en el store (guideActive) para que la ruta
   // y la UI de navegación puedan activarlo/detenerlo.
@@ -99,7 +101,9 @@ export function MapScreen() {
   const guideActive = useMapStore((state) => state.guideActive);
   const startGuide = useMapStore((state) => state.startGuide);
   const stopGuide = useMapStore((state) => state.stopGuide);
-  const setRemainingDistance = useMapStore((state) => state.setRemainingDistance);
+  const setRemainingDistance = useMapStore(
+    (state) => state.setRemainingDistance,
+  );
   const { calculateRoute, clearRoute, isCalculating } = useRouting();
 
   const primaryColor = useThemeStore((s) => s.primaryColor);
@@ -197,7 +201,10 @@ export function MapScreen() {
     handleModeToggle("ninguno");
   };
 
-  const handleSpawnSelection = (coords: [number, number], isCurrentLocation?: boolean) => {
+  const handleSpawnSelection = (
+    coords: [number, number],
+    isCurrentLocation?: boolean,
+  ) => {
     setIsSpawnModalVisible(false);
     setAppMode("libre");
     if (!isCurrentLocation) {
@@ -219,14 +226,33 @@ export function MapScreen() {
     if (!focusTarget) return;
     const dest: [number, number] = [
       focusTarget.entranceCoordinate?.longitude ?? focusTarget.longitude,
-      focusTarget.entranceCoordinate?.latitude ?? focusTarget.latitude
+      focusTarget.entranceCoordinate?.latitude ?? focusTarget.latitude,
     ];
 
     if (focusTarget.drawRoute && userLocation) {
-      calculateRoute(userLocation, dest, "Mi ubicación", focusTarget.name ?? "Destino");
+      calculateRoute(
+        userLocation,
+        dest,
+        "Mi ubicación",
+        focusTarget.name ?? "Destino",
+      );
       setIsFollowingUser(false);
       isFollowingUserRef.current = false;
       goToRoutePreview(userLocation);
+    } else if (focusTarget.drawRoute) {
+      // Pidieron ruta pero no hay ubicación GPS: centramos en el destino y
+      // ofrecemos elegir un punto de partida a mano (reusa el selector de ruta),
+      // en vez de centrar en silencio sin explicar por qué no hay ruta.
+      moveToPoint(dest);
+      Alert.alert(
+        "Sin ubicación GPS",
+        `No tengo tu ubicación para trazar la ruta hacia ${focusTarget.name ?? "el destino"}. ` +
+          "Activa el GPS o elige un punto de partida.",
+        [
+          { text: "Elegir partida", onPress: () => setIsRouteSelectionVisible(true) },
+          { text: "Entendido", style: "cancel" },
+        ],
+      );
     } else {
       moveToPoint(dest);
     }
@@ -236,7 +262,8 @@ export function MapScreen() {
   useEffect(() => {
     const checkGps = async () => {
       try {
-        const { locationServicesEnabled } = await Location.getProviderStatusAsync();
+        const { locationServicesEnabled } =
+          await Location.getProviderStatusAsync();
         setIsGpsEnabled(locationServicesEnabled);
       } catch (e) {
         setIsGpsEnabled(false);
@@ -339,7 +366,10 @@ export function MapScreen() {
             setHeading(head.magHeading);
           });
         } catch (error) {
-          console.error("Error activando seguimiento GPS en tiempo real", error);
+          console.error(
+            "Error activando seguimiento GPS en tiempo real",
+            error,
+          );
         }
       })();
     }
@@ -376,7 +406,7 @@ export function MapScreen() {
   if (isRouteActive && activeRoute.length > 0) {
     const coords = activeRoute.map((c) => [c.longitude, c.latitude]);
     const { startDashed, endDashed } = routeMetadata || {};
-    
+
     let mainStartIndex = 0;
     let mainEndIndex = coords.length - 1;
 
@@ -435,9 +465,7 @@ export function MapScreen() {
       : null;
 
   const shouldShowAvatar =
-    showAvatar &&
-    userLocation !== null &&
-    (appMode === "libre" || guideActive);
+    showAvatar && userLocation !== null && (appMode === "libre" || guideActive);
 
   const avatarSource = isWalking
     ? require("../../../../assets/avatar/david_walk.webp")
@@ -481,8 +509,7 @@ export function MapScreen() {
               fillExtrusionOpacity: 0.9,
             }}
           />
-        </MapboxGL.VectorSource>
-        */}
+        </MapboxGL.VectorSource>*/}
 
         <MapboxGL.ShapeSource id="route-source" shape={routeData as any}>
           {/* Capa exterior gruesa (brillo/sombra) para la ruta sólida */}
@@ -548,34 +575,78 @@ export function MapScreen() {
         </MapboxGL.ShapeSource>
 
         {isGpsEnabled && userLocation && (
-          <MapboxGL.MarkerView id="user-location" coordinate={userLocation} anchor={{ x: 0.5, y: 0.5 }}>
-            {isInsideCampus(userLocation[1], userLocation[0]) && (appMode !== "ninguno" || guideActive) ? (
+          <MapboxGL.MarkerView
+            id="user-location"
+            coordinate={userLocation}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            {isInsideCampus(userLocation[1], userLocation[0]) &&
+            (appMode !== "ninguno" || guideActive) ? (
               <Image
                 source={avatarSource}
                 style={{ width: 80, height: 80 }}
                 contentFit="contain"
               />
             ) : (
-              <View style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center" }}>
-                <View style={{
-                  position: "absolute", width: 32, height: 32, borderRadius: 16, backgroundColor: primaryColor, opacity: 0.3
-                }} />
-                <View style={{
-                  width: 18, height: 18, borderRadius: 9, backgroundColor: primaryColor, borderWidth: 2.5, borderColor: "white"
-                }} />
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <View
+                  style={{
+                    position: "absolute",
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: primaryColor,
+                    opacity: 0.3,
+                  }}
+                />
+                <View
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    backgroundColor: primaryColor,
+                    borderWidth: 2.5,
+                    borderColor: "white",
+                  }}
+                />
               </View>
             )}
           </MapboxGL.MarkerView>
         )}
 
         {appMode === "libre" && exploreLocation && (
-          <MapboxGL.MarkerView id="explore-location" coordinate={exploreLocation} anchor={{ x: 0.5, y: 0.5 }}>
-            <View style={{
-              width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(66, 133, 244, 0.3)", alignItems: "center", justifyContent: "center"
-            }}>
-              <View style={{
-                width: 14, height: 14, borderRadius: 7, backgroundColor: "#4285F4", borderWidth: 2, borderColor: "white"
-              }} />
+          <MapboxGL.MarkerView
+            id="explore-location"
+            coordinate={exploreLocation}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <View
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 12,
+                backgroundColor: "rgba(66, 133, 244, 0.3)",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <View
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 7,
+                  backgroundColor: "#4285F4",
+                  borderWidth: 2,
+                  borderColor: "white",
+                }}
+              />
             </View>
           </MapboxGL.MarkerView>
         )}
@@ -586,43 +657,56 @@ export function MapScreen() {
             coordinate={[focusedPlace.longitude, focusedPlace.latitude]}
             anchor={{ x: 0.5, y: 0.5 }}
           >
-            <View style={{ alignItems: "center", justifyContent: "center", width: 44, height: 50 }}>
-              <View style={{
-                position: "absolute",
-                bottom: 12,
-                backgroundColor: primaryColor,
-                borderRadius: 20,
-                padding: 8,
-                shadowColor: "#000",
-                shadowOpacity: 0.3,
-                shadowRadius: 5,
-                shadowOffset: { width: 0, height: 3 },
-                elevation: 6,
+            <View
+              style={{
                 alignItems: "center",
                 justifyContent: "center",
-              }}>
+                width: 44,
+                height: 50,
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 12,
+                  backgroundColor: primaryColor,
+                  borderRadius: 20,
+                  padding: 8,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.3,
+                  shadowRadius: 5,
+                  shadowOffset: { width: 0, height: 3 },
+                  elevation: 6,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <MapPin size={22} color="white" />
               </View>
-              <View style={{
-                position: "absolute",
-                bottom: 5,
-                width: 0,
-                height: 0,
-                borderLeftWidth: 8,
-                borderRightWidth: 8,
-                borderTopWidth: 10,
-                borderLeftColor: "transparent",
-                borderRightColor: "transparent",
-                borderTopColor: primaryColor,
-              }} />
-              <View style={{
-                position: "absolute",
-                bottom: 1,
-                width: 8,
-                height: 4,
-                borderRadius: 4,
-                backgroundColor: "rgba(0,0,0,0.3)",
-              }} />
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 5,
+                  width: 0,
+                  height: 0,
+                  borderLeftWidth: 8,
+                  borderRightWidth: 8,
+                  borderTopWidth: 10,
+                  borderLeftColor: "transparent",
+                  borderRightColor: "transparent",
+                  borderTopColor: primaryColor,
+                }}
+              />
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 1,
+                  width: 8,
+                  height: 4,
+                  borderRadius: 4,
+                  backgroundColor: "rgba(0,0,0,0.3)",
+                }}
+              />
             </View>
           </MapboxGL.MarkerView>
         )}
@@ -697,8 +781,6 @@ export function MapScreen() {
           </MapboxGL.MarkerView>
         )}
       </MapboxGL.MapView>
-
-
 
       {/* ── CAPA 3: UI ── */}
       <MapSearchBar />
