@@ -217,7 +217,10 @@ export function MapScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!focusTarget) return;
-    const dest: [number, number] = [focusTarget.longitude, focusTarget.latitude];
+    const dest: [number, number] = [
+      focusTarget.entranceCoordinate?.longitude ?? focusTarget.longitude,
+      focusTarget.entranceCoordinate?.latitude ?? focusTarget.latitude
+    ];
 
     if (focusTarget.drawRoute && userLocation) {
       calculateRoute(userLocation, dest, "Mi ubicación", focusTarget.name ?? "Destino");
@@ -368,22 +371,55 @@ export function MapScreen() {
       : [],
   };
 
-  const routeData =
-    isRouteActive && activeRoute.length > 0
-      ? {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              properties: {},
-              geometry: {
-                type: "LineString",
-                coordinates: activeRoute.map((c) => [c.longitude, c.latitude]),
-              },
-            },
-          ],
-        }
-      : { type: "FeatureCollection", features: [] };
+  const routeFeatures: any[] = [];
+
+  if (isRouteActive && activeRoute.length > 0) {
+    const coords = activeRoute.map((c) => [c.longitude, c.latitude]);
+    const { startDashed, endDashed } = routeMetadata || {};
+    
+    let mainStartIndex = 0;
+    let mainEndIndex = coords.length - 1;
+
+    if (startDashed && coords.length > 1) {
+      routeFeatures.push({
+        type: "Feature",
+        properties: { isDashed: true },
+        geometry: {
+          type: "LineString",
+          coordinates: [coords[0], coords[1]],
+        },
+      });
+      mainStartIndex = 1;
+    }
+
+    if (endDashed && coords.length > 1) {
+      routeFeatures.push({
+        type: "Feature",
+        properties: { isDashed: true },
+        geometry: {
+          type: "LineString",
+          coordinates: [coords[coords.length - 2], coords[coords.length - 1]],
+        },
+      });
+      mainEndIndex = coords.length - 2;
+    }
+
+    if (mainStartIndex <= mainEndIndex) {
+      routeFeatures.push({
+        type: "Feature",
+        properties: { isDashed: false },
+        geometry: {
+          type: "LineString",
+          coordinates: coords.slice(mainStartIndex, mainEndIndex + 1),
+        },
+      });
+    }
+  }
+
+  const routeData = {
+    type: "FeatureCollection",
+    features: routeFeatures,
+  };
 
   const destinationCoord =
     isRouteActive && activeRoute.length > 0
@@ -449,9 +485,10 @@ export function MapScreen() {
         */}
 
         <MapboxGL.ShapeSource id="route-source" shape={routeData as any}>
-          {/* Capa exterior gruesa (brillo/sombra) */}
+          {/* Capa exterior gruesa (brillo/sombra) para la ruta sólida */}
           <MapboxGL.LineLayer
             id="route-glow"
+            filter={["==", "isDashed", false]}
             style={{
               lineColor: primaryColor,
               lineWidth: 10,
@@ -460,12 +497,26 @@ export function MapScreen() {
               lineCap: "round",
             }}
           />
-          {/* Capa central brillante */}
+          {/* Capa central brillante para la ruta sólida */}
           <MapboxGL.LineLayer
             id="route-line"
+            filter={["==", "isDashed", false]}
             style={{
               lineColor: primaryColor,
               lineWidth: 5,
+              lineJoin: "round",
+              lineCap: "round",
+            }}
+          />
+          {/* Capa para los tramos punteados */}
+          <MapboxGL.LineLayer
+            id="route-line-dashed"
+            filter={["==", "isDashed", true]}
+            style={{
+              lineColor: primaryColor,
+              lineWidth: 4,
+              lineOpacity: 0.7,
+              lineDasharray: [2, 2],
               lineJoin: "round",
               lineCap: "round",
             }}

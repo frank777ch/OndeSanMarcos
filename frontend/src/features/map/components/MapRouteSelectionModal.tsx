@@ -99,14 +99,14 @@ export function MapRouteSelectionModal({
       startCoord = userLocation;
     } else {
       startCoord = [
-        startPlace.coordinate.longitude,
-        startPlace.coordinate.latitude,
+        startPlace.entranceCoordinate?.longitude ?? startPlace.coordinate.longitude,
+        startPlace.entranceCoordinate?.latitude ?? startPlace.coordinate.latitude,
       ];
     }
 
     const endCoord: [number, number] = [
-      endPlace.coordinate.longitude,
-      endPlace.coordinate.latitude,
+      endPlace.entranceCoordinate?.longitude ?? endPlace.coordinate.longitude,
+      endPlace.entranceCoordinate?.latitude ?? endPlace.coordinate.latitude,
     ];
 
     onRouteConfirm(startCoord, endCoord, startQuery, endQuery, startPlace === "current");

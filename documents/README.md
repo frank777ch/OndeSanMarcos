@@ -33,25 +33,25 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 | Mapas | `@rnmapbox/maps` (Mapbox nativo) | Render 3D del campus, POIs y rutas. |
 | Estado | Zustand `5` | Stores de auth, chat y mapa. |
 | Sensores | `expo-location`, `expo-sensors` | GPS y brújula (magnetómetro) para el avatar. |
-| **Backend** | FastAPI + Uvicorn (Python) | API del asistente IA. *(funcional en modo mock)* |
-| RAG | LlamaIndex / pgvector | Orquestación de recuperación + generación. *(motor mock listo; proveedores reales en curso)* |
+| **Backend** | FastAPI + Uvicorn (Python) | API del asistente IA. *(desplegada en Render con LLM real)* |
+| RAG | Motor propio + Supabase `pgvector` | Recuperación semántica (embeddings Gemini) + generación (Gemini). *(en producción; modo mock para tests)* |
 | **Datos / BaaS** | Supabase (Postgres + `pgvector` + Auth) | Autenticación, base de conocimiento y embeddings. |
-| Servicios externos | Mapbox, proveedor LLM | Teselas/render de mapas y modelo de lenguaje. |
+| Servicios externos | Mapbox, Gemini (Google AI Studio) | Teselas/render de mapas y modelo de lenguaje + embeddings. |
 
 ---
 
 ## 🚦 Estado del proyecto
 
-> Snapshot a **29/05/2026** (Sprint 2 — "El Cerebro", en cierre). Ver detalle en [Backlog y roadmap](./06-backlog-y-roadmap.md).
+> Snapshot a **07/07/2026** (Sprint 3 — "Integración"). Ver detalle en [Backlog y roadmap](./06-backlog-y-roadmap.md).
 
 | Módulo | Estado | Notas |
 |--------|--------|-------|
 | Mapa 3D base (Mapbox) | ✅ Implementado | Vista 3D, edificios extruidos, POIs con filtro por categoría, modos cámara. |
 | Autenticación (Supabase) | ✅ Implementado | Registro con verificación por correo, login, modo invitado. |
-| UI del Asistente (Chat) | ✅ Implementado | Estados idle/asking/answered, historial persistido, respuestas **mock**. |
-| Integración Chat → Mapa | 🟡 Parcial | El chat fija el destino (`focusTarget`); falta que el mapa lo consuma. |
-| Backend / API del chat | 🟡 Parcial | `POST /api/chat` funcional en modo mock; ver [07-avance-backend](./07-avance-backend.md). |
-| Motor RAG (LlamaIndex) | 🟡 Parcial | Motor + ingesta listos en mock; LLM real implementado, pgvector pendiente. |
+| UI del Asistente (Chat) | ✅ Implementado | Estados idle/asking/answered, historial persistido; consume el backend real por defecto. |
+| Backend / API del chat | ✅ Implementado | `POST /api/chat` desplegado en Render con LLM real (Gemini); ver [07-avance-backend](./07-avance-backend.md). |
+| Motor RAG (propio + pgvector) | ✅ Implementado | Guardrails + recuperación semántica (Supabase pgvector, embeddings Gemini) + generación Gemini. |
+| Integración Chat → Mapa | 🟡 Parcial | El chat fija el destino (`focusTarget`); falta que el mapa consuma `draw_route` y trace la ruta. |
 | Motor de rutas / GPS real | 🟠 Planificado | `src/features/routing/` aún vacío. |
 
 **Leyenda:** ✅ Implementado · 🟡 Parcial · 🟠 Planificado

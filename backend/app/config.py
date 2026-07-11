@@ -29,7 +29,14 @@ class Settings(BaseSettings):
     # --- Motor RAG ---
     rag_use_mock: bool = True
     rag_top_k: int = 4
-    rag_score_threshold: float = 0.12
+    # Umbral mínimo de similitud (coseno) para conservar un fragmento. Calibrado
+    # para embeddings densos Gemini (gemini-embedding-001, 768d) sobre pgvector,
+    # donde las similitudes quedan comprimidas: las coincidencias reales puntúan
+    # ~0.63–0.77 y el ruido puro ~0.50–0.57. 0.55 corta el suelo de ruido y los
+    # fragmentos incidentales débiles conservando margen (>0.07) frente a la
+    # mejor coincidencia legítima más baja observada (~0.63). El antiguo 0.12
+    # estaba calibrado para el mock bag-of-words y no filtraba nada en producción.
+    rag_score_threshold: float = 0.55
 
     # --- Pipeline de ingesta ---
     # Tamaño y solapamiento (en caracteres) de cada fragmento al trocear.

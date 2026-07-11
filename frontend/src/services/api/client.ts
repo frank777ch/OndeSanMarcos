@@ -8,23 +8,50 @@ interface RequestOptions {
   headers?: Record<string, string>;
 }
 
+/** Log de red solo en desarrollo (EXPO_PUBLIC_ENABLE_DEV_LOGS=true). */
+function devLog(...args: unknown[]): void {
+  if (Config.dev.enableLogs) {
+    console.log('[api]', ...args);
+  }
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
   const { method = 'GET', body, headers = {} } = options;
+  const url = `${Config.api.baseUrl}${endpoint}`;
 
-  const response = await fetch(`${Config.api.baseUrl}${endpoint}`, {
-    method,
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  // Corta la petición si el backend no responde a tiempo (cold start de Render).
+  // Sin esto, un fallo de red dejaría el spinner colgado indefinidamente.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Config.api.timeout);
 
-  if (!response.ok) {
-    throw new Error(`API Error ${response.status}: ${response.statusText}`);
+  devLog(method, url, body ?? '');
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      devLog('error', response.status, response.statusText);
+      throw new Error(`API Error ${response.status}: ${response.statusText}`);
+    }
+
+    return (await response.json()) as T;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      devLog('timeout', `${Config.api.timeout}ms`, url);
+      throw new Error(`API timeout after ${Config.api.timeout}ms`);
+    }
+    devLog('network error', error);
+    throw error;
+  } finally {
+    clearTimeout(timer);
   }
-
-  return response.json() as Promise<T>;
 }
 
 export const apiClient = {

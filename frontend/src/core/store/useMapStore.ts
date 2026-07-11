@@ -11,12 +11,15 @@ export interface FocusTarget {
   longitude: number;
   name?: string;
   drawRoute?: boolean;
+  entranceCoordinate?: Coordinate;
 }
 
 interface RouteMetadata {
   startName: string;
   endName: string;
   distance: number;
+  startDashed?: boolean;
+  endDashed?: boolean;
 }
 
 export interface PlaceInfo {
@@ -33,6 +36,7 @@ export interface PlaceInfo {
   services?: string[];
   detailedSchedule?: string[];
   keywords?: string[];
+  entranceCoordinate?: Coordinate;
 }
 
 interface MapState {

@@ -64,9 +64,9 @@ sequenceDiagram
 
 ---
 
-## 5.3 Conversación con el asistente ✅ (mock) · 🟠 (backend)
+## 5.3 Conversación con el asistente ✅
 
-La pantalla de chat transita entre tres estados visuales. El hook `useChat` decide entre el **mock** y el **backend** según `Config.chat.useMock`.
+La pantalla de chat transita entre tres estados visuales. El hook `useChat` decide entre el **mock** y el **backend** según `Config.chat.useMock`; **por defecto consume el backend real** (desplegado en Render) y el mock solo se fuerza con `EXPO_PUBLIC_USE_MOCK_CHAT=true`.
 
 ### Estados de la pantalla
 
@@ -136,9 +136,9 @@ sequenceDiagram
     Note over Map: 🟡 pendiente: que MapScreen lea focusTarget y recentre la cámara
 ```
 
-### Objetivo (HU-2.3 — planificado 🟠)
+### Objetivo (HU-2.3 — backend ✅, consumo en el mapa 🟠)
 
-El propio asistente decide cuándo navegar, devolviendo coordenadas y `draw_route`.
+El propio asistente ya decide cuándo navegar: el backend devuelve `draw_route` y `destination`. Falta que el frontend los consuma para trazar la ruta en el mapa.
 
 ```mermaid
 sequenceDiagram

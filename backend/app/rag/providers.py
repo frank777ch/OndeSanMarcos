@@ -99,7 +99,7 @@ def _build_local_retriever(settings: Settings) -> Retriever:
     )
 
 
-def _build_pgvector_retriever(settings: Settings) -> PgVectorRetriever:
+def _build_pgvector_retriever(settings: Settings) -> PgVectorRetriever:  # pragma: no cover - requiere supabase (extra) + red
     """Recuperación con Supabase + pgvector (embeddings Gemini + RPC).
 
     Requiere la tabla `documents` y la función `match_documents` creadas con
