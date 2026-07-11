@@ -445,7 +445,8 @@ export function MapScreen() {
               fillExtrusionOpacity: 0.9,
             }}
           />
-        </MapboxGL.VectorSource>*/}
+        </MapboxGL.VectorSource>
+        */}
 
         <MapboxGL.ShapeSource id="route-source" shape={routeData as any}>
           {/* Capa exterior gruesa (brillo/sombra) */}
