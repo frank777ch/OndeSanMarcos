@@ -6,6 +6,7 @@ from app.config import Settings
 from app.rag.llm import TemplateLLM
 from app.rag.providers import (
     RagProviderError,
+    build_embedding_provider,
     build_llm_provider,
     build_retriever,
 )
@@ -79,3 +80,41 @@ def test_pgvector_requires_gemini_embeddings():
     )
     with pytest.raises(RagProviderError):
         build_retriever(settings)
+
+
+class _FakeProvider:
+    """Sustituye a los proveedores reales para no importar SDKs opcionales."""
+
+    def __init__(self, api_key, model=None, dim=None):
+        self.api_key = api_key
+
+
+def test_build_llm_provider_selects_class_per_provider(monkeypatch):
+    import app.rag.providers as providers
+
+    monkeypatch.setattr(providers, "OpenAILLM", _FakeProvider)
+    monkeypatch.setattr(providers, "AnthropicLLM", _FakeProvider)
+    monkeypatch.setattr(providers, "GeminiLLM", _FakeProvider)
+
+    for provider in ("openai", "anthropic", "gemini"):
+        settings = Settings(rag_use_mock=False, llm_provider=provider, llm_api_key="k")
+        assert isinstance(build_llm_provider(settings), _FakeProvider)
+
+
+def test_build_embedding_provider_gemini(monkeypatch):
+    import app.rag.providers as providers
+
+    monkeypatch.setattr(providers, "GeminiEmbedding", _FakeProvider)
+    settings = Settings(rag_use_mock=False, llm_provider="gemini", llm_api_key="k")
+    assert isinstance(build_embedding_provider(settings), _FakeProvider)
+
+
+def test_build_embedding_provider_requires_gemini_and_key():
+    with pytest.raises(RagProviderError):  # proveedor != gemini
+        build_embedding_provider(
+            Settings(rag_use_mock=False, llm_provider="openai", llm_api_key="k")
+        )
+    with pytest.raises(RagProviderError):  # falta la llave
+        build_embedding_provider(
+            Settings(rag_use_mock=False, llm_provider="gemini", llm_api_key="")
+        )

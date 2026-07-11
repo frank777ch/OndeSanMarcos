@@ -47,7 +47,9 @@ def ingest(settings: Settings | None = None) -> int:
     client = _build_client(settings)
     table = settings.pgvector_table
 
-    documents = load_documents(settings.knowledge_sources_dir)
+    # Corpus base + entradas aprobadas/subidas (para que reconstruir NO pierda
+    # el conocimiento agregado incrementalmente con find_gaps/upload_entries).
+    documents = load_documents(settings.knowledge_sources_dir) + load_entry_documents()
     chunks = split_documents(
         documents,
         chunk_size=settings.rag_chunk_size,

@@ -61,7 +61,7 @@ class OpenAILLM:
     importa de forma perezosa: este módulo se puede importar sin tenerlo.
     """
 
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini") -> None:
+    def __init__(self, api_key: str, model: str = "gpt-4o-mini") -> None:  # pragma: no cover - SDK opcional
         try:
             from openai import OpenAI  # import perezoso
         except ImportError as exc:  # pragma: no cover - depende de extra opcional
@@ -91,7 +91,7 @@ class AnthropicLLM:
     perezosa.
     """
 
-    def __init__(self, api_key: str, model: str = "claude-haiku-4-5-20251001") -> None:
+    def __init__(self, api_key: str, model: str = "claude-haiku-4-5-20251001") -> None:  # pragma: no cover - SDK opcional
         try:
             from anthropic import Anthropic  # import perezoso
         except ImportError as exc:  # pragma: no cover - depende de extra opcional
@@ -121,7 +121,7 @@ class GeminiLLM:
     puede importar sin tenerlo instalado.
     """
 
-    def __init__(self, api_key: str, model: str = "gemini-2.5-flash") -> None:
+    def __init__(self, api_key: str, model: str = "gemini-2.5-flash") -> None:  # pragma: no cover - SDK opcional
         try:
             from google import genai  # import perezoso
         except ImportError as exc:  # pragma: no cover - depende de extra opcional
