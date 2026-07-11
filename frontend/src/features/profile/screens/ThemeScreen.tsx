@@ -38,6 +38,13 @@ export function ThemeScreen() {
     { id: "quaternary", color: "#054D49" },
   ];
 
+  const accentLabels: Record<string, string> = {
+    primary: "primario",
+    secondary: "secundario",
+    tertiary: "terciario",
+    quaternary: "cuaternario",
+  };
+
   return (
     <View style={styles.container}>
       {/*<Text style={styles.sectionTitle}>Modo de visualización</Text>
@@ -89,6 +96,8 @@ export function ThemeScreen() {
           style={[styles.optionBtn, styles.firstOption, styles.lastOption]}
           activeOpacity={0.7}
           onPress={() => setColorModalVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Cambiar color principal"
         >
           <View style={styles.leftContent}>
             <Ionicons
@@ -137,6 +146,9 @@ export function ThemeScreen() {
                           setSelectedAccent(accent.color);
                           setColorModalVisible(false);
                         }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Seleccionar color ${accentLabels[accent.id]}`}
+                        accessibilityState={{ selected: isSelected }}
                       >
                         {isSelected && (
                           <Ionicons name="checkmark" size={24} color="#FFF" />

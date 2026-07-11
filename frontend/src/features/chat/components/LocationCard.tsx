@@ -9,7 +9,7 @@ interface LocationCardProps {
   onOpen: (location: LocationResult) => void;
 }
 
-/** Card blanca con ícono de mapa, nombre del lugar y botón "Abrir". */
+/** Card blanca con ícono de mapa, nombre del lugar y botón "Ver en mapa". */
 export function LocationCard({
   location,
   onOpen,
@@ -40,7 +40,7 @@ export function LocationCard({
         ]}
         onPress={() => onOpen(location)}
       >
-        <Text style={styles.buttonText}>Abrir</Text>
+        <Text style={styles.buttonText}>Ver en mapa</Text>
       </Pressable>
     </View>
   );

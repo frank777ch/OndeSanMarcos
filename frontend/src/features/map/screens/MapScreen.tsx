@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, Alert } from "react-native";
 import { Image } from "expo-image";
 import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
@@ -239,6 +239,20 @@ export function MapScreen() {
       setIsFollowingUser(false);
       isFollowingUserRef.current = false;
       goToRoutePreview(userLocation);
+    } else if (focusTarget.drawRoute) {
+      // Pidieron ruta pero no hay ubicación GPS: centramos en el destino y
+      // ofrecemos elegir un punto de partida a mano (reusa el selector de ruta),
+      // en vez de centrar en silencio sin explicar por qué no hay ruta.
+      moveToPoint(dest);
+      Alert.alert(
+        "Sin ubicación GPS",
+        `No tengo tu ubicación para trazar la ruta hacia ${focusTarget.name ?? "el destino"}. ` +
+          "Activa el GPS o elige un punto de partida.",
+        [
+          { text: "Elegir partida", onPress: () => setIsRouteSelectionVisible(true) },
+          { text: "Entendido", style: "cancel" },
+        ],
+      );
     } else {
       moveToPoint(dest);
     }

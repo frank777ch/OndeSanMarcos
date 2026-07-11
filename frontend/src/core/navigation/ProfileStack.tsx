@@ -13,7 +13,7 @@ export function ProfileStack() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        headerBackTitleVisible: false,
+        headerBackButtonDisplayMode: "minimal",
         headerTintColor: "#000",
       }}
     >
