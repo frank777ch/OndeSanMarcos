@@ -21,25 +21,10 @@ import { MapRouteInfoCard } from "../components/MapRouteInfoCard";
 import { Ionicons } from "@expo/vector-icons";
 import { MapPin } from "lucide-react-native";
 import { useThemeStore } from "../../../core/store/useThemeStore";
+import { isInsideCampus } from "../utils/geofence";
+import { useLocationPermission } from "../hooks/useLocationPermission";
 
 MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
-
-// Límites aproximados del campus (bounding box)
-const CAMPUS_BOUNDS = {
-  latMin: -12.063,
-  latMax: -12.051,
-  lngMin: -77.091,
-  lngMax: -77.078,
-};
-
-function isInsideCampus(lat: number, lng: number) {
-  return (
-    lat >= CAMPUS_BOUNDS.latMin &&
-    lat <= CAMPUS_BOUNDS.latMax &&
-    lng >= CAMPUS_BOUNDS.lngMin &&
-    lng <= CAMPUS_BOUNDS.lngMax
-  );
-}
 
 // Distancia (m) que le falta al usuario para llegar al destino siguiendo la
 // polilínea de la ruta: tramo hasta el vértice más cercano + resto de la ruta.
@@ -68,10 +53,8 @@ function remainingRouteDistance(
 }
 
 export function MapScreen() {
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(
-    null,
-  );
-  const [showAvatar, setShowAvatar] = useState(false);
+  const { userLocation, setUserLocation, showAvatar, setShowAvatar } =
+    useLocationPermission();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isWalking, setIsWalking] = useState(false);
   const [isGpsEnabled, setIsGpsEnabled] = useState(false);
@@ -272,58 +255,6 @@ export function MapScreen() {
     checkGps();
     const interval = setInterval(checkGps, 3000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setShowAvatar(false);
-        return;
-      }
-
-      try {
-        // Intenta primero con la última posición conocida (respuesta inmediata)
-        const lastKnown = await Location.getLastKnownPositionAsync({});
-        if (lastKnown) {
-          const { latitude, longitude } = lastKnown.coords;
-          if (isInsideCampus(latitude, longitude)) {
-            setUserLocation([longitude, latitude]);
-            setShowAvatar(true);
-          }
-        }
-
-        // Luego obtiene posición actual con timeout de 10 segundos
-        const locationPromise = Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-        const timeoutPromise = new Promise<null>((resolve) =>
-          setTimeout(() => resolve(null), 10000),
-        );
-
-        const location = await Promise.race([locationPromise, timeoutPromise]);
-        if (!location) {
-          console.warn(
-            "GPS timeout: no se pudo obtener posición en 10s. Configura las coordenadas en el emulador (Extended Controls → Location).",
-          );
-          return;
-        }
-
-        const { latitude, longitude } = location.coords;
-        // Criterio 2: GPS aceptado y dentro del campus, se debe mostrar avatar
-        if (isInsideCampus(latitude, longitude)) {
-          setUserLocation([longitude, latitude]);
-          setShowAvatar(true);
-        } else {
-          //mostrar ubicacion del usuarioo en consola
-          console.warn("Usuario fuera, posicion actual: ", latitude, longitude);
-          setUserLocation([longitude, latitude]);
-          setShowAvatar(true);
-        }
-      } catch (error) {
-        console.error("Error obteniendo ubicación:", error);
-      }
-    })();
   }, []);
 
   useEffect(() => {
