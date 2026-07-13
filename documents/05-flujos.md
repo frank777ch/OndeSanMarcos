@@ -170,30 +170,33 @@ stateDiagram-v2
     SeleccionSpawn --> Libre: elige punto (MapSpawnModal)
     SeleccionSpawn --> Ninguno: cierra modal
     Libre --> Ninguno: vuelve a vista general
-    Ninguno --> Guia: 🟠 (planificado) sigue al usuario
+    Ninguno --> Guia: sigue al usuario (GPS en tiempo real)
     Guia --> Ninguno: desactiva
 ```
 
-| Modo | Cámara | Estado |
-|------|--------|--------|
-| **Ninguno** | Vista general desde arriba (zoom 16, pitch 60). | ✅ |
-| **Libre** | Inmersión tipo street view (zoom 19.5, pitch 80). | ✅ |
-| **Guía** | Sigue la ubicación real del usuario (HU-1.6). | 🟠 |
+| Modo | Cámara | Avatar | Estado |
+|------|--------|--------|--------|
+| **Ninguno** | Vista general desde arriba (zoom 16, pitch 60). | Punto azul (si hay GPS). | ✅ |
+| **Libre** | Inmersión tipo street view (zoom 21, pitch 80) sobre el punto de exploración elegido. | Punto azul de exploración + punto azul de ubicación real. Sin avatar animado. | ✅ |
+| **Guía** | Sigue la ubicación real del usuario con `watchPositionAsync`; la brújula rota la cámara (HU-1.6). | Avatar animado en la posición GPS; camina según la velocidad real. | ✅ |
 
 ---
 
 ## 5.6 Avatar y orientación (GPS + brújula) 🟠
 
-Flujo previsto para HU-1.1 / HU-1.2 (hoy el avatar se fija al centro del campus si se conceden permisos).
+Flujo de HU-1.1 / HU-1.2 / HU-1.6. El avatar animado se muestra **solo en el modo guía**: representa al usuario real y se mueve con cada actualización del GPS (`watchPositionAsync`). En los modos ninguno y libre la ubicación real se indica con el punto azul estándar.
 
 ```mermaid
 flowchart TD
     start["Abrir Mapa"] --> perm{"¿Permiso de ubicación?"}
     perm -->|Denegado| toast["Toast de aviso + mapa navegable<br/>(sin avatar) ✅"]
-    perm -->|Concedido| loc["Lee posición GPS"]
-    loc --> avatar["Muestra avatar ✅ (posición fija hoy)"]
-    avatar --> sensors["🟠 Magnetómetro → rota el avatar"]
+    perm -->|Concedido| loc["Lee posición GPS ✅"]
+    loc --> modo{"¿Modo guía activo?"}
+    modo -->|No| punto["Punto azul de ubicación ✅"]
+    modo -->|Sí| avatar["Avatar animado sigue el GPS ✅<br/>(camina si velocidad > 0.5 m/s)"]
+    avatar --> sensors["Brújula (watchHeadingAsync) → rota la cámara ✅"]
     sensors --> smooth["🟠 Filtro de suavizado (anti-jitter)"]
+    sensors --> rot["🟠 Rotar el avatar (además de la cámara)"]
 ```
 
-> Las dependencias `expo-location` y `expo-sensors` ya están instaladas; la rotación por magnetómetro y el suavizado son el trabajo pendiente (HU-1.2, Sprint 3).
+> El seguimiento GPS en tiempo real y la brújula (rotación de cámara) ya están implementados en `MapScreen.tsx`. Queda pendiente de HU-1.2: rotar el propio avatar y aplicar un filtro de suavizado anti-jitter.

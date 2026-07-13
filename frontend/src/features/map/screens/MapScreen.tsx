@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
@@ -7,7 +7,7 @@ import Constants from "expo-constants";
 
 import { MapSearchBar } from "../components/MapSearchBar";
 import { MapFilterChips } from "../components/MapFilterChips";
-import { UNMSM, UNMSM_POIS } from "../constants/unmsm";
+import { UNMSM_POIS } from "../constants/unmsm";
 import { MapLocationButton } from "../components/MapLocationButton";
 import { MapActionButtons } from "../components/MapActionButtons";
 import { useMapCamera } from "../hooks/useMapCamera";
@@ -18,7 +18,6 @@ import { useMapStore } from "../../../core/store/useMapStore";
 import { useRouting } from "../../routing/hooks/useRouting";
 import { haversineDistance } from "../../routing/utils/pathfinder";
 import { MapRouteInfoCard } from "../components/MapRouteInfoCard";
-import { Ionicons } from "@expo/vector-icons";
 import { MapPin } from "lucide-react-native";
 import { useThemeStore } from "../../../core/store/useThemeStore";
 
@@ -71,7 +70,6 @@ export function MapScreen() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null,
   );
-  const [showAvatar, setShowAvatar] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isWalking, setIsWalking] = useState(false);
   const [isGpsEnabled, setIsGpsEnabled] = useState(false);
@@ -100,7 +98,7 @@ export function MapScreen() {
   const startGuide = useMapStore((state) => state.startGuide);
   const stopGuide = useMapStore((state) => state.stopGuide);
   const setRemainingDistance = useMapStore((state) => state.setRemainingDistance);
-  const { calculateRoute, clearRoute, isCalculating } = useRouting();
+  const { calculateRoute, clearRoute } = useRouting();
 
   const primaryColor = useThemeStore((s) => s.primaryColor);
   const routeMetadata = useMapStore((s) => s.routeMetadata);
@@ -110,40 +108,26 @@ export function MapScreen() {
   const clearFocusTarget = useMapStore((s) => s.clearFocusTarget);
   const focusedPlace = useMapStore((s) => s.focusedPlace);
 
-  // Timer para detectar cuándo el usuario dejó de arrastrar el mapa
-  const walkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const [isFollowingUser, setIsFollowingUser] = useState(true);
+  // true → la cámara sigue al usuario en modo guía. Se usa una ref (no estado)
+  // porque solo lo lee el callback de watchPositionAsync, no el render.
   const isFollowingUserRef = useRef(true);
 
-  // Se llama en cada frame mientras la cámara se mueve (usuario arrastrando)
+  // Se llama en cada frame mientras la cámara se mueve (usuario arrastrando).
+  // Si el usuario arrastra durante el modo guía, se suelta el seguimiento
+  // hasta que lo reactive con el botón de ubicación.
   const handleCameraChanged = (e: any) => {
-    if (e.properties && e.properties.isUserInteraction) {
-      if (guideActive) {
-        setIsFollowingUser(false);
-        isFollowingUserRef.current = false;
-      }
-
-      if (appMode === "libre") {
-        // El usuario está moviendo el mapa → animación de caminar
-        setIsWalking(true);
-
-        // Reinicia el timer: si no hay movimiento en 600ms → vuelve a idle
-        if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
-        walkTimerRef.current = setTimeout(() => {
-          setIsWalking(false);
-        }, 600);
-      }
+    if (e.properties && e.properties.isUserInteraction && guideActive) {
+      isFollowingUserRef.current = false;
     }
   };
 
   const handleModeToggle = (modo: "ninguno" | "libre" | "guia") => {
     if (modo === "libre") {
       stopGuide();
+      setIsWalking(false);
       setIsSpawnModalVisible(true);
     } else if (modo === "ninguno") {
       setIsWalking(false);
-      if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
       stopGuide();
       setAppMode("ninguno");
       goToDefaultMode();
@@ -152,7 +136,6 @@ export function MapScreen() {
       startGuide();
       // El seguimiento se mantiene activo hasta que el usuario arrastra el mapa;
       // entonces puede reactivarlo con el botón de ubicación.
-      setIsFollowingUser(true);
       isFollowingUserRef.current = true;
       if (userLocation) {
         goToGuideMode(userLocation);
@@ -181,11 +164,9 @@ export function MapScreen() {
     // (seguimiento en tiempo real). Si no, mostramos una vista previa de la ruta.
     if (startIsCurrentLocation && coords && coords.length > 0) {
       startGuide();
-      setIsFollowingUser(true);
       isFollowingUserRef.current = true;
       goToGuideMode(start);
     } else {
-      setIsFollowingUser(false);
       isFollowingUserRef.current = false;
       goToRoutePreview(start);
     }
@@ -224,7 +205,6 @@ export function MapScreen() {
 
     if (focusTarget.drawRoute && userLocation) {
       calculateRoute(userLocation, dest, "Mi ubicación", focusTarget.name ?? "Destino");
-      setIsFollowingUser(false);
       isFollowingUserRef.current = false;
       goToRoutePreview(userLocation);
     } else {
@@ -251,7 +231,6 @@ export function MapScreen() {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setShowAvatar(false);
         return;
       }
 
@@ -262,7 +241,6 @@ export function MapScreen() {
           const { latitude, longitude } = lastKnown.coords;
           if (isInsideCampus(latitude, longitude)) {
             setUserLocation([longitude, latitude]);
-            setShowAvatar(true);
           }
         }
 
@@ -283,16 +261,10 @@ export function MapScreen() {
         }
 
         const { latitude, longitude } = location.coords;
-        // Criterio 2: GPS aceptado y dentro del campus, se debe mostrar avatar
-        if (isInsideCampus(latitude, longitude)) {
-          setUserLocation([longitude, latitude]);
-          setShowAvatar(true);
-        } else {
-          //mostrar ubicacion del usuarioo en consola
+        if (!isInsideCampus(latitude, longitude)) {
           console.warn("Usuario fuera, posicion actual: ", latitude, longitude);
-          setUserLocation([longitude, latitude]);
-          setShowAvatar(true);
         }
+        setUserLocation([longitude, latitude]);
       } catch (error) {
         console.error("Error obteniendo ubicación:", error);
       }
@@ -302,7 +274,6 @@ export function MapScreen() {
   useEffect(() => {
     let locSub: Location.LocationSubscription | null = null;
     let headSub: Location.LocationSubscription | null = null;
-    let simInterval: NodeJS.Timeout | null = null;
 
     if (guideActive) {
       (async () => {
@@ -348,15 +319,8 @@ export function MapScreen() {
     return () => {
       if (locSub) locSub.remove();
       if (headSub) headSub.remove();
-      if (simInterval) clearInterval(simInterval);
     };
   }, [guideActive]);
-
-  useEffect(() => {
-    return () => {
-      if (walkTimerRef.current) clearTimeout(walkTimerRef.current);
-    };
-  }, []);
 
   // @ts-ignore
   const pointsFeatures = UNMSM_POIS.features.filter(
@@ -433,11 +397,6 @@ export function MapScreen() {
     isRouteActive && activeRoute.length > 0
       ? [activeRoute[0].longitude, activeRoute[0].latitude]
       : null;
-
-  const shouldShowAvatar =
-    showAvatar &&
-    userLocation !== null &&
-    (appMode === "libre" || guideActive);
 
   const avatarSource = isWalking
     ? require("../../../../assets/avatar/david_walk.webp")
@@ -549,7 +508,10 @@ export function MapScreen() {
 
         {isGpsEnabled && userLocation && (
           <MapboxGL.MarkerView id="user-location" coordinate={userLocation} anchor={{ x: 0.5, y: 0.5 }}>
-            {isInsideCampus(userLocation[1], userLocation[0]) && (appMode !== "ninguno" || guideActive) ? (
+            {/* Avatar animado solo en modo guía (HU-1.6): representa al usuario
+                real siguiéndolo por GPS. En modo libre y ninguno se muestra el
+                punto de ubicación estándar. */}
+            {isInsideCampus(userLocation[1], userLocation[0]) && guideActive ? (
               <Image
                 source={avatarSource}
                 style={{ width: 80, height: 80 }}
@@ -712,7 +674,6 @@ export function MapScreen() {
         disabled={!isGpsEnabled}
         onPress={() => {
           if (userLocation) {
-            setIsFollowingUser(true);
             isFollowingUserRef.current = true;
             moveToPoint(userLocation);
           }
@@ -750,31 +711,4 @@ export function MapScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
-
-  avatarOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  avatarImage: {
-    width: 120,
-    height: 120,
-    marginTop: 120,
-  },
-  avatarContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "red",
-    overflow: "hidden",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-  },
 });

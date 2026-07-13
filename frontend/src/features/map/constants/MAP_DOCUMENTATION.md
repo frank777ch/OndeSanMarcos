@@ -7,8 +7,8 @@ Esta guía documenta la lógica central, el manejo de la cámara, la ubicación 
 La pantalla principal del mapa se rige por un estado interno llamado `appMode`, el cual puede tener tres valores:
 
 - **`ninguno`**: Es el estado por defecto. El usuario puede mover el mapa libremente. También es el estado que se activa al hacer "Iniciar Ruta" (para previsualizar la ruta trazada sin bloquear la cámara al usuario). En este modo **no se muestra el Avatar 3D**, solo un punto azul indicando la ubicación física si hay señal de GPS.
-- **`libre`**: Se activa desde "Modos de Seguimiento -> Modo Libre". La cámara "aterriza" (`goToFreeMode`) en un lugar seleccionado (ej. Puerta 3) y se marca dicho lugar con un punto azul estático (Punto de Exploración). Si el usuario está físicamente en el campus, su Avatar 3D se mostrará donde realmente está.
-- **`guia`**: Se activa desde "Modos de Seguimiento -> Modo de Guía". Activa la suscripción al GPS en tiempo real (`watchPositionAsync`). La cámara se inclina (`goToGuideMode`) y sigue al Avatar 3D (que representa al usuario) a medida que camina físicamente por el campus.
+- **`libre`**: Se activa desde "Modos de Seguimiento -> Modo Libre". La cámara "aterriza" (`goToFreeMode`) en un lugar seleccionado (ej. Puerta 3) y se marca dicho lugar con un punto azul estático (Punto de Exploración). En este modo **no se muestra el Avatar 3D**: la exploración es virtual, así que la ubicación física del usuario (si hay GPS) se sigue indicando con el punto azul estándar.
+- **`guia`** (`guideActive` en `useMapStore`): Se activa desde "Modos de Seguimiento -> Modo de Guía". Activa la suscripción al GPS en tiempo real (`watchPositionAsync`). La cámara se inclina (`goToGuideMode`) y sigue al Avatar 3D (que representa al usuario) a medida que camina físicamente por el campus. La animación de caminar del avatar se controla con la velocidad real reportada por el GPS (`speed > 0.5 m/s`), y la brújula (`watchHeadingAsync`) rota la cámara.
 
 ---
 
@@ -18,8 +18,8 @@ Es crucial entender la separación conceptual de marcadores en el mapa:
 
 1. **Ubicación Real (`userLocation`)**:
    - Representa el punto del sensor GPS del dispositivo.
-   - **Indicador Normal**: Un punto azul translúcido (estilo Google Maps). Se muestra cuando el usuario está en el modo `ninguno`.
-   - **Avatar 3D**: Se muestra _únicamente_ cuando el usuario está físicamente dentro del campus universitario **Y** tiene activo el `appMode` en `libre` o `guia`. Está condicionado también a que NO haya una ruta previsualizándose (`!isRouteActive`).
+   - **Indicador Normal**: Un punto azul translúcido (estilo Google Maps). Se muestra en los modos `ninguno` y `libre`.
+   - **Avatar 3D**: Se muestra _únicamente_ cuando el usuario está físicamente dentro del campus universitario **Y** el modo guía está activo (`guideActive`). Es la representación en tiempo real del usuario (HU-1.6): se mueve con el GPS y anima la caminata según la velocidad real.
 2. **Punto de Exploración (`exploreLocation`)**:
    - Aparece únicamente en el Modo Libre. Es el punto donde el usuario ha decidido "aparecer" virtualmente en el mapa (ej. "Comedor Universitario"). Se representa con el punto azul.
    - No interfiere con el `userLocation`.
@@ -59,7 +59,7 @@ El control visual del mapa (`MapboxGL.Camera`) está centralizado en el hook `us
 En `MapScreen.tsx`, el `useEffect` principal gestiona el GPS:
 
 1. **Montaje Inicial**: Intenta usar `getLastKnownPositionAsync` o `getCurrentPositionAsync` para setear la posición inicial sin bloquear la interfaz.
-2. **Activación de Modo Guía**: Cuando `appMode` cambia a `guia`, se ejecuta la subscripción de `Location.watchPositionAsync`. Esto obliga al estado `userLocation` a actualizarse continuamente.
+2. **Activación de Modo Guía**: Cuando `guideActive` (en `useMapStore`) pasa a `true`, se ejecuta la subscripción de `Location.watchPositionAsync`. Esto obliga al estado `userLocation` a actualizarse continuamente. También se suscribe `watchHeadingAsync` para rotar la cámara con la brújula.
 3. **Movimiento**: En cada "tick" del GPS, si `isFollowingUserRef.current` es verdadero, llama a `moveToPoint()` para arrastrar la cámara.
 4. **Limpieza**: Si el usuario abandona el Modo Guía (ej. cancelando la ruta o pasando a Modo Libre), las subscripciones (`locSub.remove()`) se destruyen para ahorrar batería.
 

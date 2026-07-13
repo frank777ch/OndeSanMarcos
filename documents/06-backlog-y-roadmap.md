@@ -47,11 +47,11 @@ graph LR
 | HU | Nombre | Prioridad | Est. | Estado | Evidencia en código |
 |----|--------|-----------|------|--------|---------------------|
 | HU-1.1 | Permisos y Visualización Base | Alta | 5 | ✅ | `MapScreen` carga centrado en UNMSM; pide permiso; avatar si se concede. |
-| HU-1.2 | Avatar con Rotación Real | Media | 8 | 🟠 | `expo-sensors` instalado; falta magnetómetro + suavizado. |
+| HU-1.2 | Avatar con Rotación Real | Media | 8 | 🟠 | Brújula rota la cámara en modo guía (`watchHeadingAsync`); falta rotar el avatar + filtro de suavizado. |
 | HU-1.3 | Búsqueda de ubicaciones | Media | 5 | 🟡 | `MapSearchBar` existe; falta lógica de sugerencias/centrado. |
 | HU-1.4 | Indicador de ubicación actual | Media | 5 | 🟡 | `MapLocationButton` existe; falta precisión/centrado real. |
 | HU-1.5 | Modo libre (street view) | Media | 8 | ✅ | `useMapCamera.goToFreeMode` + `MapSpawnModal`. |
-| HU-1.6 | Modo guía | Alta | 8 | 🟠 | Modo definido en cámara; falta seguimiento en tiempo real. |
+| HU-1.6 | Modo guía | Alta | 8 | ✅ | `watchPositionAsync` + `goToGuideMode`: avatar animado sigue al usuario en tiempo real; brújula rota la cámara. |
 
 ### EPIC02 — Asistente IA (RAG)
 
@@ -131,4 +131,4 @@ gantt
 1. **Cerrar la integración Chat→Mapa** (HU-2.3 parcial): que `MapScreen` lea `focusTarget`/`draw_route` y trace la ruta al destino.
 2. **Ampliar el corpus RAG** (HU-2.2 ✅): el backend ya corre en producción con LLM real (Gemini) y pgvector (ver [07-avance-backend](./07-avance-backend.md)); queda seguir cerrando gaps de lugares con `find_gaps`/`upload_entries`.
 3. **Motor de rutas** (EPIC03): poblar `src/features/routing/` y trazar `polyline` A→B.
-4. **Sensores del avatar** (HU-1.2): magnetómetro + filtro de suavizado.
+4. **Sensores del avatar** (HU-1.2): la brújula ya rota la cámara en modo guía; falta rotar el propio avatar + filtro de suavizado.
