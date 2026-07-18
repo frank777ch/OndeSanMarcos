@@ -8,20 +8,18 @@ App móvil construida con **React Native + Expo + TypeScript**, organizada por *
 
 ```
 frontend/src/
-├── constants/            # Tokens globales: colores, tipografía, Config (env)
-│   ├── colors.ts
-│   ├── config.ts         # ← lee variables EXPO_PUBLIC_* (api, mapbox, supabase, mock)
-│   └── typography.ts
+├── constants/            # Tokens globales y Config (env)
+│   └── config.ts         # ← lee variables EXPO_PUBLIC_* (api, mapbox, supabase, mock)
 ├── core/                 # Núcleo transversal de la app
 │   ├── navigation/       # AppNavigator, AuthStack, MainTabs, types
 │   ├── providers/        # AuthProvider (bootstrap de sesión)
-│   └── store/            # Zustand: useAuthStore, useChatStore, useMapStore
+│   └── store/            # Zustand: useAuthStore, useChatStore, useMapStore, useThemeStore
 ├── features/             # Dominios funcionales (uno por carpeta)
 │   ├── auth/             # Welcome, Login, Register, EmailSent, VerifiedEmail
 │   ├── chat/             # Asistente IA: components, hooks, constants, screens, types
 │   ├── map/              # Mapa 3D: components, hooks, constants, screens
 │   ├── profile/          # Perfil y ajustes
-│   └── routing/          # Motor de rutas (vacío — planificado)
+│   └── routing/          # Motor de rutas (hooks y utils para el cálculo de rutas)
 ├── services/             # Acceso a sistemas externos
 │   ├── api/              # client (fetch), chatApi
 │   └── supabase/         # client, auth.service
@@ -30,7 +28,7 @@ frontend/src/
 │   ├── components/       # Button, Input, AuthHeader, StepDots, SettingsItem...
 │   ├── hooks/
 │   └── utils/
-├── theme/                # light / dark / colors (tematización)
+├── theme/                # light.ts, dark.ts, colors.ts (tematización)
 └── types/                # Declaraciones globales (svg.d.ts)
 ```
 
@@ -140,22 +138,25 @@ graph LR
         a["useAuthStore<br/>user · session · isGuest · isLoading"]
         ch["useChatStore<br/>conversations · activeId · chatState<br/>persistido en AsyncStorage"]
         mp["useMapStore<br/>userLocation · userHeading · activeRoute<br/>mapMode · focusTarget"]
+        th["useThemeStore<br/>tema actual · primaryColor"]
     end
 
     AuthProvider --> a
     useChat --> ch
     ChatScreen --> mp
     MapScreen --> mp
+    MapScreen --> th
 
     classDef persist fill:#fef9c3,stroke:#ca8a04;
     class ch persist;
 ```
 
-| Store          | Persistencia                                          | Notas                                                                   |
-| -------------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
-| `useAuthStore` | No                                                    | Reflejo de la sesión de Supabase; se rehidrata vía `getSession()`.      |
-| `useChatStore` | **Sí** (AsyncStorage, clave `osm-chat-conversations`) | `partialize` guarda solo `conversations`; el resto es estado de sesión. |
-| `useMapStore`  | No                                                    | `focusTarget` permite que el chat centre el mapa en un lugar.           |
+| Store            | Persistencia                                          | Notas                                                                   |
+| ---------------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| `useAuthStore`   | No                                                    | Reflejo de la sesión de Supabase; se rehidrata vía `getSession()`.      |
+| `useChatStore`   | **Sí** (AsyncStorage, clave `osm-chat-conversations`) | `partialize` guarda solo `conversations`; el resto es estado de sesión. |
+| `useMapStore`    | No                                                    | `focusTarget` permite que el chat centre el mapa en un lugar.           |
+| `useThemeStore`  | No                                                    | Gestiona los colores principales de la aplicación y la tematización.    |
 
 Detalle de campos y acciones en [04-modelo-de-datos](./04-modelo-de-datos.md).
 
@@ -195,7 +196,7 @@ graph TD
 
 ```mermaid
 graph TD
-    ms["MapScreen"] --> mbgl["MapboxGL.MapView"]
+    ms["MapScreen"] --> mbgl["MapboxGL.MapView<br/>(Standard Style + 3D)"]
     ms --> cam["useMapCamera<br/>(ninguno · libre · guía)"]
     ms --> consts["constants/unmsm<br/>UNMSM · UNMSM_POIS · CAMPUS_PLACES"]
 
@@ -205,10 +206,11 @@ graph TD
         lb["MapLocationButton"]
         ab["MapActionButtons"]
         sm["MapSpawnModal"]
+        rs["MapRouteSelectionModal"]
+        ri["MapRouteInfoCard"]
     end
     ms --- map_comps
 
-    mbgl --> b3d["FillExtrusionLayer (edificios 3D)"]
     mbgl --> poi["ShapeSource POIs (Circle + Symbol)"]
     mbgl --> route["LineLayer (ruta)"]
     mbgl --> avatar["PointAnnotation (avatar)"]
@@ -216,8 +218,7 @@ graph TD
 
 - `useMapCamera` controla la cámara: **modo ninguno** (vista pájaro), **modo libre** (inmersión tipo street view) y navegación punto a punto.
 - POIs se filtran por `categoria` mediante `MapFilterChips`.
-
-> **Brecha actual:** `ChatScreen` ya escribe `focusTarget` en `useMapStore`, pero el `MapScreen` vigente (rediseño 3D) **aún no lee** `focusTarget` para recentrarse. Cerrar este enlace es el siguiente paso de la integración Chat→Mapa.
+- `MapScreen` lee activamente `focusTarget` de `useMapStore` (escrito desde `ChatScreen` o los componentes flotantes) para centrar la cámara en el destino e iniciar la navegación de rutas automáticamente si se requiere.
 
 ---
 

@@ -36,8 +36,6 @@ graph TD
     class app cli;
 ```
 
-> **Nota de estado:** este diagrama ya es el estado **real**. El backend está **desplegado en Render** con **LLM real (Gemini)** y **recuperación semántica con Supabase pgvector** (embeddings Gemini). El **cliente consume el backend por defecto** (`Config.api.baseUrl` → URL de Render; el mock del chat solo se fuerza con `EXPO_PUBLIC_USE_MOCK_CHAT=true`). Ver [§1.7](#17-vista-completa-implementado-vs-planificado) y [07-avance-backend](./07-avance-backend.md).
-
 ---
 
 ## 1.2 Arquitectura por capas (frontend ↔ backend)
@@ -85,17 +83,17 @@ graph LR
 
 ### Servicios en cada lado
 
-| Lado         | Servicio / Módulo                        | Responsabilidad                                                     | Estado                       |
-| ------------ | ---------------------------------------- | ------------------------------------------------------------------- | ---------------------------- |
-| **Frontend** | `services/supabase/auth.service`         | signUp, signIn, signOut, sesión, listener de auth.                  | ✅                           |
-| **Frontend** | `services/supabase/client`               | Cliente Supabase con persistencia en AsyncStorage.                  | ✅                           |
-| **Frontend** | `services/api/client` (`apiClient`)      | Wrapper `fetch` genérico (GET/POST, JSON, errores).                 | ✅                           |
-| **Frontend** | `services/api/chatApi` (`sendChatQuery`) | Llama `POST /api/chat` con `{ query }`.                             | ✅ (consume el backend real) |
-| **Backend**  | Router `/api/chat`                       | Recibe la consulta, orquesta RAG, responde `{ answer, locations, draw_route, destination }`. | ✅                 |
-| **Backend**  | Guardrails                               | Limita el alcance a temas UNMSM (HU-2.4).                           | ✅                           |
-| **Backend**  | Motor RAG propio                         | Recupera fragmentos relevantes (pgvector) y genera la respuesta (Gemini). | ✅                    |
-| **Datos**    | Supabase Auth                            | Usuarios, verificación por correo, sesiones JWT.                    | ✅                           |
-| **Datos**    | Supabase Postgres + `pgvector`           | Documentos institucionales + embeddings Gemini (tabla `documents`). | ✅                          |
+| Lado         | Servicio / Módulo                        | Responsabilidad                                                                              | Estado                       |
+| ------------ | ---------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------- |
+| **Frontend** | `services/supabase/auth.service`         | signUp, signIn, signOut, sesión, listener de auth.                                           | ✅                           |
+| **Frontend** | `services/supabase/client`               | Cliente Supabase con persistencia en AsyncStorage.                                           | ✅                           |
+| **Frontend** | `services/api/client` (`apiClient`)      | Wrapper `fetch` genérico (GET/POST, JSON, errores).                                          | ✅                           |
+| **Frontend** | `services/api/chatApi` (`sendChatQuery`) | Llama `POST /api/chat` con `{ query }`.                                                      | ✅ (consume el backend real) |
+| **Backend**  | Router `/api/chat`                       | Recibe la consulta, orquesta RAG, responde `{ answer, locations, draw_route, destination }`. | ✅                           |
+| **Backend**  | Guardrails                               | Limita el alcance a temas UNMSM (HU-2.4).                                                    | ✅                           |
+| **Backend**  | Motor RAG propio                         | Recupera fragmentos relevantes (pgvector) y genera la respuesta (Gemini).                    | ✅                           |
+| **Datos**    | Supabase Auth                            | Usuarios, verificación por correo, sesiones JWT.                                             | ✅                           |
+| **Datos**    | Supabase Postgres + `pgvector`           | Documentos institucionales + embeddings Gemini (tabla `documents`).                          | ✅                           |
 
 ---
 
@@ -126,8 +124,6 @@ Content-Type: application/json
   ],
 }
 ```
-
-> **Enrutamiento (HU-2.3):** la respuesta ya incorpora el flag `draw_route` y las coordenadas `destination` para las consultas de navegación. Falta que el **frontend** las consuma para cambiar a la pestaña del Mapa y trazar la ruta automáticamente. Ver [05-flujos](./05-flujos.md#54-enrutamiento-automático-chat--mapa).
 
 ---
 
@@ -284,8 +280,3 @@ graph TB
     classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d;
     classDef planned fill:#f1f5f9,stroke:#94a3b8,stroke-dasharray:5 5,color:#64748b;
 ```
-
-> El backend está completo y en producción (LLM real Gemini + recuperación con
-> pgvector). Lo punteado que resta es del **frontend/mapa**: consumir el
-> enrutamiento (`draw_route`) en el mapa, el motor de rutas y los sensores del
-> avatar. Estado por historia en [06-backlog-y-roadmap §6.3](./06-backlog-y-roadmap.md#63-historias-de-usuario-y-estado).

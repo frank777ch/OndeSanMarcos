@@ -113,32 +113,9 @@ sequenceDiagram
 
 ---
 
-## 5.4 Enrutamiento automático (Chat → Mapa) 🟡 / 🟠
+## 5.4 Enrutamiento automático (Chat → Mapa) ✅
 
-### Hoy (parcial ✅/🟡)
-
-Desde una respuesta del asistente, "Ver en mapa" fija el destino y cambia de pestaña.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor U as Usuario
-    participant LC as LocationCard
-    participant CS as ChatScreen
-    participant MS as useMapStore
-    participant Map as MapScreen
-
-    U->>LC: toca "Ver en mapa"
-    LC->>CS: handleOpenLocation(location)
-    CS->>CS: getCampusPlaceById(location.id)
-    CS->>MS: setFocusTarget(coordinate)
-    CS->>Map: navigation.navigate("Map")
-    Note over Map: 🟡 pendiente: que MapScreen lea focusTarget y recentre la cámara
-```
-
-### Objetivo (HU-2.3 — backend ✅, consumo en el mapa 🟠)
-
-El propio asistente ya decide cuándo navegar: el backend devuelve `draw_route` y `destination`. Falta que el frontend los consuma para trazar la ruta en el mapa.
+El asistente decide cuándo navegar basándose en el análisis de la pregunta del usuario. El backend devuelve `draw_route` y `destination`, los cuales el frontend consume para trazar la ruta y centrar el mapa automáticamente.
 
 ```mermaid
 sequenceDiagram
@@ -154,7 +131,7 @@ sequenceDiagram
     B-->>CS: { answer, locations, draw_route:true, destination }
     CS->>MS: setActiveRoute(...) / setFocusTarget(destination)
     CS->>Map: navega a Mapa
-    Map->>Map: dibuja la ruta (polyline) y vuela al destino
+    Map->>Map: dibuja la ruta (polyline) y centra la cámara en el destino
 ```
 
 ---
@@ -170,7 +147,7 @@ stateDiagram-v2
     SeleccionSpawn --> Libre: elige punto (MapSpawnModal)
     SeleccionSpawn --> Ninguno: cierra modal
     Libre --> Ninguno: vuelve a vista general
-    Ninguno --> Guia: 🟠 (planificado) sigue al usuario
+    Ninguno --> Guia: ✅ sigue al usuario
     Guia --> Ninguno: desactiva
 ```
 
@@ -178,22 +155,22 @@ stateDiagram-v2
 |------|--------|--------|
 | **Ninguno** | Vista general desde arriba (zoom 16, pitch 60). | ✅ |
 | **Libre** | Inmersión tipo street view (zoom 19.5, pitch 80). | ✅ |
-| **Guía** | Sigue la ubicación real del usuario (HU-1.6). | 🟠 |
+| **Guía** | Sigue la ubicación real del usuario (HU-1.6). | ✅ |
 
 ---
 
-## 5.6 Avatar y orientación (GPS + brújula) 🟠
+## 5.6 Avatar y orientación (GPS + brújula) ✅
 
-Flujo previsto para HU-1.1 / HU-1.2 (hoy el avatar se fija al centro del campus si se conceden permisos).
+Flujo implementado para la rotación y ubicación del usuario en tiempo real (HU-1.1 / HU-1.2).
 
 ```mermaid
 flowchart TD
     start["Abrir Mapa"] --> perm{"¿Permiso de ubicación?"}
     perm -->|Denegado| toast["Toast de aviso + mapa navegable<br/>(sin avatar) ✅"]
     perm -->|Concedido| loc["Lee posición GPS"]
-    loc --> avatar["Muestra avatar ✅ (posición fija hoy)"]
-    avatar --> sensors["🟠 Magnetómetro → rota el avatar"]
-    sensors --> smooth["🟠 Filtro de suavizado (anti-jitter)"]
+    loc --> avatar["Muestra avatar ✅ (ubicación real)"]
+    avatar --> sensors["✅ Magnetómetro → rota el avatar"]
+    sensors --> smooth["✅ Filtro de suavizado (anti-jitter)"]
 ```
 
-> Las dependencias `expo-location` y `expo-sensors` ya están instaladas; la rotación por magnetómetro y el suavizado son el trabajo pendiente (HU-1.2, Sprint 3).
+> La rotación con brújula y seguimiento en tiempo real están completamente integrados utilizando `Location.watchHeadingAsync` y el estado interno.
