@@ -91,17 +91,65 @@ function txt(s, text, o) {
   });
 }
 
-function line(s, x1, y1, x2, y2, o = {}) {
-  s.addShape(S.line, {
-    x: x1, y: y1, w: x2 - x1, h: y2 - y1,
-    line: {
-      color: o.color || C.borderHi,
-      width: o.width || 1,
-      dashType: o.dash || "solid",
-      endArrowType: o.end || "none",
-      beginArrowType: o.begin || "none",
-    },
+// IMPORTANTE (Canva): al importar, Canva descarta los elementos de tipo "línea"
+// (S.line). Por eso los conectores se dibujan como RECTÁNGULOS delgados rotados y
+// las puntas de flecha como TRIÁNGULOS: son figuras nativas que sí se conservan.
+
+// Un segmento recto = rectángulo delgado rotado al ángulo del tramo. Si es
+// punteado, se compone de varios rectángulos cortos.
+function segment(s, x1, y1, x2, y2, color, width, dash) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 0.001) return;
+  const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+  const th = Math.max((width || 1.25) / 72, 0.012); // grosor en pulgadas
+  const put = (sx, sy, ex, ey) => {
+    const l = Math.sqrt((ex - sx) ** 2 + (ey - sy) ** 2);
+    if (l < 0.001) return;
+    s.addShape(S.rect, {
+      x: (sx + ex) / 2 - l / 2, y: (sy + ey) / 2 - th / 2, w: l, h: th,
+      fill: { color: color || C.borderHi }, line: { type: "none" }, rotate: angle,
+    });
+  };
+  if (!dash || dash === "solid") { put(x1, y1, x2, y2); return; }
+  const dashLen = 0.09, gap = 0.07, step = dashLen + gap;
+  const ux = dx / len, uy = dy / len;
+  for (let d = 0; d < len - 0.001; d += step) {
+    const seg = Math.min(dashLen, len - d);
+    put(x1 + ux * d, y1 + uy * d, x1 + ux * (d + seg), y1 + uy * (d + seg));
+  }
+}
+
+// Punta de flecha = triángulo con la punta en (px,py) apuntando según `angleDeg`
+// (0 = derecha). El triángulo nativo apunta hacia arriba, así que se rota +90.
+function arrowHead(s, px, py, angleDeg, color, size) {
+  const hh = size || 0.15, hw = (size || 0.15) * 0.85;
+  const th = (angleDeg * Math.PI) / 180;
+  const cx = px - (hh / 2) * Math.cos(th);
+  const cy = py - (hh / 2) * Math.sin(th);
+  s.addShape(S.triangle, {
+    x: cx - hw / 2, y: cy - hh / 2, w: hw, h: hh,
+    fill: { color: color || C.borderHi }, line: { type: "none" }, rotate: angleDeg + 90,
   });
+}
+
+function line(s, x1, y1, x2, y2, o = {}) {
+  const color = o.color || C.borderHi;
+  const width = o.width || 1;
+  const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+  const hasEnd = o.end && o.end !== "none";
+  const hasBegin = o.begin && o.begin !== "none";
+  // acorta el tramo para no asomar por la punta
+  const pull = 0.09;
+  const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) || 1;
+  const ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+  const ex = hasEnd ? x2 - ux * pull : x2;
+  const ey = hasEnd ? y2 - uy * pull : y2;
+  const sx = hasBegin ? x1 + ux * pull : x1;
+  const sy = hasBegin ? y1 + uy * pull : y1;
+  segment(s, sx, sy, ex, ey, color, width, o.dash);
+  if (hasEnd) arrowHead(s, x2, y2, angle, color, o.headSize);
+  if (hasBegin) arrowHead(s, x1, y1, angle + 180, color, o.headSize);
 }
 
 // Kicker + título + regla de acento (encabezado estándar de slide de contenido)
