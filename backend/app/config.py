@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     app_name: str = "OndeSanMarcos RAG API"
     app_env: str = "development"
     cors_origins: str = "*"
+    # Consultas por minuto y por IP a `/api/chat` (0 = sin límite). Protege la
+    # cuota del LLM frente a abuso o bucles accidentales.
+    rate_limit_per_minute: int = 20
 
     # --- Motor RAG ---
     rag_use_mock: bool = True

@@ -18,6 +18,15 @@ function nextId(): string {
 
 const ERROR_MESSAGE =
   'Lo siento, ocurrió un error al procesar tu consulta. Inténtalo de nuevo.';
+// El backend limita las consultas por minuto (HTTP 429) para proteger la cuota del LLM.
+const RATE_LIMIT_MESSAGE =
+  'Estás enviando muchas consultas seguidas. Espera un momento e inténtalo de nuevo.';
+
+function errorMessageFor(error: unknown): string {
+  return error instanceof Error && error.message.startsWith('API Error 429')
+    ? RATE_LIMIT_MESSAGE
+    : ERROR_MESSAGE;
+}
 
 /**
  * Obtiene la respuesta del asistente.
@@ -104,11 +113,11 @@ export function useChat(): UseChatResult {
           });
           navigation.navigate('Map');
         }
-      } catch {
+      } catch (error) {
         addMessage({
           id: nextId(),
           role: 'assistant',
-          content: ERROR_MESSAGE,
+          content: errorMessageFor(error),
           timestamp: new Date(),
           isError: true,
           failedQuery: query,

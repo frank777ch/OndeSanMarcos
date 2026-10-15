@@ -1,0 +1,21 @@
+# Bloque para un Caddy que YA corre en el VPS (modo sin Caddy en el compose).
+# El puerto 8010 debe coincidir con API_HOST_PORT de deploy/.env.
+# Pégalo en su Caddyfile, reemplaza TU_DOMINIO y recarga: sudo systemctl reload caddy
+
+TU_DOMINIO {
+	encode zstd gzip
+
+	@api path /api/* /health /health/* /docs /docs/* /openapi.json
+	handle @api {
+		request_body {
+			max_size 16KB
+		}
+		reverse_proxy 127.0.0.1:8010
+	}
+
+	handle {
+		root * /opt/ondesanmarcos/deploy/site
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+}

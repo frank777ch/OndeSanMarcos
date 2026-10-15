@@ -48,3 +48,7 @@ uvicorn app.main:app --reload
 
 - Healthcheck: http://localhost:8000/health
 - Documentación interactiva (Swagger): http://localhost:8000/docs
+
+## Despliegue a producción
+
+Backend en un VPS con Docker + Caddy (`deploy/`), Supabase para cuentas y base vectorial, y la app Android con EAS. Guía completa: [`documents/10-despliegue-vps.md`](documents/10-despliegue-vps.md).

@@ -20,6 +20,8 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 | 6   | [Backlog y roadmap](./06-backlog-y-roadmap.md)                        | Épicas, historias de usuario, estado actual vs. planificado, cronograma.                                  |
 | 7   | [Avance del backend RAG](./07-avance-backend.md)                      | Guía viva de lo construido en el backend: pipeline de ingesta, proveedores, contrato y cómo correrlo.     |
 | 8   | [Despliegue en Render](./08-despliegue-render.md)                     | Cómo desplegar el backend (subcarpeta `backend/`) en Render, variables, verificación y consumo del front. |
+| 9   | [pgvector en Supabase](./09-pgvector-supabase.md)                     | Recuperación semántica con pgvector: Supabase local, ingesta con embeddings Gemini y verificación.        |
+| 10  | [Despliegue a producción (VPS)](./10-despliegue-vps.md)               | VPS con Docker + Caddy, Supabase free, CI/CD por SSH, builds EAS, Google Play, seguridad y costos.        |
 | 📸  | [Capturas](./screenshots/)                                            | Imágenes para la sustentación: estándar de nombres + checklist de capturas.                               |
 
 ---
