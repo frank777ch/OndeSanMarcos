@@ -83,6 +83,37 @@ def build_retriever(settings: Settings) -> SupportsRetrieve:
     return _build_local_retriever(settings)
 
 
+def ping_vector_store(settings: Settings) -> int | None:
+    """Cuenta las filas de la tabla pgvector; None si no hay Supabase configurado.
+
+    La usa `/health/db`: verifica la conexión y, llamada a diario por el
+    `keepalive` de `deploy/docker-compose.yml`, evita que Supabase (plan free)
+    pause el proyecto por inactividad.
+    """
+    if settings.rag_use_mock or not (settings.supabase_url and settings.supabase_service_key):
+        return None
+    return _count_pgvector_rows(settings)  # pragma: no cover - requiere red
+
+
+def _count_pgvector_rows(settings: Settings) -> int:  # pragma: no cover - requiere supabase (extra) + red
+    try:
+        from supabase import create_client
+    except ImportError as exc:
+        raise RagProviderError(
+            "Falta el paquete 'supabase'. Instálalo con "
+            "`pip install -r requirements-pgvector.txt`."
+        ) from exc
+
+    client = create_client(settings.supabase_url, settings.supabase_service_key)
+    response = (
+        client.table(settings.pgvector_table)
+        .select("id", count="exact")
+        .limit(1)
+        .execute()
+    )
+    return response.count or 0
+
+
 def _build_local_retriever(settings: Settings) -> Retriever:
     """Retriever local (bag-of-words + en memoria) sobre los documentos fuente."""
     from app.rag.embeddings import BagOfWordsEmbedding, build_vocabulary

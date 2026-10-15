@@ -1,6 +1,17 @@
 import { ExpoConfig, ConfigContext } from "expo/config";
 import "dotenv/config";
 
+// Única fuente de configuración de Expo (reemplaza a app.json).
+//
+// ID del proyecto en EAS. Se obtiene con `npx eas-cli init` usando la cuenta de
+// Expo del equipo y se pega aquí (ver documents/10-despliegue-vps.md §10.8).
+const EAS_PROJECT_ID: string | undefined = undefined;
+
+// Token público (pk.) de Mapbox. EXPO_PUBLIC_MAPBOX_TOKEN es el nombre vigente;
+// MAPBOX_PUBLIC_TOKEN se acepta por compatibilidad con .env antiguos.
+const MAPBOX_PUBLIC_TOKEN =
+  process.env.EXPO_PUBLIC_MAPBOX_TOKEN ?? process.env.MAPBOX_PUBLIC_TOKEN;
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "OndeSanMarcos",
@@ -25,20 +36,25 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: "#003087",
     },
     package: "com.ondesanmarcos.app",
-    permissions: config.android?.permissions || [
-      "ACCESS_FINE_LOCATION",
-      "ACCESS_COARSE_LOCATION",
-    ],
+    permissions: ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
   },
   web: {
     favicon: "./assets/favicon.png",
   },
   plugins: [
-    "expo-location",
+    [
+      "expo-location",
+      {
+        locationWhenInUsePermission:
+          "OndeSanMarcos usa tu ubicación para mostrarte en el mapa del campus y guiarte hasta tu destino.",
+      },
+    ],
     "expo-font",
     [
       "@rnmapbox/maps",
       {
+        // Token secreto (sk.) solo para descargar el SDK al compilar. Va en las
+        // variables de EAS, nunca en el repo.
         RNMAPBOX_MAPS_DOWNLOAD_TOKEN: process.env.RNMAPBOX_MAPS_DOWNLOAD_TOKEN,
       },
     ],
@@ -47,9 +63,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     typedRoutes: false,
   },
   extra: {
-    eas: {
-      projectId: "PROJECT_ID",
-    },
-    mapboxPublicToken: process.env.MAPBOX_PUBLIC_TOKEN,
+    ...(EAS_PROJECT_ID ? { eas: { projectId: EAS_PROJECT_ID } } : {}),
+    mapboxPublicToken: MAPBOX_PUBLIC_TOKEN,
   },
 });

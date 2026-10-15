@@ -1,0 +1,35 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	# Backend: chat, healthchecks y documentación Swagger (útil para la demo).
+	@api path /api/* /health /health/* /docs /docs/* /openapi.json
+	handle @api {
+		request_body {
+			max_size 16KB
+		}
+		reverse_proxy api:8000
+	}
+
+	# Página pública y política de privacidad (la exige Google Play).
+	handle {
+		root * /srv/site
+		try_files {path} {path}.html {path}/index.html
+		file_server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

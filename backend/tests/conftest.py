@@ -9,7 +9,11 @@ deterministas y no hacen llamadas de red.
 import os
 
 os.environ["RAG_USE_MOCK"] = "true"
+# El límite por IP se prueba aparte (test_ratelimit.py); aquí estorbaría a las
+# suites que hacen muchas consultas desde el mismo TestClient.
+os.environ["RATE_LIMIT_PER_MINUTE"] = "0"
 
+from app.api.ratelimit import get_rate_limiter  # noqa: E402
 from app.config import get_settings  # noqa: E402
 from app.rag.engine import get_engine  # noqa: E402
 
@@ -17,3 +21,4 @@ from app.rag.engine import get_engine  # noqa: E402
 # leyendo el `.env` antes de fijar la variable de entorno.
 get_settings.cache_clear()
 get_engine.cache_clear()
+get_rate_limiter.cache_clear()

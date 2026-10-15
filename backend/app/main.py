@@ -1,7 +1,7 @@
 """Punto de entrada de la API FastAPI.
 
-Por ahora expone solo el healthcheck; el router del chat se conecta en un
-paso posterior. Ejecuta en local con:
+Expone los healthchecks (`/health`, `/health/db`) y el chat (`/api/chat`).
+Ejecuta en local con:
 
     uvicorn app.main:app --reload
 """
@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from app import __version__
 from app.api.chat import router as chat_router
 from app.config import get_settings
-from app.rag.providers import RagProviderError
+from app.rag.providers import RagProviderError, ping_vector_store
 
 
 def create_app() -> FastAPI:
@@ -41,6 +41,14 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         """Verificación de vida del servicio."""
         return {"status": "ok", "service": settings.app_name, "version": __version__}
+
+    @app.get("/health/db", tags=["health"])
+    def health_db() -> dict[str, str | int]:
+        """Verifica la base vectorial (Supabase). Sin Supabase → `skipped`."""
+        rows = ping_vector_store(get_settings())
+        if rows is None:
+            return {"status": "skipped"}
+        return {"status": "ok", "documents": rows}
 
     app.include_router(chat_router)
     return app

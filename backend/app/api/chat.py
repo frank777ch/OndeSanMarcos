@@ -9,13 +9,18 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
+from app.api.ratelimit import enforce_rate_limit
 from app.rag.engine import RAGEngine, get_engine
 from app.schemas.chat import ChatRequest, ChatResponse
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post(
+    "/chat",
+    response_model=ChatResponse,
+    dependencies=[Depends(enforce_rate_limit)],
+)
 def chat(
     request: ChatRequest,
     engine: RAGEngine = Depends(get_engine),

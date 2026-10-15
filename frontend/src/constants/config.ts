@@ -1,14 +1,14 @@
 export const Config = {
   api: {
-    // Por defecto, el backend desplegado en Render. Para desarrollo local
-    // contra el backend en tu máquina, define EXPO_PUBLIC_API_URL.
+    // Los builds de EAS reciben EXPO_PUBLIC_API_URL (backend del VPS) desde las
+    // variables de entorno de Expo. El respaldo es el backend antiguo de Render,
+    // útil mientras se migra; para desarrollo local define la variable en `.env`.
     baseUrl:
       process.env.EXPO_PUBLIC_API_URL ??
       'https://ondesanmarcos-backend.onrender.com',
-    // 60s: el plan free de Render duerme el servicio tras ~15 min sin tráfico y
-    // el primer request (cold start) tarda ~50s. Un timeout menor cortaría esa
-    // primera consulta; al vencer, la UI muestra el error con "Reintentar".
-    timeout: 60000,
+    // 25s: el VPS no se duerme, así que basta con cubrir la respuesta de
+    // Gemini (unos segundos). Al vencer, la UI muestra el error con "Reintentar".
+    timeout: 25000,
   },
   mapbox: {
     token: process.env.EXPO_PUBLIC_MAPBOX_TOKEN ?? '',
