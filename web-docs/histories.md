@@ -25,8 +25,9 @@
 | HU-19 | Bienvenida | ⬜ Pendiente |
 | HU-20 | Calidad y cierre | ⬜ Pendiente |
 | HU-21 | Adaptación a móvil | ⬜ Pendiente |
+| HU-22 | Base de datos de lugares | ⬜ Pendiente |
 
-**Avance: 6 de 21 historias hechas.** Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 6 de 22 historias hechas.** HU-22 tiene ID alto para no renumerar, pero conviene hacerla antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
@@ -47,6 +48,7 @@ Estados: ⬜ pendiente · ✅ hecha
 | Mapa | HU-09 a HU-12 |
 | Rutas y ubicación | HU-13 a HU-16 |
 | Extras y cierre | HU-17 a HU-20 |
+| Datos (antes de HU-20) | HU-22 |
 | Móvil (después) | HU-21 |
 
 ---
@@ -147,6 +149,16 @@ Estados: ⬜ pendiente · ✅ hecha
 - **Aceptación:** al iniciar la guía el punto se mueve con mi posición y la distancia restante baja; al llegar se muestra un aviso y la guía termina.
 
 ---
+
+## Datos
+
+### HU-22 · Base de datos de lugares ⬜
+**Como** equipo, **quiero** que los datos de los lugares vivan en una base de datos **para** corregirlos sin redesplegar y compartir una sola fuente con el asistente.
+- Tablas `places` y `place_categories` en Supabase (nombre, categoría, coordenadas, palabras clave y los campos de la ficha de HU-12: horario, teléfono, anexo, descripción, carreras, servicios); lectura pública y escritura restringida con RLS; migración y carga inicial de los 55 lugares desde los datos actuales; cliente de Supabase en la web con un único módulo de acceso; carga al abrir la app con estado de carga y de error; copia de respaldo incluida en la app por si falla la red; variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `web/.env.example`.
+- Fuera de alcance: pantalla para editar los datos desde la web; que el RAG deje de usar su propio corpus; que el backend lea esta tabla (puede ser una historia posterior).
+- Depende de: HU-10, HU-11 y HU-12 (para conocer los campos de la ficha).
+- Decisiones a tomar al escribir la spec: leer directo desde Supabase o a través de un endpoint del backend; usar el proyecto de Supabase del backend o uno nuevo; quién verifica los datos marcados como «demo» antes de cargarlos.
+- **Aceptación:** la web muestra los mismos 55 lugares leídos de Supabase; si la carga falla, usa la copia incluida y avisa; cambiar un horario en la tabla se ve al recargar, sin redesplegar; la búsqueda sigue resolviéndose en memoria, sin llamar al backend; hay tests del acceso a datos.
 
 ## Extras y cierre
 
