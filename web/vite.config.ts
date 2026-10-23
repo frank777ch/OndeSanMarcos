@@ -10,6 +10,10 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    // mapbox-gl pesa ~1.9 MB y va en su propio chunk de carga diferida.
+    chunkSizeWarningLimit: 2000,
+  },
   test: {
     environment: 'jsdom',
     globals: true,

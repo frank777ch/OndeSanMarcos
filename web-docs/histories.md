@@ -72,7 +72,7 @@ Estados: ⬜ pendiente · ✅ hecha
 
 ## Mapa
 
-### HU-09 · Mapa del campus ⬜
+### HU-09 · Mapa del campus ✅
 **Como** visitante, **quiero** ver un mapa del campus **para** ubicarme en él.
 - Mapa Mapbox GL JS ocupando el área de contenido; cámara inicial centrada en la UNMSM con zoom e inclinación definidos; controles de zoom y de reorientar al norte; límites para no alejarse del campus; botón "Volver al campus".
 - **Aceptación:** el mapa carga, se puede mover y hacer zoom, y el botón regresa a la vista inicial; si falta el token se muestra un mensaje claro.
