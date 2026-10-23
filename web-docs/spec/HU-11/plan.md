@@ -103,3 +103,4 @@ Manual (requiere token de Mapbox): escenarios 1–12 de `spec.md` sobre el mapa 
 - 2026-10-23 · Ejecutado. Se añadió `selectedFilter` en `utils/places.ts` y los íconos `Landmark`, `HeartPulse`, `ConciergeBell` y `MapPin` para los chips nuevos.
 - 2026-10-23 · Se quita la capa del anillo y `selectedFilter` (RF-11.14 retirado). `PlacesLayer` vuelve a ser el de HU-10.
 - 2026-10-23 · `PlaceSearch.module.css`: `.input:focus-visible { outline: none }`. Se quita el contorno de foco por decisión de diseño; el campo conserva su sombra y el cursor de texto como indicación. Queda anotado como compromiso de accesibilidad.
+- 2026-10-23 · HU-12 reemplaza `MapToolbar` por `MapOverlay` y amplía `useMapStore` (`selectionOrigin`).

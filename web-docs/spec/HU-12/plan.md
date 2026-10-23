@@ -1,7 +1,7 @@
 # HU-12 · Plan técnico
 
 - **Spec:** [spec.md](spec.md)
-- **Estado:** Borrador
+- **Estado:** Ejecutado
 
 ## 1. Enfoque
 1. Ampliar `Place` con los campos de ficha y cargarlos desde los datos de la app anterior.
@@ -102,3 +102,4 @@ Manual (requiere token de Mapbox): escenarios 1, 7, 10 y 14 sobre el mapa real (
 
 ## 8. Historial
 - 2026-10-23 · Plan creado tras resolver las preguntas abiertas del spec.
+- 2026-10-23 · Ejecutado. `IconButton` acepta `ref` (React 19) para enfocar «Cerrar». El campo de búsqueda se sincroniza ajustando el estado al renderizar (no con un efecto) por la regla `set-state-in-effect`. `MapToolbar` se eliminó y lo absorbió `MapOverlay`.

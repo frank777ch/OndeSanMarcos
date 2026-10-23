@@ -11,7 +11,7 @@ import { FlyToSelection } from './FlyToSelection'
 describe('FlyToSelection', () => {
   beforeEach(() => {
     flyTo.mockClear()
-    useMapStore.setState({ activeCategory: null, selectedPlaceId: null })
+    useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null })
   })
 
   it('RF-11.13: sin selección no mueve la cámara', () => {
@@ -34,5 +34,17 @@ describe('FlyToSelection', () => {
     flyTo.mockClear()
     act(() => useMapStore.getState().clearSelection())
     expect(flyTo).not.toHaveBeenCalled()
+  })
+
+  it('RF-12.3: un toque en el mapa no mueve la cámara', () => {
+    render(<FlyToSelection />)
+    act(() => useMapStore.getState().selectPlace('3', 'map'))
+    expect(flyTo).not.toHaveBeenCalled()
+  })
+
+  it('RF-12.4: elegir desde otra fuente sí vuela', () => {
+    render(<FlyToSelection />)
+    act(() => useMapStore.getState().selectPlace('3', 'other'))
+    expect(flyTo).toHaveBeenCalledTimes(1)
   })
 })

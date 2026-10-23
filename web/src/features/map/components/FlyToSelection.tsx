@@ -12,6 +12,8 @@ export function FlyToSelection() {
 
   useEffect(() => {
     if (!map || !selectedPlaceId) return
+    // Un toque en el mapa no mueve la cámara: el lugar ya está a la vista.
+    if (useMapStore.getState().selectionOrigin === 'map') return
     const place = PLACES.find((p) => p.id === selectedPlaceId)
     if (!place) return
     map.flyTo({ center: place.coordinates, zoom: SELECTED_ZOOM, duration: 1500 })

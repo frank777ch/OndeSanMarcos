@@ -1,5 +1,5 @@
 import { PLACE_CATEGORIES, PLACES } from '../data/places'
-import { filterPlaces, placesToGeoJSON } from './places'
+import { filterPlaces, placeIdFromFeatures, placesToGeoJSON } from './places'
 
 describe('filterPlaces', () => {
   it('RF-11.4: la lista completa tiene 55 lugares', () => {
@@ -32,5 +32,20 @@ describe('placesToGeoJSON', () => {
       const cat = PLACE_CATEGORIES.find((c) => c.id === f.properties.category)
       expect(f.properties.color).toBe(cat?.color)
     }
+  })
+})
+
+describe('placeIdFromFeatures', () => {
+  it('RF-12.3: devuelve el id del primer punto tocado', () => {
+    expect(
+      placeIdFromFeatures([{ properties: { id: '3' } }, { properties: { id: '8' } }]),
+    ).toBe('3')
+  })
+
+  it('RF-12.7: sin puntos tocados devuelve null', () => {
+    expect(placeIdFromFeatures(undefined)).toBeNull()
+    expect(placeIdFromFeatures([])).toBeNull()
+    expect(placeIdFromFeatures([{ properties: null }])).toBeNull()
+    expect(placeIdFromFeatures([{ properties: { id: 3 } }])).toBeNull()
   })
 })

@@ -40,3 +40,11 @@ export function placesToGeoJSON(
   }))
   return { type: 'FeatureCollection', features }
 }
+
+/** Id del lugar del primer punto tocado en el mapa, o `null` si no hay ninguno. */
+export function placeIdFromFeatures(
+  features: { properties?: Record<string, unknown> | null }[] | undefined,
+): string | null {
+  const id = features?.[0]?.properties?.id
+  return typeof id === 'string' ? id : null
+}

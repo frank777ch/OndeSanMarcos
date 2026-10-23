@@ -26,6 +26,19 @@ export interface Place {
   coordinates: LngLat
   /** Palabras o siglas con las que también se puede buscar el lugar. */
   keywords: string[]
+  // Datos de la ficha. Todos son opcionales: hay lugares sin información
+  // (puertas, canchas) que solo muestran nombre y categoría.
+  /** Horario resumido, ej. «Lun–Vie 8:00–16:00». */
+  schedule?: string
+  description?: string
+  phone?: string
+  annex?: string
+  careers?: string[]
+  services?: string[]
+  /** Para qué se usa el lugar (auditorios). */
+  usage?: string
+  /** Un tramo de horario por línea. */
+  detailedSchedule?: string[]
 }
 
 /** Categorías en el orden en que se muestran los filtros. */
@@ -45,6 +58,8 @@ export const PLACE_CATEGORIES: PlaceCategory[] = [
  * Lugares del campus. Unifica los puntos del mapa (ids "1"–"40") con los
  * lugares del asistente que no tenían punto (ids con nombre). Coordenadas
  * aproximadas.
+ * Los datos de la ficha vienen de la app anterior y están SIN VERIFICAR
+ * («demo»): confirmar horarios, teléfonos y carreras con la universidad.
  * Pendiente de limpieza: los ids "23" y "25" repiten el nombre.
  */
 export const PLACES: Place[] = [
@@ -103,6 +118,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0857217, -12.0535548],
     keywords: ["fisi", "sistemas", "ingenieria de sistemas", "ingenieria de software", "informatica", "software", "programacion", "computacion"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Una de las mejores facultades de informática del Perú según múltiples rankings. Cuenta con laboratorios de cómputo modernos y grupos de investigación activos.",
+    phone: "619-7000",
+    careers: ["Ingeniería de Sistemas", "Ingeniería de Software"],
   },
   {
     id: "9",
@@ -117,6 +136,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0867638, -12.0535766],
     keywords: ["psicologia", "psicologo", "facultad de psicologia", "conducta", "mente"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Cuenta con laboratorios modernos, biblioteca especializada y un centro psicológico que brinda atención a la comunidad universitaria.",
+    phone: "619-7000",
+    careers: ["Psicología", "Psicología Organizacional y de la Gestión Humana"],
   },
   {
     id: "11",
@@ -124,6 +147,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0869915, -12.0552369],
     keywords: ["electronica", "electrica", "biomedica", "fiee", "ingenieria electronica", "telecomunicaciones"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Fundada en 1969. Pabellón nuevo con acceso para personas con discapacidad, sala de estudio y comedor en el tercer piso. Laboratorios de electrónica, telecomunicaciones y biomédica.",
+    phone: "619-7000",
+    careers: ["Ingeniería Electrónica", "Ingeniería Eléctrica", "Ingeniería de Telecomunicaciones", "Ingeniería Biomédica"],
   },
   {
     id: "12",
@@ -131,6 +158,9 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.087094, -12.0558976],
     keywords: ["ingenieria civil", "fic", "civil", "construccion", "estructuras"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Edificio moderno con aulas bien equipadas. Cuenta con laboratorios de estructuras, geotecnia e hidráulica.",
+    careers: ["Ingeniería Civil"],
   },
   {
     id: "13",
@@ -152,6 +182,9 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0851319, -12.0554579],
     keywords: ["educacion", "pedagogia", "docente", "ensenanza", "facultad de educacion"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Forma docentes y pedagogos. Cuenta con laboratorios de enseñanza y sala de cómputo.",
+    careers: ["Educación", "Educación Física"],
   },
   {
     id: "16",
@@ -166,6 +199,9 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.084739, -12.0607884],
     keywords: ["geologia", "mineria", "metalurgia", "figmmg", "minas", "geologica", "minera"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Referente nacional en formación de ingenieros del sector minero y energético. Tiene convenios con empresas del sector extractivo.",
+    careers: ["Ingeniería Geológica", "Ingeniería de Minas", "Ingeniería Metalúrgica", "Ingeniería Geográfica"],
   },
   {
     id: "18",
@@ -180,6 +216,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0835806, -12.060074],
     keywords: ["quimica", "textil", "ingenieria quimica", "fqiq"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Fundada en 1855. Forma químicos e ingenieros químicos con laboratorios especializados.",
+    phone: "619-7000",
+    careers: ["Química", "Ingeniería Química", "Ingeniería Textil"],
   },
   {
     id: "20",
@@ -187,6 +227,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.08205978986605, -12.0596728770671],
     keywords: ["biologia", "biologicas", "ciencias biologicas", "microbiologia", "genetica", "ecologia"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Principal centro de investigación biológica del Perú. Sus laboratorios identifican nuevas especies cada año.",
+    phone: "619-7000",
+    careers: ["Biología", "Microbiología y Parasitología", "Genética y Biotecnología"],
   },
   {
     id: "21",
@@ -194,6 +238,9 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0818206, -12.0595585],
     keywords: ["fisica", "ciencias fisicas", "fisico", "astrofisica", "optica"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Investigación en astrofísica, óptica y física aplicada. Centro de referencia en ciencias básicas a nivel nacional.",
+    careers: ["Física", "Física Médica"],
   },
   {
     id: "22",
@@ -201,6 +248,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0823088, -12.0605261],
     keywords: ["matematicas", "matematica", "estadistica", "computacion cientifica", "investigacion operativa"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Inició funciones en 1850. Forma matemáticos, estadísticos e investigadores en computación científica.",
+    phone: "619-7000",
+    careers: ["Matemática", "Estadística", "Investigación Operativa", "Computación Científica"],
   },
   {
     id: "23",
@@ -215,6 +266,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0813687, -12.0577069],
     keywords: ["administracion", "administrativas", "turismo", "hoteleria", "gestion empresarial"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Orígenes en 1875. Tiene maestría en Ciencias Administrativas con 6 menciones. Forma administradores con visión estratégica y proyección internacional.",
+    phone: "619-7000",
+    careers: ["Administración", "Administración de Turismo", "Administración de Negocios Internacionales"],
   },
   {
     id: "25",
@@ -222,6 +277,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0804662, -12.0596003],
     keywords: ["industrial", "ingenieria industrial", "fii", "produccion", "gestion"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Creada en 1988. Acreditada internacionalmente. Excelente nivel académico.",
+    phone: "619-7000",
+    careers: ["Ingeniería Industrial"],
   },
   {
     id: "26",
@@ -229,6 +288,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0816666, -12.0579798],
     keywords: ["ciencias sociales", "sociologia", "antropologia", "trabajo social", "arqueologia"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Patio interior con mesas y bancas de uso libre para estudiantes de toda la universidad. Muy cercana al Estadio Olímpico.",
+    phone: "619-7000",
+    careers: ["Sociología", "Antropología", "Trabajo Social", "Arqueología", "Ciencia Política y Gobernabilidad", "Geografía"],
   },
   {
     id: "27",
@@ -236,6 +299,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0811987, -12.0580466],
     keywords: ["economia", "economicas", "economista", "macroeconomia", "microeconomia"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Edificio moderno con estacionamiento. Forma economistas con sólida base teórica y cuantitativa.",
+    phone: "619-7000",
+    careers: ["Economía"],
   },
   {
     id: "28",
@@ -243,6 +310,9 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0804619, -12.0576735],
     keywords: ["contabilidad", "contables", "auditoria", "finanzas", "tributacion"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Forma contadores públicos y auditores. Orientada a finanzas, auditoría y tributación.",
+    careers: ["Contabilidad"],
   },
   {
     id: "29",
@@ -250,6 +320,11 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.0814113, -12.0574376],
     keywords: ["letras", "humanidades", "literatura", "linguistica", "filosofia", "historia", "facultad de letras"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Única universidad de Lima con carrera de Historia del Arte y única del Perú con Conservación y Restauración. Tiene tres auditorios, biblioteca especializada y Centro de Idiomas.",
+    phone: "619-7000",
+    annex: "2802",
+    careers: ["Literatura", "Lingüística", "Filosofía", "Historia", "Arte", "Conservación y Restauración", "Danza", "Bibliotecología y Ciencias de la Información", "Comunicación Social", "Lenguas", "Traducción e Interpretación"],
   },
   {
     id: "30",
@@ -257,6 +332,9 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.08604219318228, -12.054134481058806],
     keywords: ["odontologia", "dentista", "dientes", "estomatologia", "facultad de odontologia"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Forma odontólogos y cuenta con clínica propia donde los estudiantes realizan prácticas supervisadas.",
+    careers: ["Odontología"],
   },
   {
     id: "31",
@@ -264,6 +342,10 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.086256, -12.0534471],
     keywords: ["economia", "economicas", "economista", "macroeconomia", "microeconomia"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Edificio moderno con estacionamiento. Forma economistas con sólida base teórica y cuantitativa.",
+    phone: "619-7000",
+    careers: ["Economía"],
   },
   {
     id: "32",
@@ -278,6 +360,9 @@ export const PLACES: Place[] = [
     category: 'cafeterias',
     coordinates: [-77.08361038902244, -12.060082360827014],
     keywords: ["cafeteria", "ingenieria quimica", "fqiq", "comida", "almuerzo", "bebidas", "snacks"],
+    schedule: "Lun–Sáb 9:00–20:00",
+    description: "Cafetería principal de la Facultad de Química e Ingeniería Química.",
+    services: ["Venta de alimentos", "Snacks", "Bebidas", "Postres"],
   },
   {
     id: "34",
@@ -285,6 +370,9 @@ export const PLACES: Place[] = [
     category: 'cafeterias',
     coordinates: [-77.08514887439485, -12.054603716785754],
     keywords: ["cafeteria", "odontologia", "comida", "bebidas", "snacks", "almuerzo"],
+    schedule: "Lun–Sáb 9:00–20:00",
+    description: "Cafetería principal de la Facultad de Odontología.",
+    services: ["Venta de alimentos", "Snacks", "Bebidas"],
   },
   {
     id: "35",
@@ -292,6 +380,9 @@ export const PLACES: Place[] = [
     category: 'cafeterias',
     coordinates: [-77.0872794, -12.0562339],
     keywords: ["cafeteria", "ingenieria civil", "civil", "comida", "bebidas", "snacks"],
+    schedule: "Lun–Sáb 9:00–20:00",
+    description: "Cafetería principal de la Facultad de Ingeniería Civil.",
+    services: ["Venta de alimentos", "Snacks", "Bebidas"],
   },
   {
     id: "36",
@@ -306,6 +397,9 @@ export const PLACES: Place[] = [
     category: 'auditorios',
     coordinates: [-77.0860517, -12.05667],
     keywords: ["auditorio", "ella dunbar", "dunbar temple", "eventos", "conferencia", "graduacion", "promociones"],
+    schedule: "Según programación de eventos",
+    description: "Auditorio con capacidad para aproximadamente 400 butacas. Equipado con sistemas de videoconferencia, proyectores multimedia y sonido profesional.",
+    usage: "Ceremonias de graduación, conferencias, eventos académicos y culturales de gran escala.",
   },
   {
     id: "38",
@@ -313,6 +407,9 @@ export const PLACES: Place[] = [
     category: 'auditorios',
     coordinates: [-77.08521854944695, -12.055838267297563],
     keywords: ["auditorio", "rosa alarco", "larraburre", "eventos", "conferencia", "charla"],
+    schedule: "Según programación de eventos",
+    description: "Auditorio utilizado para eventos de escala mediana.",
+    usage: "Conferencias, charlas, seminarios y eventos de escala mediana.",
   },
   {
     id: "39",
@@ -334,6 +431,7 @@ export const PLACES: Place[] = [
     category: 'administracion',
     coordinates: [-77.086252, -12.056524],
     keywords: ["rectorado", "rector", "administracion central", "jorge basadre", "autoridades", "gobierno universitario"],
+    schedule: "Lun–Vie 8:00–16:00",
   },
   {
     id: "oca",
@@ -341,6 +439,8 @@ export const PLACES: Place[] = [
     category: 'administracion',
     coordinates: [-77.085374, -12.05201],
     keywords: ["oca", "oficina central de admision", "admisión", "admision", "postulante", "examen de admision", "inscripcion"],
+    schedule: "Lun–Vie 9:00–16:00",
+    description: "Gestiona todos los procesos de admisión de la UNMSM: examen ordinario, traslado interno y externo, ingreso directo por egresados, PIR (víctimas de terrorismo) y otros. La UNMSM realiza dos exámenes de admisión al año aprox. Uno en marzo y otro en septiembre.",
   },
   {
     id: "posgrado",
@@ -348,6 +448,8 @@ export const PLACES: Place[] = [
     category: 'administracion',
     coordinates: [-77.085791, -12.052401],
     keywords: ["posgrado", "maestria", "doctorado", "escuela de posgrado", "segunda especialidad", "dgep"],
+    schedule: "Lun–Vie 8:00–20:00",
+    description: "Ofrece 130 programas de maestría, 34 de doctorado y 133 de segundas especialidades en las 5 áreas del conocimiento de la universidad.",
   },
   {
     id: "cepreunmsm",
@@ -355,6 +457,8 @@ export const PLACES: Place[] = [
     category: 'administracion',
     coordinates: [-77.085392, -12.052116],
     keywords: ["cepreunmsm", "cepre", "preuniversitario", "pre", "preparatoria", "academia", "postulante", "admision"],
+    schedule: "Según ciclo académico vigente · Consultar en cepre.unmsm.edu.pe",
+    description: "Academia preparatoria oficial de la UNMSM. Los alumnos que ocupan una vacante en el cuadro de méritos acceden a la UNMSM sin rendir el examen ordinario.",
   },
   {
     id: "clinica-universitaria",
@@ -362,6 +466,9 @@ export const PLACES: Place[] = [
     category: 'salud',
     coordinates: [-77.082159, -12.055662],
     keywords: ["clinica", "clinica universitaria", "medico", "salud", "consulta", "traumatologia", "dermatologia", "cardiologia", "laboratorio", "rayos x", "emergencia", "doctor"],
+    schedule: "Lun–Sáb 8:00–20:00",
+    description: "Ofrece servicios de Medicina General, Oftalmología, Ginecología, Psiquiatría, Dermatología, Psicología, Odontología, Nutrición, Traumatología, Radiología, Cardiología, entre otros. Atiende a estudiantes, docentes, personal administrativo, jubilados y comunidad vecina.",
+    phone: "956 285 709 / 992 455 977",
   },
   {
     id: "clinica-odontologia",
@@ -369,6 +476,10 @@ export const PLACES: Place[] = [
     category: 'salud',
     coordinates: [-77.085822, -12.054709],
     keywords: ["odontologia", "dentista", "dientes", "dental", "clinica odontologica", "ortodoncia", "endodoncia"],
+    schedule: "Lun–Vie 9:00–18:00 · Tel: 619-7000",
+    description: "Forma odontólogos y cuenta con clínica propia donde los estudiantes realizan prácticas supervisadas. Ofrece atenciones a precios accesibles para la comunidad universitaria y público general.",
+    phone: "619-7000",
+    annex: "3408",
   },
   {
     id: "comedor-universitario",
@@ -376,6 +487,8 @@ export const PLACES: Place[] = [
     category: 'servicios',
     coordinates: [-77.083055, -12.059418],
     keywords: ["comedor", "comedor universitario", "almuerzo", "desayuno", "cena", "comer", "ticket", "racion", "comida"],
+    schedule: "Lun–Vie · Desayuno: 7:00 (Sin Ticket) · Almuerzo: 12:00–13:40 (Con Ticket) · Cena: 17:00–18:00 (Con Ticket)",
+    detailedSchedule: ["Desayuno: 7:00 (Sin Ticket)", "Almuerzo: 12:00–13:40 (Con Ticket)", "Cena: 17:00–18:00 (Con Ticket)"],
   },
   {
     id: "biblioteca-central",
@@ -383,6 +496,11 @@ export const PLACES: Place[] = [
     category: 'servicios',
     coordinates: [-77.085872, -12.055881],
     keywords: ["biblioteca", "biblioteca central", "pedro zulen", "libros", "tesis", "hemeroteca", "sisbib", "leer", "estudiar"],
+    schedule: "Lun–Sáb 8:00–20:00 · Requiere carné de biblioteca · Tel: 619-7000 anexo 7701",
+    description: "La biblioteca universitaria más grande del Perú (19,800 m²). Capacidad para 2,500 usuarios simultáneos. Ofrece préstamo de libros, sala de tesis, hemeroteca y sistema Cybertesis.",
+    phone: "619-7000",
+    annex: "7701",
+    detailedSchedule: ["Requiere carné de biblioteca"],
   },
   {
     id: "residencia-universitaria",
@@ -390,6 +508,10 @@ export const PLACES: Place[] = [
     category: 'servicios',
     coordinates: [-77.084445, -12.055057],
     keywords: ["residencia", "vivienda universitaria", "hospedaje", "alojamiento", "beca vivienda"],
+    schedule: "Atención administrativa: Lun–Vie 8:00–16:00",
+    description: "Vivienda universitaria para estudiantes de escasos recursos. Incluye biblioteca, sala de cómputo, cocina, sala de visitas, auditorio y lavandería.",
+    phone: "619-7000",
+    annex: "7526",
   },
   {
     id: "huaca-san-marcos",
@@ -397,6 +519,8 @@ export const PLACES: Place[] = [
     category: 'otros',
     coordinates: [-77.086027, -12.059995],
     keywords: ["huaca", "huaca san marcos", "arqueologia", "cultura maranga", "monumento arqueologico", "patrimonio", "historia"],
+    schedule: "Acceso libre dentro del campus",
+    description: "Gran estructura ceremonial prehispánica (330 m × 135 m × 32 m de altura) construida por la Cultura Lima a partir del siglo V d.C. Es un monumento arqueológico protegido por ley.",
   },
   {
     id: "cafeteria-clinica-universitaria",
@@ -404,6 +528,9 @@ export const PLACES: Place[] = [
     category: 'cafeterias',
     coordinates: [-77.08180709585918, -12.055859998919493],
     keywords: ["cafeteria", "clinica universitaria", "clinica", "comida", "bebidas", "snacks", "almuerzo"],
+    schedule: "Lun–Sáb 9:00–20:00",
+    description: "Cafetería ubicada en la Clínica Universitaria UNMSM.",
+    services: ["Venta de almuerzos", "Postres", "Jugos"],
   },
   {
     id: "cafeteria-industrial",
@@ -411,6 +538,9 @@ export const PLACES: Place[] = [
     category: 'cafeterias',
     coordinates: [-77.0810236227308, -12.060103868074439],
     keywords: ["cafeteria", "ingenieria industrial", "industrial", "fii", "comida", "bebidas", "snacks", "almuerzo"],
+    schedule: "Lun–Sáb 9:00–20:00",
+    description: "Cafetería famosa por sus sándwiches y café. Cuenta con vending machines en el lobby.",
+    services: ["Venta de alimentos", "Snacks", "Bebidas"],
   },
   {
     id: "estadio-universitario",
@@ -418,6 +548,8 @@ export const PLACES: Place[] = [
     category: 'campos-deportivos',
     coordinates: [-77.084603, -12.055794],
     keywords: ["estadio", "pista atletica", "cancha", "atletismo", "concierto", "evento"],
+    schedule: "Acceso sujeto a eventos y actividades programadas",
+    description: "Cuenta con pista atlética y campo de fútbol. Se utiliza para eventos deportivos universitarios y grandes conciertos internacionales.",
   },
   {
     id: "gimnasio-universitario",
@@ -425,6 +557,8 @@ export const PLACES: Place[] = [
     category: 'campos-deportivos',
     coordinates: [-77.084403, -12.05964],
     keywords: ["gimnasio", "gym", "pesas", "ejercicio", "deporte", "entrenamiento", "fitness"],
+    schedule: "Lun–Vie 6:00–20:00 · Sáb 8:00–16:30",
+    description: "Uso gratuito para la comunidad sanmarquina. Ofrece canchas de fútbol, vóley y básquet, zona de pesas y equipos de ejercicio modernos de acceso libre.",
   },
   {
     id: "derecho",
@@ -432,5 +566,9 @@ export const PLACES: Place[] = [
     category: 'facultades',
     coordinates: [-77.080267, -12.058368],
     keywords: ["derecho", "ciencia politica", "abogado", "leyes", "facultad de derecho", "fdcp", "juridica", "jurisprudencia"],
+    schedule: "Lun–Sáb 8:00–22:00",
+    description: "Una de las facultades más antiguas de la UNMSM, con antecedentes desde 1551. Tiene dos edificios (uno para Derecho, otro nuevo para Ciencia Política).",
+    phone: "(01) 452-0550",
+    careers: ["Derecho", "Ciencia Política"],
   },
 ]

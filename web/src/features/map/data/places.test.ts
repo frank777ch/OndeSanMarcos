@@ -96,4 +96,66 @@ describe('datos de lugares', () => {
       'Otros',
     ])
   })
+
+  describe('datos de la ficha', () => {
+    const have = (field: keyof (typeof PLACES)[number]) =>
+      PLACES.filter((p) => p[field] !== undefined).length
+
+    it('RF-12.1: conteo de lugares con cada dato', () => {
+      expect(have('schedule')).toBe(38)
+      expect(have('description')).toBe(36)
+      expect(have('phone')).toBe(17)
+      expect(have('annex')).toBe(4)
+      expect(have('careers')).toBe(19)
+      expect(have('services')).toBe(5)
+      expect(have('usage')).toBe(2)
+      expect(have('detailedSchedule')).toBe(2)
+    })
+
+    it('RF-12.1: la FISI trae horario, descripción, teléfono y carreras', () => {
+      const fisi = PLACES.find((p) => p.id === '8')!
+      expect(fisi.schedule).toBeTruthy()
+      expect(fisi.description).toBeTruthy()
+      expect(fisi.phone).toBeTruthy()
+      expect(fisi.careers?.length).toBeGreaterThan(0)
+    })
+
+    it('RF-12.1: Ciencias Económicas (puntos 27 y 31) comparten los mismos datos', () => {
+      const a = PLACES.find((p) => p.id === '27')!
+      const b = PLACES.find((p) => p.id === '31')!
+      expect(a.careers).toBeDefined()
+      expect(a.careers).toEqual(b.careers)
+      expect(a.description).toEqual(b.description)
+    })
+
+    it('RF-12.1: la Biblioteca Central tiene horario detallado', () => {
+      const bib = PLACES.find((p) => p.id === 'biblioteca-central')!
+      expect(bib.detailedSchedule?.length).toBeGreaterThan(0)
+    })
+
+    it('RF-12.2: puertas y canchas no tienen datos de ficha (ficha mínima)', () => {
+      const minimal = PLACES.filter(
+        (p) => p.category === 'puertas' || p.name.startsWith('Cancha'),
+      )
+      expect(minimal).toHaveLength(10)
+      for (const p of minimal) {
+        expect(p.schedule ?? p.description ?? p.phone ?? p.careers).toBeUndefined()
+      }
+    })
+
+    it('RF-12.2: 17 lugares no tienen ningún dato de ficha', () => {
+      const none = PLACES.filter(
+        (p) =>
+          !p.schedule &&
+          !p.description &&
+          !p.phone &&
+          !p.annex &&
+          !p.careers &&
+          !p.services &&
+          !p.usage &&
+          !p.detailedSchedule,
+      )
+      expect(none).toHaveLength(17)
+    })
+  })
 })

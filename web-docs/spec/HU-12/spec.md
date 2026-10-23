@@ -1,6 +1,6 @@
 # HU-12 · Ficha de lugar
 
-- **Estado:** Aprobada
+- **Estado:** Implementada (escenarios 1, 6, 7, 10 y 14 con el mapa real pendientes de verificar a mano: requieren token de Mapbox)
 - **Historia:** ver `../../histories.md#hu-12`
 - **Depende de:** HU-09 (mapa), HU-10 (lugares), HU-11 (selección de lugar y búsqueda)
 - **Archivos hermanos:** [plan.md](plan.md) · [task.md](task.md)
@@ -128,3 +128,4 @@ La información existe para los lugares que el asistente ya conocía (en la app 
 ## 6. Historial
 - 2026-10-23 · Borrador creado con preguntas abiertas.
 - 2026-10-23 · Preguntas resueltas. Se añadieron RF-12.3 «sin mover la cámara», RF-12.17 (logo y atribución de Mapbox, requisito de su licencia) y RF-12.18 (campo de búsqueda sincronizado). Spec aprobada.
+- 2026-10-23 · Implementada.

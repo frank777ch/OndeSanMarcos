@@ -15,7 +15,7 @@
 | HU-09 | Mapa del campus | ✅ Hecha |
 | HU-10 | Lugares y filtros | ✅ Hecha |
 | HU-11 | Buscar un lugar | ✅ Hecha |
-| HU-12 | Ficha de lugar | ⬜ Pendiente |
+| HU-12 | Ficha de lugar | ✅ Hecha |
 | HU-13 | Calcular una ruta | ⬜ Pendiente |
 | HU-14 | Ver la ruta | ⬜ Pendiente |
 | HU-15 | Mi ubicación | ⬜ Pendiente |
@@ -27,7 +27,7 @@
 | HU-21 | Adaptación a móvil | ⬜ Pendiente |
 | HU-22 | Base de datos de lugares | ⬜ Pendiente |
 
-**Avance: 6 de 22 historias hechas.** HU-22 tiene ID alto para no renumerar, pero conviene hacerla antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 7 de 22 historias hechas.** HU-22 tiene ID alto para no renumerar, pero conviene hacerla antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
@@ -119,7 +119,7 @@ Estados: ⬜ pendiente · ✅ hecha
 - Barra de búsqueda con resultados mientras escribo (sin distinguir tildes ni mayúsculas); al elegir un resultado la cámara vuela al lugar.
 - **Aceptación:** buscar "biblioteca" lista las coincidencias; elegir una centra el mapa y abre su ficha.
 
-### HU-12 · Ficha de lugar ⬜
+### HU-12 · Ficha de lugar ✅
 **Como** visitante, **quiero** ver los datos de un lugar al tocarlo **para** conocerlo antes de ir.
 - Tarjeta con nombre, categoría, descripción y horario si lo hay; botón "Cómo llegar"; se abre como panel inferior en móvil y lateral en escritorio; cerrar con botón o tecla Esc.
 - **Aceptación:** tocar un punto abre su ficha; cerrarla la quita; "Cómo llegar" inicia HU-13.

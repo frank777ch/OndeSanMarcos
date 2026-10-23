@@ -1,12 +1,14 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useMapStore } from '../store/useMapStore'
+import { act } from 'react'
+import { PlaceCard } from './PlaceCard'
 import { PlaceSearch } from './PlaceSearch'
 
 const box = () => screen.getByRole('combobox', { name: 'Buscar un lugar' })
 
 describe('PlaceSearch', () => {
-  beforeEach(() => useMapStore.setState({ activeCategory: null, selectedPlaceId: null }))
+  beforeEach(() => useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null }))
 
   it('RF-11.6: muestra el campo «Buscar un lugar»', () => {
     render(<PlaceSearch />)
@@ -93,5 +95,50 @@ describe('PlaceSearch', () => {
     await userEvent.type(box(), 'facultad')
     await userEvent.keyboard('{ArrowDown}{ArrowUp}{ArrowUp}')
     expect(screen.getAllByRole('option')[0]).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('RF-12.4: elegir un resultado abre la ficha del lugar', async () => {
+    render(
+      <>
+        <PlaceSearch />
+        <PlaceCard />
+      </>,
+    )
+    await userEvent.type(box(), 'biblioteca')
+    await userEvent.click(screen.getByRole('option', { name: /Biblioteca Central/ }))
+    expect(screen.getByRole('dialog', { name: /Biblioteca Central/ })).toBeInTheDocument()
+  })
+
+  it('RF-12.18: al tocar un punto el campo muestra su nombre; al cerrar la ficha se vacía', async () => {
+    render(
+      <>
+        <PlaceSearch />
+        <PlaceCard />
+      </>,
+    )
+    act(() => useMapStore.getState().selectPlace('3', 'map'))
+    expect(box()).toHaveValue('Puerta 3')
+    expect(screen.queryByRole('option')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
+    expect(box()).toHaveValue('')
+  })
+
+  it('RF-12.6: Esc con la lista abierta cierra solo la lista y no la ficha', async () => {
+    render(
+      <>
+        <PlaceSearch />
+        <PlaceCard />
+      </>,
+    )
+    act(() => useMapStore.getState().selectPlace('3', 'map'))
+    await userEvent.clear(box())
+    await userEvent.type(box(), 'facultad')
+    expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('option')).not.toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    // Con la lista ya cerrada, un segundo Esc sí cierra la ficha.
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

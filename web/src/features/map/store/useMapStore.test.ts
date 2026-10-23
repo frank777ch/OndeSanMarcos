@@ -1,7 +1,7 @@
 import { useMapStore } from './useMapStore'
 
 describe('useMapStore', () => {
-  beforeEach(() => useMapStore.setState({ activeCategory: null, selectedPlaceId: null }))
+  beforeEach(() => useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null }))
 
   it('RF-10.3: al inicio no hay categoría activa', () => {
     expect(useMapStore.getState().activeCategory).toBeNull()
@@ -68,5 +68,52 @@ describe('useMapStore', () => {
     useMapStore.getState().selectPlace('3')
     useMapStore.getState().clearSelection()
     expect(useMapStore.getState().selectedPlaceId).toBeNull()
+  })
+
+  describe('ficha (HU-12)', () => {
+    it('RF-12.3: un toque en el mapa guarda el origen «map»', () => {
+      useMapStore.getState().selectPlace('3', 'map')
+      expect(useMapStore.getState().selectedPlaceId).toBe('3')
+      expect(useMapStore.getState().selectionOrigin).toBe('map')
+    })
+
+    it('RF-12.4: por defecto el origen es «other» (buscador, chat)', () => {
+      useMapStore.getState().selectPlace('3')
+      expect(useMapStore.getState().selectionOrigin).toBe('other')
+    })
+
+    it('RF-12.5: tocar otro lugar con la ficha abierta cambia la selección', () => {
+      useMapStore.getState().selectPlace('8', 'map')
+      useMapStore.getState().selectPlace('34', 'map')
+      expect(useMapStore.getState().selectedPlaceId).toBe('34')
+    })
+
+    it('RF-12.6: clearSelection también borra el origen', () => {
+      useMapStore.getState().selectPlace('3', 'map')
+      useMapStore.getState().clearSelection()
+      expect(useMapStore.getState().selectedPlaceId).toBeNull()
+      expect(useMapStore.getState().selectionOrigin).toBeNull()
+    })
+
+    it('RF-12.8: activar un filtro que oculta el lugar cierra la ficha', () => {
+      useMapStore.getState().selectPlace('8', 'map') // facultad
+      useMapStore.getState().toggleCategory('puertas')
+      expect(useMapStore.getState().activeCategory).toBe('puertas')
+      expect(useMapStore.getState().selectedPlaceId).toBeNull()
+    })
+
+    it('RF-12.8: activar el filtro de la misma categoría conserva la ficha', () => {
+      useMapStore.getState().selectPlace('8', 'map')
+      useMapStore.getState().toggleCategory('facultades')
+      expect(useMapStore.getState().selectedPlaceId).toBe('8')
+    })
+
+    it('RF-12.8: quitar el filtro conserva la ficha', () => {
+      useMapStore.getState().toggleCategory('facultades')
+      useMapStore.getState().selectPlace('8', 'map')
+      useMapStore.getState().toggleCategory('facultades')
+      expect(useMapStore.getState().activeCategory).toBeNull()
+      expect(useMapStore.getState().selectedPlaceId).toBe('8')
+    })
   })
 })

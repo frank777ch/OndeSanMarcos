@@ -15,10 +15,21 @@ export function PlaceSearch() {
   const inputRef = useRef<HTMLInputElement>(null)
   const selectPlace = useMapStore((s) => s.selectPlace)
   const clearSelection = useMapStore((s) => s.clearSelection)
+  const selectedPlaceId = useMapStore((s) => s.selectedPlaceId)
 
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
+
+  // El campo sigue a la selección: muestra el nombre del lugar elegido (también
+  // al tocar un punto del mapa) y se vacía cuando la ficha se cierra.
+  const [syncedId, setSyncedId] = useState(selectedPlaceId)
+  if (syncedId !== selectedPlaceId) {
+    setSyncedId(selectedPlaceId)
+    setQuery(PLACES.find((p) => p.id === selectedPlaceId)?.name ?? '')
+    setOpen(false)
+    setActiveIndex(-1)
+  }
 
   const results = useMemo(() => searchPlaces(PLACES, query), [query])
   const searching = normalizeText(query).length >= MIN_QUERY_LENGTH
@@ -56,6 +67,8 @@ export function PlaceSearch() {
         choose(results[activeIndex])
       }
     } else if (e.key === 'Escape') {
+      // Con la lista visible, Esc solo la cierra; si no, llega a la ficha.
+      if (open && searching) e.stopPropagation()
       setOpen(false)
       setActiveIndex(-1)
     }

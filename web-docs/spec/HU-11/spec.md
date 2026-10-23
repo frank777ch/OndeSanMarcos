@@ -126,3 +126,4 @@ Hoy el mapa solo tiene 40 puntos y no incluye lugares que el asistente sí conoc
 - 2026-10-23 · Implementada.
 - 2026-10-23 · Se retira el anillo de resaltado (RF-11.14): al elegir un lugar solo vuela la cámara. Se actualizan RF-11.16 y los escenarios 7, 9 y 10.
 - 2026-10-23 · El campo de búsqueda ya no muestra contorno de foco del navegador (decisión de diseño; ver plan).
+- 2026-10-23 · HU-12 añade la ficha: elegir un resultado también abre la ficha del lugar y el campo se sincroniza con la selección (ver `../HU-12/spec.md`, RF-12.4 y RF-12.18). Esc con la lista abierta cierra solo la lista.

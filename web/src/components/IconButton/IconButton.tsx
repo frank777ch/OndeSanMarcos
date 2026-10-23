@@ -1,7 +1,7 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ComponentPropsWithRef, ReactNode } from 'react'
 import styles from './IconButton.module.css'
 
-interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface IconButtonProps extends ComponentPropsWithRef<'button'> {
   /** Texto accesible (obligatorio: el botón no tiene texto visible). */
   label: string
   children: ReactNode
