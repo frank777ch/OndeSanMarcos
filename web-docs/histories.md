@@ -1,72 +1,137 @@
-# Historias de usuario: migración a web
+# Historias de usuario: OndeSanMarcos Web
 
-Rama: `feat/web`. Un commit por historia (`feat(web): HU-0X …`). Ver `plan.md` para el detalle técnico.
+**Producto:** aplicación web responsive para orientarse en el campus de la UNMSM. Sin registro ni login: se abre y se usa. Tiene dos áreas: **Mapa** (lugares, rutas, ubicación) y **Asistente** (chat que responde dudas del campus).
 
-Estados: ⬜ pendiente · 🟨 en curso · ✅ hecha
+**Alcance:** una app nueva construida desde cero en `web/` (Vite + React + TypeScript). El backend FastAPI y la base vectorial en Supabase ya existen y se consumen tal cual. Todo corre en local por ahora.
+
+**Flujo de trabajo:** rama `feat/web`, un commit por historia (`feat(web): HU-XX …`). El detalle técnico está en `plan.md`.
+
+Estados: ⬜ pendiente · ✅ hecha
+
+| Épica | Historias |
+|---|---|
+| Fundación | HU-01 a HU-04 |
+| Asistente | HU-05 a HU-08 |
+| Mapa | HU-09 a HU-12 |
+| Rutas y ubicación | HU-13 a HU-16 |
+| Extras y cierre | HU-17 a HU-20 |
 
 ---
 
-## HU-01 · Rama, limpieza y documentación ✅
-**Como** equipo, **quiero** una rama limpia con solo lo necesario **para** trabajar la web sin ruido.
-- Tareas: crear `feat/web`; borrar `test/` (prototipo Vue + Babylon) y `render.yaml`; crear `web-docs/plan.md` y `histories.md`.
-- Aceptación: la rama existe; `test/` y `render.yaml` ya no están; los docs existen.
+## Fundación
 
-## HU-02 · Proyecto base ⬜
-**Como** desarrollador, **quiero** un proyecto Vite + React + TypeScript **para** empezar a construir la web.
-- Tareas: crear `web/` con Vite; instalar `react-router-dom`, `zustand`, `mapbox-gl`, `react-map-gl`, `lucide-react`, `vite-plugin-svgr`, Vitest; variables `VITE_*` y `web/.env.example` (sin tokens reales).
-- Aceptación: `npm run dev`, `npm run build` y `npm run test` funcionan.
+### HU-01 · Rama y documentación ✅
+**Como** equipo, **quiero** una rama propia con documentación **para** trabajar la web ordenadamente.
+- Rama `feat/web`; carpeta `web-docs/` con `plan.md` e `histories.md`; archivos `.env.example` sin claves reales.
+- **Aceptación:** la rama y los documentos existen; ningún `.env.example` contiene claves reales.
 
-## HU-03 · Tema y layout responsive ⬜
-**Como** usuario, **quiero** navegar entre Mapa y Asistente en móvil o escritorio **para** usar la app en cualquier pantalla.
-- Tareas: tokens de color → variables CSS; fuentes DM Sans y Funnel Display; rutas `/`, `/mapa`, `/asistente`; barra inferior en móvil y lateral en escritorio (corte ~768px).
-- Aceptación: se ve bien a 375px y 1440px, sin scroll horizontal.
+### HU-02 · Proyecto base ⬜
+**Como** desarrollador, **quiero** un proyecto Vite + React + TypeScript con herramientas listas **para** empezar a construir funciones.
+- Crear `web/`; instalar `react-router-dom`, `zustand`, `mapbox-gl`, `react-map-gl`, `lucide-react`, Vitest y Testing Library; alias de rutas (`@/`); `web/.env.example` con `VITE_API_URL`, `VITE_MAPBOX_TOKEN`, `VITE_USE_MOCK_CHAT`; `.gitignore` que excluya `.env`.
+- **Aceptación:** `npm run dev`, `npm run build` y `npm run test` funcionan; hay un test de ejemplo en verde.
 
-## HU-04 · Portar lógica ⬜
-**Como** desarrollador, **quiero** reutilizar la lógica existente **para** no reescribir lo que ya funciona.
-- Tareas: `config`, `client`, `chatApi`, `useChatStore` (con `localStorage`), `useMapStore`, `useThemeStore`, `pathfinder` + JSON de rutas, `geofence`, `unmsm`; pasar sus tests de Jest a Vitest.
-- Aceptación: tests en verde.
+### HU-03 · Diseño y estructura responsive ⬜
+**Como** visitante, **quiero** una interfaz coherente que se adapte a mi pantalla **para** usarla igual de bien en celular y en computadora.
+- Variables CSS (colores, tipografía, espaciados, radios) con la paleta de la marca; fuentes DM Sans y Funnel Display; estilos base (reset); layout con navegación **Mapa / Asistente** (barra inferior en pantallas pequeñas, barra lateral desde ~768px); rutas `/` → `/mapa`, `/mapa`, `/asistente`; página 404; componentes base `Button`, `Input`, `IconButton`, `Modal`, `Toast`.
+- **Aceptación:** se ve bien a 375px y a 1440px, sin scroll horizontal; la navegación cambia entre áreas sin recargar y conserva el estado de cada una.
 
-## HU-05 · Chat ⬜
-**Como** visitante, **quiero** preguntarle al asistente **para** resolver dudas del campus.
-- Tareas: mensajes, input, sugerencias, indicador de escritura, historial de conversaciones.
-- Aceptación: una pregunta llega al backend local y se muestra la respuesta; el historial persiste al recargar.
+### HU-04 · Conexión con el backend ⬜
+**Como** desarrollador, **quiero** un cliente HTTP y una configuración central **para** que toda la app hable con el backend de forma uniforme.
+- Módulo de configuración leído de `import.meta.env`; cliente con timeout, manejo de errores y logs opcionales en desarrollo; función `sendChatQuery` para `POST /chat`; modo mock para trabajar sin backend.
+- **Aceptación:** con el backend local en `http://localhost:8000` se obtiene una respuesta real; con `VITE_USE_MOCK_CHAT=true` se obtiene una simulada; los errores de red y los timeouts devuelven un mensaje legible. Hay tests del cliente.
 
-## HU-06 · Del chat al mapa ⬜
-**Como** visitante, **quiero** abrir en el mapa un lugar que me mencionó el asistente **para** ver dónde está.
-- Tareas: `LocationCard` navega a `/mapa` y deja el lugar en `useMapStore`.
-- Aceptación: clic en la tarjeta navega y centra el lugar.
+---
 
-## HU-07 · Mapa base ⬜
-**Como** visitante, **quiero** ver el mapa del campus con sus lugares **para** ubicarme.
-- Tareas: Mapbox GL JS con cámara UNMSM; POIs; filtros por categoría; barra de búsqueda.
-- Aceptación: se ven y filtran los POIs; buscar centra el lugar.
+## Asistente
 
-## HU-08 · Ficha de lugar y selección de ruta ⬜
-**Como** visitante, **quiero** ver información de un lugar y pedir cómo llegar **para** decidir mi destino.
-- Tareas: `MapPlaceInfoCard` y `MapRouteSelectionModal` en JSX/CSS.
-- Aceptación: al tocar un POI se ve su ficha y se puede iniciar una ruta.
+### HU-05 · Preguntar al asistente ⬜
+**Como** visitante, **quiero** escribir una pregunta y recibir una respuesta **para** resolver dudas sobre el campus.
+- Pantalla de chat con lista de mensajes, caja de texto (Enter envía, Shift+Enter salta de línea), burbujas de usuario y de asistente, indicador de "escribiendo…", desplazamiento automático al último mensaje; estado de error con botón "Reintentar"; aviso mientras el backend "despierta" (la primera consulta puede tardar).
+- **Aceptación:** la pregunta se envía, se ve la respuesta y no se pueden enviar mensajes vacíos ni dos consultas a la vez.
 
-## HU-09 · Rutas en el campus ⬜
-**Como** visitante, **quiero** ver el camino entre dos puntos **para** llegar caminando.
-- Tareas: dibujar ruta con `pathfinder`; `MapRouteInfoCard` con distancia restante.
-- Aceptación: la ruta se dibuja entre origen y destino.
+### HU-06 · Preguntas sugeridas ⬜
+**Como** visitante, **quiero** ver preguntas de ejemplo **para** saber qué puedo preguntar sin pensar en cómo redactarlo.
+- Chips de sugerencias en el chat vacío; al elegir uno se envía la pregunta.
+- **Aceptación:** al tocar una sugerencia se envía y se responde; las sugerencias desaparecen cuando la conversación ya empezó.
 
-## HU-10 · Mi ubicación ⬜
+### HU-07 · Historial de conversaciones ⬜
+**Como** visitante, **quiero** volver a mis conversaciones anteriores **para** no perder lo que ya consulté.
+- Conversaciones guardadas en `localStorage`; botón "Nueva conversación"; lista del historial con título y fecha; abrir y borrar conversaciones.
+- **Aceptación:** al recargar la página las conversaciones siguen ahí; se pueden abrir, crear y borrar.
+
+### HU-08 · Lugares en las respuestas ⬜
+**Como** visitante, **quiero** que cuando el asistente nombre un lugar pueda verlo en el mapa **para** saber dónde queda.
+- Tarjeta de lugar dentro de la respuesta con botón "Ver en el mapa" que navega a `/mapa` y deja el lugar como objetivo.
+- **Aceptación:** al pulsar el botón se abre el mapa centrado en ese lugar con su ficha abierta (depende de HU-09 y HU-12).
+
+---
+
+## Mapa
+
+### HU-09 · Mapa del campus ⬜
+**Como** visitante, **quiero** ver un mapa del campus **para** ubicarme en él.
+- Mapa Mapbox GL JS ocupando el área de contenido; cámara inicial centrada en la UNMSM con zoom e inclinación definidos; controles de zoom y de reorientar al norte; límites para no alejarse del campus; botón "Volver al campus".
+- **Aceptación:** el mapa carga, se puede mover y hacer zoom, y el botón regresa a la vista inicial; si falta el token se muestra un mensaje claro.
+
+### HU-10 · Lugares y filtros ⬜
+**Como** visitante, **quiero** ver los lugares del campus y filtrarlos por categoría **para** encontrar lo que busco.
+- Datos de lugares (facultades, bibliotecas, comedores, servicios, etc.) con coordenadas y categoría; capa de puntos con íconos; chips de categoría (una activa a la vez o ninguna).
+- **Aceptación:** se ven todos los lugares; al activar una categoría solo aparecen los de ese tipo; al desactivarla vuelven todos.
+
+### HU-11 · Buscar un lugar ⬜
+**Como** visitante, **quiero** buscar un lugar por nombre **para** ir directo a él.
+- Barra de búsqueda con resultados mientras escribo (sin distinguir tildes ni mayúsculas); al elegir un resultado la cámara vuela al lugar.
+- **Aceptación:** buscar "biblioteca" lista las coincidencias; elegir una centra el mapa y abre su ficha.
+
+### HU-12 · Ficha de lugar ⬜
+**Como** visitante, **quiero** ver los datos de un lugar al tocarlo **para** conocerlo antes de ir.
+- Tarjeta con nombre, categoría, descripción y horario si lo hay; botón "Cómo llegar"; se abre como panel inferior en móvil y lateral en escritorio; cerrar con botón o tecla Esc.
+- **Aceptación:** tocar un punto abre su ficha; cerrarla la quita; "Cómo llegar" inicia HU-13.
+
+---
+
+## Rutas y ubicación
+
+### HU-13 · Calcular una ruta ⬜
+**Como** visitante, **quiero** elegir un origen y un destino **para** saber por dónde caminar.
+- Grafo de caminos del campus a partir de los datos GeoJSON; búsqueda del camino más corto (A\* o Dijkstra) entre el punto más cercano a cada extremo; selector de origen (mi ubicación, un lugar o un punto en el mapa) y de destino.
+- **Aceptación:** con dos puntos válidos se calcula una ruta que sigue solo caminos del campus; si no hay camino se avisa. Tests del algoritmo y de la distancia (haversine).
+
+### HU-14 · Ver la ruta ⬜
+**Como** visitante, **quiero** ver la ruta dibujada y su distancia **para** decidir si me conviene.
+- Línea de la ruta sobre el mapa con marcadores de origen y destino; tarjeta con distancia y tiempo estimado a pie; botón para cancelar la ruta; la cámara encuadra toda la ruta.
+- **Aceptación:** al calcular una ruta se dibuja y se muestran distancia y tiempo; cancelar la limpia.
+
+### HU-15 · Mi ubicación ⬜
 **Como** visitante, **quiero** ver dónde estoy en el mapa **para** orientarme.
-- Tareas: `navigator.geolocation.watchPosition`; permisos con mensaje claro; geocerca del campus; brújula opcional (`deviceorientation`).
-- Aceptación: con permiso se ve mi punto; sin permiso aparece un aviso.
+- Botón "Mi ubicación" con `navigator.geolocation`; explicación antes de pedir el permiso; mensajes claros si lo deniego o no está disponible; punto del usuario con círculo de precisión; aviso si estoy fuera del campus (geocerca).
+- **Aceptación:** con permiso aparece mi punto y el mapa me centra; sin permiso o fuera del campus aparece un mensaje, sin errores en consola. Tests de la geocerca.
 
-## HU-11 · Modo libre con avatar ⬜
-**Como** visitante, **quiero** explorar el campus con un avatar **para** recorrerlo de forma virtual.
-- Tareas: `MapSpawnModal`; avatar `david_idle`/`david_walk`; cámara en modo libre.
-- Aceptación: el avatar aparece y se anima como en la app.
+### HU-16 · Guía paso a paso ⬜
+**Como** visitante, **quiero** que el mapa me siga mientras camino **para** llegar sin perderme.
+- Modo guía con `watchPosition`; la cámara sigue al usuario y puede desactivarse al mover el mapa manualmente; distancia restante actualizada; brújula con `deviceorientation` donde esté disponible (en iOS pide permiso); aviso de llegada.
+- **Aceptación:** al iniciar la guía el punto se mueve con mi posición y la distancia restante baja; al llegar se muestra un aviso y la guía termina.
 
-## HU-12 · Onboarding de primera visita (opcional) ⬜
+---
+
+## Extras y cierre
+
+### HU-17 · Recorrer el campus con un avatar ⬜
+**Como** visitante, **quiero** explorar el campus de forma virtual con un avatar **para** conocerlo antes de ir.
+- Selector de punto de inicio; avatar animado (quieto/caminando) sobre el mapa; cámara cercana e inclinada; movimiento con teclado (flechas/WASD) y con toque en pantallas táctiles; botón para salir del modo.
+- **Aceptación:** el avatar aparece en el punto elegido, se mueve por los caminos y se anima al caminar; salir restaura la vista normal.
+
+### HU-18 · Apariencia ⬜
+**Como** visitante, **quiero** elegir entre tema claro y oscuro **para** leer cómodo.
+- Tokens de color claro y oscuro; selector en el encabezado; respeta `prefers-color-scheme` por defecto; preferencia guardada en `localStorage`; el estilo del mapa cambia con el tema.
+- **Aceptación:** el cambio se aplica al instante en toda la app y se mantiene al recargar.
+
+### HU-19 · Bienvenida ⬜
 **Como** visitante nuevo, **quiero** una breve introducción **para** entender qué puedo hacer.
-- Tareas: pantallas del onboarding; flag en `localStorage`.
-- Aceptación: se muestra solo la primera vez.
+- Pantalla o modal de 2–3 pasos (mapa, rutas, asistente) en la primera visita, con opción de saltarla; indicador guardado en `localStorage`; accesible desde la ayuda para volver a verla.
+- **Aceptación:** se muestra solo la primera vez y se puede saltar o repetir.
 
-## HU-13 · Cierre ⬜
-**Como** equipo, **quiero** que el repo solo tenga la web **para** evitar código muerto.
-- Tareas: borrar `frontend/`; actualizar `README.md` y `documents/02-frontend.md`; revocar el token secreto de Mapbox que estaba en `frontend/.env.example`.
-- Aceptación: `web/` es el único frontend y la documentación está al día.
+### HU-20 · Calidad y cierre ⬜
+**Como** equipo, **quiero** pruebas, accesibilidad y documentación al día **para** entregar una web estable.
+- Pruebas de las tiendas, utilidades y componentes clave; accesibilidad (etiquetas, foco visible, contraste, navegación por teclado); retirar la carpeta `frontend/` anterior; `README.md` y `documents/02-frontend.md` actualizados con el nuevo stack y comandos; revisar `backend` para el origen de CORS de `localhost:5173`; revocar los tokens de Mapbox que estuvieron en el repositorio.
+- **Aceptación:** `npm run test` y `npm run build` pasan sin errores; en Lighthouse la accesibilidad es ≥ 90; el repositorio solo contiene `web/` como frontend.

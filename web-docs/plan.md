@@ -63,22 +63,8 @@ Crear un proyecto nuevo `web/` (Vite + React + TypeScript), portar la lógica pu
 - Pasar los tests de lógica pura (`geofence`, `useChatStore`, `useThemeStore`, `client`, `chatApi`, `useMapCamera`) de Jest a **Vitest** (API casi idéntica). Borrar los tests de auth.
 - Actualizar `README.md` y `documents/02-frontend.md` con el nuevo stack y comandos.
 
-## Historias (contenido de `web-docs/histories.md`)
-| ID | Historia | Criterio de aceptación principal |
-|---|---|---|
-| HU-01 | Rama `feat/web`, limpieza del repo y `web-docs/` | Rama creada; `test/` y `render.yaml` fuera; docs creados |
-| HU-02 | Proyecto base Vite + React + TS, env `VITE_*`, Vitest | `npm run dev`, `build` y `test` funcionan |
-| HU-03 | Tema (tokens → variables CSS, fuentes) y layout responsive con navegación Mapa/Asistente (barra inferior en móvil, lateral en escritorio) | Se ve bien a 375px y 1440px, sin scroll horizontal |
-| HU-04 | Portar lógica: `config`, `client`, `chatApi`, stores (`localStorage`), `pathfinder`, `geofence`, `unmsm` + sus tests | Tests en verde |
-| HU-05 | Chat: mensajes, input, sugerencias, indicador de escritura, historial de conversaciones | Pregunta al backend local y muestra la respuesta; historial persiste al recargar |
-| HU-06 | Chat → mapa: tarjeta de ubicación que abre `/mapa` y centra el lugar | Clic en la tarjeta navega y enfoca el POI |
-| HU-07 | Mapa base: Mapbox GL JS, cámara UNMSM, POIs, filtros por categoría, búsqueda | Se ven y filtran los POIs; la búsqueda centra el lugar |
-| HU-08 | Ficha de lugar (`MapPlaceInfoCard`) y selección de ruta (`MapRouteSelectionModal`) | Al tocar un POI se ve su info y se puede pedir ruta |
-| HU-09 | Rutas en el campus: dibujo de ruta con `pathfinder`, tarjeta de distancia restante | La ruta se dibuja entre origen y destino |
-| HU-10 | Ubicación del usuario: geolocalización del navegador, permisos, geocerca del campus, brújula opcional | Con permiso se ve el punto del usuario; sin permiso hay mensaje claro |
-| HU-11 | Modo libre con avatar (spawn, caminar/idle) | El avatar aparece y se anima como en la app |
-| HU-12 | Onboarding de primera visita (opcional) | Se muestra solo la primera vez |
-| HU-13 | Borrar `frontend/`, actualizar `README.md` y `documents/02-frontend.md` | El repo solo tiene `web/` como frontend |
+## Historias
+Ver `histories.md` (HU-01 a HU-20). Se trata como una app nueva construida desde cero; el código anterior de `frontend/` solo sirve de referencia hasta HU-20.
 
 ## Verificación
 - `cd web && npm run dev` → abrir `http://localhost:5173`; probar en DevTools con vista móvil (375px) y escritorio (1440px).
