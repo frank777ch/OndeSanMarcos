@@ -25,7 +25,7 @@ Estados: ⬜ pendiente · ✅ hecha
 - Rama `feat/web`; carpeta `web-docs/` con `plan.md` e `histories.md`; archivos `.env.example` sin claves reales.
 - **Aceptación:** la rama y los documentos existen; ningún `.env.example` contiene claves reales.
 
-### HU-02 · Proyecto base ⬜
+### HU-02 · Proyecto base ✅
 **Como** desarrollador, **quiero** un proyecto Vite + React + TypeScript con herramientas listas **para** empezar a construir funciones.
 - Crear `web/`; instalar `react-router-dom`, `zustand`, `mapbox-gl`, `react-map-gl`, `lucide-react`, Vitest y Testing Library; alias de rutas (`@/`); `web/.env.example` con `VITE_API_URL`, `VITE_MAPBOX_TOKEN`, `VITE_USE_MOCK_CHAT`; `.gitignore` que excluya `.env`.
 - **Aceptación:** `npm run dev`, `npm run build` y `npm run test` funcionan; hay un test de ejemplo en verde.
