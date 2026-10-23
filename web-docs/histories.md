@@ -6,6 +6,8 @@
 
 **Flujo de trabajo:** rama `feat/web`, un commit por historia (`feat(web): HU-XX …`). El detalle técnico está en `plan.md`.
 
+**Regla de implementación (decidida):** cada historia se implementa **solo para escritorio** (≥ 1024px). Lo móvil se hace **después, en bloque, en HU-21**. Por eso en HU-01 a HU-20 se ignoran las menciones a "móvil" o "pantallas pequeñas"; no hay que diseñar breakpoints responsive todavía. Sí hay que evitar anchos fijos que luego compliquen la adaptación (usar `rem`, flex/grid y variables CSS).
+
 Estados: ⬜ pendiente · ✅ hecha
 
 | Épica | Historias |
@@ -15,6 +17,7 @@ Estados: ⬜ pendiente · ✅ hecha
 | Mapa | HU-09 a HU-12 |
 | Rutas y ubicación | HU-13 a HU-16 |
 | Extras y cierre | HU-17 a HU-20 |
+| Móvil (después) | HU-21 |
 
 ---
 
@@ -30,10 +33,11 @@ Estados: ⬜ pendiente · ✅ hecha
 - Crear `web/`; instalar `react-router-dom`, `zustand`, `mapbox-gl`, `react-map-gl`, `lucide-react`, Vitest y Testing Library; alias de rutas (`@/`); `web/.env.example` con `VITE_API_URL`, `VITE_MAPBOX_TOKEN`, `VITE_USE_MOCK_CHAT`; `.gitignore` que excluya `.env`.
 - **Aceptación:** `npm run dev`, `npm run build` y `npm run test` funcionan; hay un test de ejemplo en verde.
 
-### HU-03 · Diseño y estructura responsive ⬜
-**Como** visitante, **quiero** una interfaz coherente que se adapte a mi pantalla **para** usarla igual de bien en celular y en computadora.
-- Variables CSS (colores, tipografía, espaciados, radios) con la paleta de la marca; fuentes DM Sans y Funnel Display; estilos base (reset); layout con navegación **Mapa / Asistente** (barra inferior en pantallas pequeñas, barra lateral desde ~768px); rutas `/` → `/mapa`, `/mapa`, `/asistente`; página 404; componentes base `Button`, `Input`, `IconButton`, `Modal`, `Toast`.
-- **Aceptación:** se ve bien a 375px y a 1440px, sin scroll horizontal; la navegación cambia entre áreas sin recargar y conserva el estado de cada una.
+### HU-03 · Diseño y estructura (escritorio) ✅
+**Como** visitante, **quiero** una interfaz coherente con navegación clara **para** moverme entre el mapa y el asistente.
+- Variables CSS (colores claro/oscuro, tipografía, espaciados, radios) con la paleta de la marca; fuentes DM Sans y Funnel Display; estilos base (reset); layout de escritorio con **barra lateral** de navegación Mapa / Asistente y área de contenido a pantalla completa; rutas `/` → `/mapa`, `/mapa`, `/asistente`; página 404; componentes base `Button`, `Input`, `IconButton`, `Modal`, `Toast`.
+- Solo escritorio (≥ 1024px). La adaptación a móvil queda en HU-21.
+- **Aceptación:** a 1440px se ve correcto y sin scroll de página; la navegación cambia de área sin recargar; los componentes base tienen tests.
 
 ### HU-04 · Conexión con el backend ⬜
 **Como** desarrollador, **quiero** un cliente HTTP y una configuración central **para** que toda la app hable con el backend de forma uniforme.
@@ -135,3 +139,10 @@ Estados: ⬜ pendiente · ✅ hecha
 **Como** equipo, **quiero** pruebas, accesibilidad y documentación al día **para** entregar una web estable.
 - Pruebas de las tiendas, utilidades y componentes clave; accesibilidad (etiquetas, foco visible, contraste, navegación por teclado); retirar la carpeta `frontend/` anterior; `README.md` y `documents/02-frontend.md` actualizados con el nuevo stack y comandos; revisar `backend` para el origen de CORS de `localhost:5173`; revocar los tokens de Mapbox que estuvieron en el repositorio.
 - **Aceptación:** `npm run test` y `npm run build` pasan sin errores; en Lighthouse la accesibilidad es ≥ 90; el repositorio solo contiene `web/` como frontend.
+
+## Después de todo lo anterior
+
+### HU-21 · Adaptación a móvil ⬜
+**Como** visitante con celular o tablet, **quiero** que la web se adapte a mi pantalla **para** usarla igual de bien que en computadora.
+- Breakpoints (~768px y ~480px); barra de navegación inferior en lugar de la lateral; fichas y paneles del mapa como panel inferior; chat y búsqueda ajustados al teclado virtual; controles táctiles (tamaño mínimo 44px); revisar `viewport` y áreas seguras (notch); revisar cada pantalla de HU-03 a HU-19.
+- **Aceptación:** a 375px, 768px y 1440px no hay scroll horizontal y todas las funciones se pueden usar; probado en un celular real (con HTTPS en la red local para la geolocalización).

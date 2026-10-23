@@ -1,8 +1,8 @@
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { routes } from '@/routes'
+
+const router = createBrowserRouter(routes)
+
 export default function App() {
-  return (
-    <main>
-      <h1>OndeSanMarcos</h1>
-      <p>Orientación en el campus de la UNMSM.</p>
-    </main>
-  )
+  return <RouterProvider router={router} />
 }

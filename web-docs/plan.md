@@ -64,7 +64,7 @@ Crear un proyecto nuevo `web/` (Vite + React + TypeScript), portar la lógica pu
 - Actualizar `README.md` y `documents/02-frontend.md` con el nuevo stack y comandos.
 
 ## Historias
-Ver `histories.md` (HU-01 a HU-20). Se trata como una app nueva construida desde cero; el código anterior de `frontend/` solo sirve de referencia hasta HU-20.
+**Regla:** cada historia se implementa solo en escritorio (≥ 1024px); lo móvil va después en bloque (HU-21). Ver `histories.md` (HU-01 a HU-21). Se trata como una app nueva construida desde cero; el código anterior de `frontend/` solo sirve de referencia hasta HU-20.
 
 ## Verificación
 - `cd web && npm run dev` → abrir `http://localhost:5173`; probar en DevTools con vista móvil (375px) y escritorio (1440px).
