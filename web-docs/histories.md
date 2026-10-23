@@ -26,8 +26,9 @@
 | HU-20 | Calidad y cierre | ⬜ Pendiente |
 | HU-21 | Adaptación a móvil | ⬜ Pendiente |
 | HU-22 | Base de datos de lugares | ⬜ Pendiente |
+| HU-23 | Postgres con pgvector en Docker | ⬜ Pendiente |
 
-**Avance: 7 de 22 historias hechas.** HU-22 tiene ID alto para no renumerar, pero conviene hacerla antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 7 de 23 historias hechas.** HU-22 y HU-23 tienen ID alto para no renumerar. Conviene hacerlas antes de HU-20, y decidir HU-23 antes de escribir la spec de HU-22. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
@@ -48,7 +49,7 @@ Estados: ⬜ pendiente · ✅ hecha
 | Mapa | HU-09 a HU-12 |
 | Rutas y ubicación | HU-13 a HU-16 |
 | Extras y cierre | HU-17 a HU-20 |
-| Datos (antes de HU-20) | HU-22 |
+| Datos (antes de HU-20) | HU-22, HU-23 |
 | Móvil (después) | HU-21 |
 
 ---
@@ -157,8 +158,18 @@ Estados: ⬜ pendiente · ✅ hecha
 - Tablas `places` y `place_categories` en Supabase (nombre, categoría, coordenadas, palabras clave y los campos de la ficha de HU-12: horario, teléfono, anexo, descripción, carreras, servicios); lectura pública y escritura restringida con RLS; migración y carga inicial de los 55 lugares desde los datos actuales; cliente de Supabase en la web con un único módulo de acceso; carga al abrir la app con estado de carga y de error; copia de respaldo incluida en la app por si falla la red; variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `web/.env.example`.
 - Fuera de alcance: pantalla para editar los datos desde la web; que el RAG deje de usar su propio corpus; que el backend lea esta tabla (puede ser una historia posterior).
 - Depende de: HU-10, HU-11 y HU-12 (para conocer los campos de la ficha).
-- Decisiones a tomar al escribir la spec: leer directo desde Supabase o a través de un endpoint del backend; usar el proyecto de Supabase del backend o uno nuevo; quién verifica los datos marcados como «demo» antes de cargarlos.
+- Decisiones a tomar al escribir la spec (depende de lo que se decida en HU-23: si la base pasa a ser un Postgres propio, la web ya no puede leerla directo con una anon key y tendría que usar un endpoint `GET /api/places` del backend): leer directo desde Supabase o a través de un endpoint del backend; usar el proyecto de Supabase del backend o uno nuevo; quién verifica los datos marcados como «demo» antes de cargarlos.
 - **Aceptación:** la web muestra los mismos 55 lugares leídos de Supabase; si la carga falla, usa la copia incluida y avisa; cambiar un horario en la tabla se ve al recargar, sin redesplegar; la búsqueda sigue resolviéndose en memoria, sin llamar al backend; hay tests del acceso a datos.
+
+### HU-23 · Postgres con pgvector en Docker ⬜
+**Como** equipo, **quiero** que el asistente use un Postgres con pgvector que corra en un contenedor **para** desarrollar y probar el RAG completo en local, sin depender de Supabase.
+- Servicio `db` en `docker-compose.yml` con la imagen `pgvector/pgvector:pg16`, volumen persistente y esquema cargado al iniciar (`backend/db/schema.sql`: extensión `vector`, tabla `documents`, índice HNSW y función `match_documents`); salud del servicio para que el backend espere a la base.
+- Backend: reemplazar el cliente `supabase` (API REST) por acceso directo a Postgres con `psycopg` y `pgvector`, en la búsqueda (`providers.py`), la ingesta (`ingest_pgvector.py`) y la subida de entradas (`upload_entries.py`); una sola variable `DATABASE_URL` en lugar de `SUPABASE_URL` y `SUPABASE_SERVICE_KEY`; tests actualizados.
+- `script/dev.sh`: comando para cargar el corpus en la base (ingesta) y para reiniciar los datos; `backend/.env.example` y README actualizados.
+- Fuera de alcance: alojar Postgres en producción; migrar los datos existentes de Supabase (se vuelven a generar con la ingesta); sustituir a Gemini como proveedor de embeddings (la clave `LLM_API_KEY` sigue siendo necesaria para embeddings y respuestas reales).
+- Depende de: ninguna historia de la web. Es trabajo de backend. Para ingerir y responder con calidad real hace falta una clave de Gemini.
+- Decisiones a tomar al escribir la spec: si el código sigue aceptando también Supabase (misma `DATABASE_URL` apuntando a su Postgres) o se elimina el soporte; qué driver usar (`psycopg` 3 síncrono o asíncrono); cómo se carga el esquema (script de arranque del contenedor o comando manual); dónde correrá Postgres en producción (Render, Neon u otro) cuando haya despliegue.
+- **Aceptación:** `./script/dev.sh` levanta backend, web y base de datos; la ingesta carga el corpus en el Postgres local; con `RAG_USE_MOCK=false` y una clave de Gemini, `POST /api/chat` responde usando la búsqueda por vectores contra el contenedor; los tests del backend pasan sin Supabase; no queda ninguna referencia obligatoria a `SUPABASE_URL` ni `SUPABASE_SERVICE_KEY`.
 
 ## Extras y cierre
 
