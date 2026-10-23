@@ -17,3 +17,7 @@ __pycache__/
 
 # Datos de índices generados localmente
 .rag_cache/
+
+# Copias de seguridad de la base de datos (./script/dev.sh db-dump). Contienen los
+# vectores del asistente; se pueden versionar a propósito si el equipo lo decide.
+db/dumps/

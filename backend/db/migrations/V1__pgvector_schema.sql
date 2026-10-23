@@ -1,6 +1,7 @@
--- Esquema pgvector para el corpus RAG de OndeSanMarcos (Supabase).
+-- V1 · Esquema pgvector para el corpus RAG de OndeSanMarcos.
 --
--- Ejecutar en el SQL Editor de Supabase (o vía migración). Es idempotente.
+-- Lo aplica Flyway (servicio `migrate` de docker-compose). No se edita una vez
+-- aplicada: los cambios van en una migración nueva (V2__...sql).
 -- La dimensión del vector (768) debe coincidir con `EMBEDDING_DIM` del backend
 -- (gemini-embedding-001 con output_dimensionality=768).
 
@@ -39,9 +40,3 @@ as $$
     order by documents.embedding <=> query_embedding
     limit match_count;
 $$;
-
--- El backend accede con el rol `service_role` (server-side). Le damos privilegios
--- sobre la tabla y la función. No se otorga a anon/authenticated: la base solo la
--- consume el backend.
-grant select, insert, update, delete on table documents to service_role;
-grant execute on function match_documents(vector, int) to service_role;

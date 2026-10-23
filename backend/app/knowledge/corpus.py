@@ -2,7 +2,7 @@
 
 Base de conocimiento del asistente. En modo mock el retriever indexa estos
 documentos y el LLM genera respuestas ancladas a ellos; en producción, el mismo
-contenido se ingerirá a la base vectorial (Supabase + pgvector).
+contenido se ingerirá a la base vectorial (Postgres + pgvector).
 
 Fuente: `app/knowledge/sources/unmsm_info.md` (documento oficial verificado por
 el equipo). Cada `Document` puede asociarse a un lugar (`place_id` de

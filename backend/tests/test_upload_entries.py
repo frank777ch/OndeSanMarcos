@@ -1,4 +1,4 @@
-"""Tests de la lógica pura de `upload_entries` (sin red ni Supabase)."""
+"""Tests de la lógica pura de `upload_entries` (sin red ni base de datos)."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from app.knowledge.entries import (
 )
 from app.rag import upload_entries as ue
 from app.rag.upload_entries import _rows_for_document, _uploadable
+from tests.fake_db import FakeDatabase
 
 
 def _entry(status) -> dict:
@@ -59,42 +60,6 @@ def test_rows_for_document_shape():
     assert first["embedding"] == [0.5, 0.5]
 
 
-class _FakeResult:
-    count = 0
-    data: list = []
-
-
-class _FakeQuery:
-    """Soporta las cadenas de PostgREST que usa upload_entries (con fakes)."""
-
-    def __init__(self, sink: list[dict]):
-        self._sink = sink
-
-    def select(self, *args, **kwargs):
-        return self
-
-    def filter(self, *args, **kwargs):
-        return self
-
-    def delete(self):
-        return self
-
-    def insert(self, rows):
-        self._sink.extend(rows)
-        return self
-
-    def execute(self):
-        return _FakeResult()
-
-
-class _FakeClient:
-    def __init__(self, sink: list[dict]):
-        self._sink = sink
-
-    def table(self, name):
-        return _FakeQuery(self._sink)
-
-
 def _approved_file(tmp_path):
     entry = {
         "place_id": "gimnasio",
@@ -111,29 +76,56 @@ def _approved_file(tmp_path):
     return path
 
 
-def test_main_uploads_approved_entry(tmp_path, monkeypatch):
-    inserted: list[dict] = []
-    path = _approved_file(tmp_path)
-    monkeypatch.setattr(ue, "_supabase_client", lambda settings: _FakeClient(inserted))
+def _run(monkeypatch, path, database, *args):
+    monkeypatch.setattr(ue, "get_database", lambda settings: database)
     monkeypatch.setattr(ue, "build_embedding_provider", lambda settings: _FakeEmbedding())
+    return ue.main(["--file", str(path), *args])
 
-    rc = ue.main(["--file", str(path)])
+
+def test_main_uploads_approved_entry(tmp_path, monkeypatch):
+    """RF-23.11: inserta los fragmentos de un lugar nuevo."""
+    database = FakeDatabase()
+    path = _approved_file(tmp_path)
+
+    rc = _run(monkeypatch, path, database)
 
     assert rc == 0
-    assert len(inserted) >= 1  # nueva (no existía) -> insertó
+    assert len(database.place_replacements["gimnasio"]) >= 1
     saved = load_entries_file(path)
     assert saved["entries"][0]["status"] == STATUS_UPLOADED
 
 
 def test_main_dry_run_uploads_nothing(tmp_path, monkeypatch):
-    inserted: list[dict] = []
+    database = FakeDatabase()
     path = _approved_file(tmp_path)
-    monkeypatch.setattr(ue, "_supabase_client", lambda settings: _FakeClient(inserted))
-    monkeypatch.setattr(ue, "build_embedding_provider", lambda settings: _FakeEmbedding())
 
-    rc = ue.main(["--file", str(path), "--dry-run"])
+    rc = _run(monkeypatch, path, database, "--dry-run")
 
     assert rc == 0
-    assert inserted == []  # dry-run no inserta
+    assert database.place_replacements == {}  # dry-run no escribe
     saved = load_entries_file(path)
     assert saved["entries"][0]["status"] == STATUS_APPROVED  # sin cambios
+
+
+def test_main_skips_existing_place_without_update_flag(tmp_path, monkeypatch):
+    """RF-23.11: un lugar ya presente no se pisa sin --update-existing."""
+    database = FakeDatabase(places={"gimnasio": 3})
+    path = _approved_file(tmp_path)
+
+    rc = _run(monkeypatch, path, database)
+
+    assert rc == 0
+    assert database.place_replacements == {}
+    assert load_entries_file(path)["entries"][0]["status"] == STATUS_APPROVED
+
+
+def test_main_replaces_existing_place_with_update_flag(tmp_path, monkeypatch):
+    """RF-23.11: con --update-existing reemplaza los fragmentos del lugar."""
+    database = FakeDatabase(places={"gimnasio": 3})
+    path = _approved_file(tmp_path)
+
+    rc = _run(monkeypatch, path, database, "--update-existing")
+
+    assert rc == 0
+    assert len(database.place_replacements["gimnasio"]) >= 1
+    assert load_entries_file(path)["entries"][0]["status"] == STATUS_UPLOADED

@@ -1,7 +1,7 @@
-"""Tests del retriever pgvector: mapeo y recuperación. Sin red ni `supabase`.
+"""Tests del retriever pgvector: mapeo y recuperación. Sin red ni base de datos.
 
 El acceso a la base se inyecta (un `matcher` y un embedding falsos), de modo que
-estos tests son deterministas y no requieren el paquete `supabase`.
+estos tests son deterministas y no requieren Postgres.
 """
 
 from app.rag.pgvector import PgVectorRetriever, _rows_to_chunks

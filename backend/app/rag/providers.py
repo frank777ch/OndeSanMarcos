@@ -15,14 +15,13 @@ configuración:
 from __future__ import annotations
 
 from app.config import Settings
+from app.rag.db import get_database
+from app.rag.embedding_cache import CachedEmbedding
 from app.rag.embeddings import EmbeddingProvider, GeminiEmbedding
+from app.rag.errors import RagProviderError
 from app.rag.llm import AnthropicLLM, GeminiLLM, LLMProvider, OpenAILLM, TemplateLLM
 from app.rag.pgvector import PgVectorRetriever
 from app.rag.retriever import Retriever, SupportsRetrieve, build_default_retriever
-
-
-class RagProviderError(RuntimeError):
-    """Configuración inválida o incompleta de un proveedor real del RAG."""
 
 
 def build_llm_provider(settings: Settings) -> LLMProvider:
@@ -54,7 +53,11 @@ def build_llm_provider(settings: Settings) -> LLMProvider:
 
 
 def build_embedding_provider(settings: Settings) -> EmbeddingProvider:
-    """Embeddings reales para pgvector. Hoy solo Gemini (reusa `LLM_API_KEY`)."""
+    """Embeddings reales para pgvector. Hoy solo Gemini (reusa `LLM_API_KEY`).
+
+    Se envuelve con caché en disco, caché de consultas y reintentos para no
+    gastar cuota de la clave en llamadas repetidas.
+    """
     provider = settings.llm_provider.strip().lower()
     if provider != "gemini":
         raise RagProviderError(
@@ -63,8 +66,14 @@ def build_embedding_provider(settings: Settings) -> EmbeddingProvider:
         )
     if not settings.llm_api_key:
         raise RagProviderError("Falta LLM_API_KEY para los embeddings de Gemini.")
-    return GeminiEmbedding(
+    inner = GeminiEmbedding(
         settings.llm_api_key, settings.embedding_model, settings.embedding_dim
+    )
+    return CachedEmbedding(
+        inner,
+        settings.embedding_cache_path,
+        model=settings.embedding_model,
+        dim=settings.embedding_dim,
     )
 
 
@@ -72,13 +81,13 @@ def build_retriever(settings: Settings) -> SupportsRetrieve:
     """Devuelve el retriever adecuado según la configuración.
 
     - Mock: corpus en código + embedding bag-of-words (determinista).
-    - Real con Supabase configurado: pgvector + embeddings Gemini.
-    - Real sin Supabase: recuperación local sobre los documentos fuente, útil
-      para probar un LLM real sin montar la base vectorial.
+    - Real con `DATABASE_URL`: pgvector + embeddings Gemini.
+    - Real sin `DATABASE_URL`: recuperación local sobre los documentos fuente,
+      útil para probar un LLM real sin montar la base vectorial.
     """
     if settings.rag_use_mock:
         return build_default_retriever()
-    if settings.supabase_url and settings.supabase_service_key:
+    if settings.database_url:
         return _build_pgvector_retriever(settings)
     return _build_local_retriever(settings)
 
@@ -99,29 +108,16 @@ def _build_local_retriever(settings: Settings) -> Retriever:
     )
 
 
-def _build_pgvector_retriever(settings: Settings) -> PgVectorRetriever:  # pragma: no cover - requiere supabase (extra) + red
-    """Recuperación con Supabase + pgvector (embeddings Gemini + RPC).
+def _build_pgvector_retriever(settings: Settings) -> PgVectorRetriever:
+    """Recuperación con Postgres + pgvector (embeddings Gemini + `match_documents`).
 
-    Requiere la tabla `documents` y la función `match_documents` creadas con
-    `backend/db/schema.sql`, y pobladas con `python -m app.rag.ingest_pgvector`.
+    Requiere el esquema creado por las migraciones (`backend/db/migrations`) y la
+    tabla poblada con `./script/dev.sh ingest`. La conexión se abre al primer uso.
     """
     embedding = build_embedding_provider(settings)
-    try:
-        from supabase import create_client
-    except ImportError as exc:  # pragma: no cover - depende de extra opcional
-        raise RagProviderError(
-            "Falta el paquete 'supabase'. Instálalo con "
-            "`pip install -r requirements-pgvector.txt`."
-        ) from exc
-
-    client = create_client(settings.supabase_url, settings.supabase_service_key)
-    match_fn = settings.pgvector_match_fn
+    database = get_database(settings)
 
     def matcher(query_vector: list[float], match_count: int) -> list[dict]:
-        response = client.rpc(
-            match_fn,
-            {"query_embedding": query_vector, "match_count": match_count},
-        ).execute()
-        return response.data or []
+        return database.match(query_vector, match_count)
 
     return PgVectorRetriever(embedding, matcher)

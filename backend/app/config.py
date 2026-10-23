@@ -49,16 +49,21 @@ class Settings(BaseSettings):
     llm_provider: str = ""
     llm_api_key: str = ""
     llm_model: str = ""
-    supabase_url: str = ""
-    supabase_service_key: str = ""
 
     # --- Embeddings reales (Gemini) ---
     embedding_model: str = "gemini-embedding-001"
     embedding_dim: int = 768
 
-    # --- Recuperación con pgvector (Supabase) ---
+    # --- Recuperación con pgvector (Postgres) ---
+    # Cadena de conexión, ej. postgresql://usuario:clave@host:5432/base.
+    # Vacío = sin base (recuperación local). Ver docker-compose.yml.
+    database_url: str = ""
+    # Segundos máximos para conectar a la base antes de devolver 503.
+    db_connect_timeout: int = 3
     pgvector_table: str = "documents"
     pgvector_match_fn: str = "match_documents"
+    # Caché en disco de los embeddings de documentos (evita gastar cuota de Gemini).
+    embedding_cache_path: str = ".rag_cache/embeddings.jsonl"
 
     @property
     def cors_origins_list(self) -> list[str]:

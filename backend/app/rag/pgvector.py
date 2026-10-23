@@ -1,4 +1,4 @@
-"""Recuperación con Supabase + pgvector.
+"""Recuperación con Postgres + pgvector.
 
 Equivalente en producción del `Retriever` local: embebe la consulta, busca los
 fragmentos más similares en la tabla vectorial (vía la función RPC
@@ -7,8 +7,8 @@ motor. Colapsa a documento padre (mejor puntaje) para igualar la semántica del
 retriever local, conservando `place_id` para las tarjetas "Ver en mapa".
 
 El acceso a la base se inyecta como un `Matcher` (una función), de modo que el
-retriever es testeable sin `supabase` ni red. `app.rag.providers` construye el
-`Matcher` real a partir del cliente de Supabase.
+retriever es testeable sin base de datos ni red. `app.rag.providers` construye el
+`Matcher` real a partir de `app.rag.db.Database`.
 """
 
 from __future__ import annotations

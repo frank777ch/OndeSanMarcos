@@ -1,6 +1,6 @@
 # HU-23 · Postgres con pgvector en Docker
 
-- **Estado:** Aprobada
+- **Estado:** Implementada
 - **Historia:** ver `../../histories.md#hu-23`
 - **Depende de:** ninguna historia de la web. Es trabajo de backend e infraestructura local.
 - **Archivos hermanos:** [plan.md](plan.md) · [task.md](task.md)
@@ -160,3 +160,4 @@ Generar los vectores consume llamadas a Gemini, que tiene un límite de uso. Est
 - 2026-10-23 · Borrador creado con preguntas abiertas.
 - 2026-10-23 · Preguntas resueltas. P2 pasó de «cómo cargar el esquema» a «qué herramienta de migraciones»: Flyway. Spec aprobada.
 - 2026-10-23 · Se añade la sección «Protección de los datos y de la cuota de Gemini» (RF-23.20 a RF-23.26) y los escenarios 14 a 17, a pedido del equipo: la base debe mantenerse para no gastar el límite de la clave de Gemini. RF-23.6 y RF-23.16 se ajustan.
+- 2026-10-23 · Implementada. Verificada de punta a punta con la clave de Gemini: 55 fragmentos ingeridos (una sola vez), consulta real con vectores, base vacía, base caída, modo mock sin base, persistencia tras `down` y `clean`, `db-dump` y `db-restore`, `db-reset` con confirmación, y la base de desarrollo intacta tras ejecutar los tests.

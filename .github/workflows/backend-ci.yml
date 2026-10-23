@@ -1,17 +1,24 @@
 name: backend-ci
 
-# CI del backend RAG (FastAPI). Corre la suite de pytest, que es HERMÉTICA:
-# `tests/conftest.py` fuerza RAG_USE_MOCK=true, así que no necesita secretos,
-# red, ni las dependencias opcionales (Gemini / Supabase).
+# CI del backend RAG (FastAPI). Corre pytest con un Postgres + pgvector real:
+# - Las pruebas unitarias son HERMÉTICAS: `tests/conftest.py` fuerza
+#   RAG_USE_MOCK=true, así que no necesitan secretos, red ni Gemini.
+# - Las pruebas de integración (`tests/integration/`) usan DATABASE_URL: crean su
+#   propia base `<nombre>_test`, le aplican las migraciones y la borran al terminar.
+# - Además se comprueba que las migraciones se aplican con Flyway desde cero.
 
 on:
   push:
     paths:
       - "backend/**"
+      - "script/**"
+      - "docker-compose.yml"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     paths:
       - "backend/**"
+      - "script/**"
+      - "docker-compose.yml"
       - ".github/workflows/backend-ci.yml"
 
 jobs:
@@ -20,19 +27,46 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ondesanmarcos
+          POSTGRES_PASSWORD: ondesanmarcos
+          POSTGRES_DB: ondesanmarcos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ondesanmarcos -d ondesanmarcos"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://ondesanmarcos:ondesanmarcos@localhost:5432/ondesanmarcos
     steps:
       - uses: actions/checkout@v4
+
+      - name: Apply migrations with Flyway
+        working-directory: .
+        run: |
+          docker run --rm --network host \
+            -v "$PWD/backend/db/migrations:/flyway/sql:ro" \
+            flyway/flyway:11 \
+            -url=jdbc:postgresql://localhost:5432/ondesanmarcos \
+            -user=ondesanmarcos -password=ondesanmarcos migrate
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
           cache: "pip"
-          cache-dependency-path: backend/requirements.txt
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-pgvector.txt
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest pytest-cov
+          pip install -r requirements.txt -r requirements-pgvector.txt pytest-cov
 
       - name: Run tests with coverage
         run: pytest --cov=app --cov-report=term-missing --cov-fail-under=80

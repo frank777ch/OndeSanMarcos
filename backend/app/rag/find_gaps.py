@@ -1,20 +1,20 @@
 """Detecta lugares del mapa sin descripción en el corpus y redacta borradores.
 
 Compara los lugares que el mapa conoce (`frontend/.../unmsm.ts` → `CAMPUS_PLACES`)
-contra los `place_id` que ya existen en el corpus de Supabase. Para cada lugar
+contra los `place_id` que ya existen en el corpus de la base de datos. Para cada lugar
 "faltante" (en el mapa pero no en el corpus), redacta con Gemini una ficha
 descriptiva **anclada a los datos reales** del propio `unmsm.ts` (nombre,
 descripción, horario, teléfono, carreras, servicios…): Gemini **formatea/resume**
 hechos provistos, no inventa. El resultado se escribe como borrador para revisión
-humana; **no** sube nada a Supabase (de eso se encarga `upload_entries`).
+humana; **no** sube nada a la base (de eso se encarga `upload_entries`).
 
 Uso:
     python -m app.rag.find_gaps --detect-only     # solo lista los gaps (sin Gemini)
     python -m app.rag.find_gaps                    # genera borradores -> gaps_review.json
     python -m app.rag.find_gaps --limit 5          # genera solo los primeros 5 (cuota)
 
-Requiere `.env` con LLM_PROVIDER=gemini, LLM_API_KEY, SUPABASE_URL,
-SUPABASE_SERVICE_KEY, y las deps de `requirements-llm.txt`/`requirements-pgvector.txt`.
+Requiere `.env` con LLM_PROVIDER=gemini, LLM_API_KEY, DATABASE_URL,
+y las deps de `requirements-llm.txt`/`requirements-pgvector.txt`.
 """
 
 from __future__ import annotations
@@ -32,6 +32,7 @@ from app.knowledge.entries import (
     save_entries_file,
 )
 from app.knowledge.unmsm_ts import DEFAULT_UNMSM_TS, MapPlace, load_map_places
+from app.rag.db import get_database
 
 _GEN_SYSTEM = (
     "Eres editor de la base de conocimiento oficial del asistente de la "
@@ -133,27 +134,9 @@ def build_entry(place: MapPlace, text: str, model: str) -> dict:
 # --------------------------------------------------------------------------- #
 # Acceso a servicios (red).
 # --------------------------------------------------------------------------- #
-def _supabase_client(settings: Settings):
-    if not (settings.supabase_url and settings.supabase_service_key):
-        raise SystemExit("Faltan SUPABASE_URL / SUPABASE_SERVICE_KEY en el .env.")
-    try:
-        from supabase import create_client
-    except ImportError as exc:  # pragma: no cover
-        raise SystemExit(
-            "Falta el paquete 'supabase'. Instala requirements-pgvector.txt."
-        ) from exc
-    return create_client(settings.supabase_url, settings.supabase_service_key)
-
-
-def fetch_corpus_place_ids(client, table: str) -> set[str]:
-    """`place_id` distintos presentes hoy en el corpus de Supabase."""
-    response = client.table(table).select("metadata").execute()
-    ids: set[str] = set()
-    for row in response.data or []:
-        place_id = (row.get("metadata") or {}).get("place_id")
-        if place_id:
-            ids.add(place_id)
-    return ids
+def fetch_corpus_place_ids(database) -> set[str]:
+    """`place_id` distintos presentes hoy en el corpus de la base de datos."""
+    return database.place_ids()
 
 
 def _gemini_client(settings: Settings):
@@ -223,12 +206,11 @@ def main(argv: list[str] | None = None) -> int:
 
     settings = get_settings()
     map_places = load_map_places(args.unmsm)
-    client = _supabase_client(settings)
-    corpus_ids = fetch_corpus_place_ids(client, settings.pgvector_table)
+    corpus_ids = fetch_corpus_place_ids(get_database(settings))
     gaps = gap_places(map_places, corpus_ids)
 
     print(
-        f"Mapa: {len(map_places)} lugares · Corpus (Supabase): {len(corpus_ids)} "
+        f"Mapa: {len(map_places)} lugares · Corpus (base de datos): {len(corpus_ids)} "
         f"con descripción · Gaps: {len(gaps)}"
     )
     for place in gaps:

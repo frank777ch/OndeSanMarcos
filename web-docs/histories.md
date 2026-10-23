@@ -26,9 +26,9 @@
 | HU-20 | Calidad y cierre | ⬜ Pendiente |
 | HU-21 | Adaptación a móvil | ⬜ Pendiente |
 | HU-22 | Base de datos de lugares | ⬜ Pendiente |
-| HU-23 | Postgres con pgvector en Docker | ⬜ Pendiente |
+| HU-23 | Postgres con pgvector en Docker | ✅ Hecha |
 
-**Avance: 7 de 23 historias hechas.** HU-22 y HU-23 tienen ID alto para no renumerar. Conviene hacerlas antes de HU-20, y decidir HU-23 antes de escribir la spec de HU-22. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 8 de 23 historias hechas.** HU-22 y HU-23 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
@@ -161,7 +161,7 @@ Estados: ⬜ pendiente · ✅ hecha
 - Decisiones a tomar al escribir la spec (HU-23 elimina Supabase, así que la web ya no puede leer la base directo con una anon key: tendría que usar un endpoint `GET /api/places` del backend): leer directo desde Supabase o a través de un endpoint del backend; usar el proyecto de Supabase del backend o uno nuevo; quién verifica los datos marcados como «demo» antes de cargarlos.
 - **Aceptación:** la web muestra los mismos 55 lugares leídos de Supabase; si la carga falla, usa la copia incluida y avisa; cambiar un horario en la tabla se ve al recargar, sin redesplegar; la búsqueda sigue resolviéndose en memoria, sin llamar al backend; hay tests del acceso a datos.
 
-### HU-23 · Postgres con pgvector en Docker ⬜
+### HU-23 · Postgres con pgvector en Docker ✅
 **Como** equipo, **quiero** que el asistente use un Postgres con pgvector que corra en un contenedor **para** desarrollar y probar el RAG completo en local, sin depender de Supabase.
 - Servicios `db` (`pgvector/pgvector:pg16`) y `migrate` (Flyway) en `docker-compose.yml`, con volumen persistente; migraciones SQL versionadas en `backend/db/migrations` (`V1` con el esquema: extensión `vector`, tabla `documents`, índice HNSW y `match_documents`).
 - Backend: reemplazar el cliente `supabase` (API REST) por acceso directo a Postgres con `psycopg` y `pgvector` en la búsqueda, la ingesta y la subida de entradas; una sola variable `DATABASE_URL`. **Se elimina Supabase** (paquete, variables, carpeta `supabase/`).

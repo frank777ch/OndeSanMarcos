@@ -1,6 +1,6 @@
 """Almacén vectorial en memoria con búsqueda por similitud coseno.
 
-Sustituye, para pruebas aisladas, a la base vectorial real (Supabase +
+Sustituye, para pruebas aisladas, a la base vectorial real (Postgres +
 pgvector). La interfaz (`add` / `search`) es intencionalmente simple para que
 migrar a pgvector sea directo.
 """

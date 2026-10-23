@@ -3,7 +3,7 @@
 El `Retriever` alimenta el almacén vectorial usando el pipeline de ingesta
 (troceado + embeddings) y, dada una consulta, devuelve los documentos más
 relevantes por similitud coseno. Es el equivalente aislado del índice que en
-producción resuelve `PgVectorRetriever` (embeddings Gemini + Supabase/pgvector),
+producción resuelve `PgVectorRetriever` (embeddings Gemini + Postgres/pgvector),
 intercambiable por el `Protocol` `SupportsRetrieve`.
 """
 
@@ -35,7 +35,7 @@ class SupportsRetrieve(Protocol):
     """Interfaz de recuperación que consume el motor RAG.
 
     La implementa tanto el `Retriever` local (mock, bag-of-words en memoria) como
-    `PgVectorRetriever` (Supabase + pgvector), de modo que el motor no depende de
+    `PgVectorRetriever` (Postgres + pgvector), de modo que el motor no depende de
     una implementación concreta.
     """
 

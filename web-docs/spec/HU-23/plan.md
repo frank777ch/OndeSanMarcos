@@ -1,7 +1,7 @@
 # HU-23 · Plan técnico
 
 - **Spec:** [spec.md](spec.md)
-- **Estado:** Borrador
+- **Estado:** Ejecutado
 
 ## 1. Enfoque
 1. Mover el esquema a una migración de Flyway y levantar `db` + `migrate` en Docker Compose.
@@ -26,7 +26,7 @@ Migraciones en `backend/db/migrations/`:
 ## 3. Datos y configuración
 - `Settings`: se eliminan `supabase_url` y `supabase_service_key`; se añade `database_url: str = ""` y `db_connect_timeout: int = 3` (segundos). Se conservan `pgvector_table` y `pgvector_match_fn`.
 - `backend/.env.example`: `DATABASE_URL=postgresql://ondesanmarcos:ondesanmarcos@localhost:5432/ondesanmarcos` (para correr fuera de Docker; en Docker lo fija `docker-compose.yml`) y se quitan las variables de Supabase.
-- Dependencias (`requirements-pgvector.txt`): se quita `supabase`; se añaden `psycopg[binary]`, `psycopg_pool` y `pgvector` (versiones fijas, como el resto).
+- Dependencias (`requirements-pgvector.txt`): se quita `supabase`; se añaden `psycopg[binary]==3.3.6` y `psycopg-pool==3.3.3` (versiones fijas). **No** se añadió el paquete `pgvector` (ver historial).
 
 ## 4. Archivos
 | Ruta | Qué hace | Cubre |
@@ -124,3 +124,11 @@ Migraciones en `backend/db/migrations/`:
 ## 10. Historial
 - 2026-10-23 · Plan creado tras resolver las preguntas abiertas del spec.
 - 2026-10-23 · Se añade la sección 5 (protección de los datos y de la cuota) a pedido del equipo.
+- 2026-10-23 · Ejecutado. Diferencias respecto al plan:
+  - **Sin paquete `pgvector`:** los vectores se envían como texto (`'[0.1,…]'::vector`). Evita arrastrar numpy y `register_vector`.
+  - **`app/rag/errors.py`** (nuevo): `RagProviderError` se movió ahí para evitar importaciones circulares entre `db.py` y `providers.py`. `providers.py` lo sigue exponiendo.
+  - **`find_gaps.py` también usaba Supabase** (leía los `place_id` del corpus). Se portó con `Database.place_ids()`. Se añadió `Database.replace_place()` para `upload_entries` (borrar + insertar en una transacción por lugar).
+  - **Pool con `check=ConnectionPool.check_connection`:** hallado al probar de verdad: tras reiniciar la base, la primera consulta devolvía 503 porque el pool entregaba una conexión muerta. Se cubrió con una prueba de integración que mata las conexiones del pool (falla sin el arreglo).
+  - **Disco de Docker:** el disco virtual de Docker Desktop estaba lleno (15,6 GB) y Postgres no podía inicializarse; se amplió a 31 GB desde Docker Desktop. No es un cambio del proyecto, pero conviene saberlo.
+  - **Tests:** `tests/fake_db.py` (base falsa), `tests/test_db.py`, `tests/test_embedding_cache.py`, `tests/test_config.py`, `tests/test_dev_script.py` (revisión estática; se omite dentro del contenedor y corre con el repo completo y en la CI) y `tests/integration/` (esquema, búsqueda, ingesta, subida, base vacía, recuperación del pool).
+  - **CI:** Postgres con pgvector como servicio, migraciones con Flyway y `DATABASE_URL` para las pruebas de integración. Cobertura local: 88 %.

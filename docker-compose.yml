@@ -1,6 +1,39 @@
-# Entorno de desarrollo local: backend (FastAPI) + web (Vite).
-# Se usa con ./script/dev.sh
+# Entorno de desarrollo local: base de datos (Postgres + pgvector), migraciones
+# (Flyway), backend (FastAPI) y web (Vite). Se usa con ./script/dev.sh
 services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      # Solo desarrollo: base local y desechable, sin datos sensibles.
+      POSTGRES_USER: ondesanmarcos
+      POSTGRES_PASSWORD: ondesanmarcos
+      POSTGRES_DB: ondesanmarcos
+    ports:
+      # Solo en localhost. Cambia el puerto con DB_PORT si el 5432 está ocupado.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      # Aquí viven los vectores del asistente. `clean` NO lo borra: regenerarlos
+      # gasta la cuota de Gemini. Solo `./script/dev.sh db-reset` lo borra.
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ondesanmarcos -d ondesanmarcos"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    image: flyway/flyway:11
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/ondesanmarcos
+      FLYWAY_USER: ondesanmarcos
+      FLYWAY_PASSWORD: ondesanmarcos
+    volumes:
+      - ./backend/db/migrations:/flyway/sql:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
   backend:
     build: ./backend
     ports:
@@ -8,12 +41,20 @@ services:
     env_file:
       - path: ./backend/.env
         required: false
+    environment:
+      # Dentro de Docker la base está en el host `db` (tiene prioridad sobre .env).
+      DATABASE_URL: postgresql://ondesanmarcos:ondesanmarcos@db:5432/ondesanmarcos
     # --reload recarga el servidor al editar el código montado en /app.
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./backend:/app
       # Algunos tests del backend leen archivos de la app anterior (se quita al borrar frontend/).
       - ./frontend:/frontend:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
       interval: 5s
@@ -40,4 +81,5 @@ services:
         condition: service_healthy
 
 volumes:
+  db_data:
   web_node_modules:

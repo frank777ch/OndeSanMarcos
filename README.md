@@ -6,7 +6,7 @@ Web responsive para orientarse en el campus de la **UNMSM**: mapa 3D con los lug
 
 ## Estado
 
-Se trabaja por historias de usuario (HU) con Spec-Driven Development. **7 de 22 hechas**: base del proyecto, diseño y navegación, mapa, lugares con filtros, búsqueda y ficha de lugar. Siguen la conexión con el backend, el chat, las rutas y la ubicación del usuario.
+Se trabaja por historias de usuario (HU) con Spec-Driven Development. **8 de 23 hechas**: base del proyecto, diseño y navegación, mapa, lugares con filtros, búsqueda y ficha de lugar, además de la base de datos del asistente (Postgres + pgvector en Docker). Siguen la conexión con el backend, el chat, las rutas y la ubicación del usuario.
 
 - Resumen y detalle de cada historia: [`web-docs/histories.md`](web-docs/histories.md)
 - Plan técnico: [`web-docs/plan.md`](web-docs/plan.md)
@@ -19,9 +19,8 @@ Por ahora la interfaz está pensada **solo para escritorio** (≥ 1024 px). La a
 | Carpeta | Contenido |
 |---|---|
 | `web/` | La web: Vite + React + TypeScript + Tailwind CSS v4. |
-| `backend/` | API FastAPI con el asistente RAG (Python 3.11+). |
+| `backend/` | API FastAPI con el asistente RAG (Python 3.11+) y las migraciones de la base (`backend/db/migrations`). |
 | `web-docs/` | Plan, historias de usuario y specs de la web. |
-| `supabase/` | Migraciones de la base de datos (pgvector). |
 | `documents/` | Documentación del proyecto original (describe la app móvil; sin actualizar). |
 | `script/` | `dev.sh`, para levantar todo con Docker. |
 | `frontend/` | App móvil anterior (Expo). Solo referencia; se elimina en HU-20. |
@@ -31,17 +30,28 @@ Por ahora la interfaz está pensada **solo para escritorio** (≥ 1024 px). La a
 Requiere Docker con `docker compose`.
 
 ```sh
-./script/dev.sh            # backend :8000 + web :5173 (Ctrl+C detiene)
+./script/dev.sh            # base de datos + backend :8000 + web :5173 (Ctrl+C detiene)
 ./script/dev.sh up -d      # en segundo plano
-./script/dev.sh logs web   # logs de un servicio (backend | web)
-./script/dev.sh test       # tests del backend y de la web
-./script/dev.sh down       # detener (clean = también borra volúmenes)
+./script/dev.sh logs web   # logs de un servicio (db | migrate | backend | web)
+./script/dev.sh test       # tests del backend (con integración) y de la web
+./script/dev.sh down       # detener (la base de datos se conserva)
+```
+
+Base de datos del asistente (Postgres + pgvector en un contenedor):
+
+```sh
+./script/dev.sh ingest     # carga el corpus en la base (una vez; consume llamadas a Gemini)
+./script/dev.sh psql       # consola SQL
+./script/dev.sh db-dump    # copia de seguridad de los vectores
+./script/dev.sh db-restore # restaura el último dump, sin gastar cuota de Gemini
+./script/dev.sh db-reset   # BORRA la base (pide confirmación)
 ```
 
 - Web: http://localhost:5173
 - API: http://localhost:8000/docs (Swagger) y http://localhost:8000/health
+- Base de datos: `localhost:5432` (usuario, contraseña y base: `ondesanmarcos`; solo desarrollo)
 
-La primera vez crea `backend/.env` y `web/.env` desde sus `.env.example`. El backend arranca en **modo mock** (`RAG_USE_MOCK=true`): no necesita Supabase, ni llaves de LLM.
+La primera vez crea `backend/.env` y `web/.env` desde sus `.env.example`. El backend arranca en **modo mock** (`RAG_USE_MOCK=true`): no usa la base de datos ni necesita llaves de LLM. Para respuestas reales: `RAG_USE_MOCK=false`, `LLM_PROVIDER=gemini` y `LLM_API_KEY` en `backend/.env`, y `./script/dev.sh ingest` una vez.
 
 ### Token de Mapbox
 
@@ -89,7 +99,7 @@ uvicorn app.main:app --reload
 python -m pytest                 # tests
 ```
 
-Para respuestas reales (no mock) hacen falta `LLM_API_KEY` (Gemini) y `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` en `backend/.env`. Detalles en [`backend/README.md`](backend/README.md).
+Para respuestas reales (no mock) hacen falta `LLM_API_KEY` (Gemini) y `DATABASE_URL` (un Postgres con pgvector; `./script/dev.sh` ya levanta uno) en `backend/.env`, y cargar el corpus con la ingesta. Detalles y cuidado de la cuota de Gemini en [`backend/README.md`](backend/README.md).
 
 ## Flujo de trabajo
 

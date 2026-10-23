@@ -12,6 +12,6 @@ anthropic
 google-genai
 
 # --- Base vectorial (pgvector, ya implementado) ---
-# En producción se usa requirements-pgvector.txt (versión pineada). El motor RAG
-# es propio (no LlamaIndex); esta línea queda solo como alternativa suelta.
-supabase
+# Se usa requirements-pgvector.txt (versiones fijas). El motor RAG es propio.
+psycopg[binary]
+psycopg-pool

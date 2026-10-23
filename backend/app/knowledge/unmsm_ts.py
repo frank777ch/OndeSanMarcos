@@ -5,7 +5,7 @@ El mapa mantiene la lista de lugares del campus en
 esa lista **sin** un runtime de TypeScript: se escanea el array respetando
 strings y comentarios, y se sacan los campos de cada objeto con expresiones
 regulares acotadas al bloque. Se usa para detectar "gaps" entre lo que el mapa
-conoce y lo que el corpus (Supabase) describe (ver `app/rag/find_gaps.py`).
+conoce y lo que el corpus (base de datos) describe (ver `app/rag/find_gaps.py`).
 
 Es un parser tolerante, pensado para el formato regular que usa el equipo de
 mapa (claves sin comillas, strings con comillas dobles, un objeto por lugar).

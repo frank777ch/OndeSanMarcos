@@ -1,9 +1,9 @@
-"""Sube a Supabase las entradas de conocimiento ya revisadas y aprobadas.
+"""Sube a Postgres/pgvector las entradas de conocimiento ya revisadas y aprobadas.
 
 Lee un archivo de entradas (por defecto `app/knowledge/entries/gaps_review.json`,
 producido por `find_gaps`), y para cada entrada aprobada: trocea el documento,
 embebe cada fragmento con Gemini (`RETRIEVAL_DOCUMENT`) e inserta las filas en la
-tabla `documents` de Supabase — con la MISMA forma que el corpus principal.
+tabla `documents` — con la MISMA forma que el corpus principal.
 
 Seguridad por diseño:
 - Solo sube entradas con `status="approved"` (o todas si se pasa `--approve-all`).
@@ -35,37 +35,11 @@ from app.knowledge.entries import (
     load_entries_file,
     save_entries_file,
 )
+from app.rag.db import Database, get_database
+from app.rag.errors import RagProviderError
 from app.rag.ingestion import split_document
 from app.rag.providers import build_embedding_provider
 
-_BATCH = 100
-
-
-def _supabase_client(settings: Settings):
-    if not (settings.supabase_url and settings.supabase_service_key):
-        raise SystemExit("Faltan SUPABASE_URL / SUPABASE_SERVICE_KEY en el .env.")
-    try:
-        from supabase import create_client
-    except ImportError as exc:  # pragma: no cover
-        raise SystemExit(
-            "Falta el paquete 'supabase'. Instala requirements-pgvector.txt."
-        ) from exc
-    return create_client(settings.supabase_url, settings.supabase_service_key)
-
-
-def _existing_count(client, table: str, place_id: str) -> int:
-    """Cuántas filas del corpus ya pertenecen a `place_id`."""
-    response = (
-        client.table(table)
-        .select("id", count="exact")
-        .filter("metadata->>place_id", "eq", place_id)
-        .execute()
-    )
-    return response.count or 0
-
-
-def _delete_place(client, table: str, place_id: str) -> None:
-    client.table(table).delete().filter("metadata->>place_id", "eq", place_id).execute()
 
 
 def _rows_for_document(document, embedding, settings: Settings) -> list[dict]:
@@ -91,11 +65,6 @@ def _rows_for_document(document, embedding, settings: Settings) -> list[dict]:
             }
         )
     return rows
-
-
-def _insert_rows(client, table: str, rows: list[dict]) -> None:
-    for start in range(0, len(rows), _BATCH):
-        client.table(table).insert(rows[start : start + _BATCH]).execute()
 
 
 def _uploadable(entry: dict, approve_all: bool) -> bool:
@@ -128,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Muestra qué haría sin embeber ni escribir en Supabase.",
+        help="Muestra qué haría sin embeber ni escribir en la base.",
     )
     args = parser.parse_args(argv)
 
@@ -142,15 +111,14 @@ def main(argv: list[str] | None = None) -> int:
               "en el archivo (o usa --approve-all).")
         return 0
 
-    client = _supabase_client(settings)
-    table = settings.pgvector_table
+    database: Database = get_database(settings)
     embedding = None if args.dry_run else build_embedding_provider(settings)
 
     uploaded = skipped = 0
     for entry in pending:
         place_id = entry["place_id"]
         document = entry_to_document(entry)
-        existing = _existing_count(client, table, place_id)
+        existing = database.count_place(place_id)
 
         if existing and not args.update_existing:
             print(f"  ↷ {place_id}: ya existe ({existing} filas). Omitido "
@@ -171,10 +139,10 @@ def main(argv: list[str] | None = None) -> int:
                   f"(existentes: {existing}).")
             continue
 
-        if existing:
-            _delete_place(client, table, place_id)
+        # Primero se embebe (puede fallar por la cuota de Gemini); la base solo se
+        # toca al final, en una transacción por lugar.
         rows = _rows_for_document(document, embedding, settings)
-        _insert_rows(client, table, rows)
+        database.replace_place(place_id, rows)
         entry["status"] = STATUS_UPLOADED
         entry["uploaded_chunks"] = len(rows)
         print(f"  ✓ {place_id}: {len(rows)} fragmentos subidos "
@@ -191,5 +159,13 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+def run(argv: list[str] | None = None) -> int:
+    try:
+        return main(argv)
+    except RagProviderError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run())

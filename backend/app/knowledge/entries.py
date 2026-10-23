@@ -1,15 +1,15 @@
 """Entradas de conocimiento generadas (respaldo versionado en el repo).
 
-Modelo de fuente de verdad (decisión de diseño): **Supabase es la base viva**
+Modelo de fuente de verdad (decisión de diseño): **la base de datos es la base viva**
 que consulta la app; el repo guarda las entradas ya revisadas y aprobadas como
 archivos JSON (`app/knowledge/entries/*.json`) para reproducibilidad y respaldo.
 
 Flujo:
-  1. `find_gaps`  detecta lugares del mapa (`unmsm.ts`) que el corpus de Supabase
+  1. `find_gaps`  detecta lugares del mapa (`unmsm.ts`) que el corpus de la base de datos
      aún no describe, genera un borrador (Gemini, *grounded*) y lo escribe aquí
      con `status="draft"`.
   2. La persona **revisa** el JSON y aprueba (`status="approved"`).
-  3. `upload_entries` sube lo aprobado a Supabase y marca `status="uploaded"`.
+  3. `upload_entries` sube lo aprobado a la base y marca `status="uploaded"`.
   4. El re-ingest completo (`ingest_pgvector`) vuelve a leer estas entradas
      además del corpus, de modo que reconstruir la base **no** pierde lo agregado.
 
@@ -67,7 +67,7 @@ def load_entry_documents(
 ) -> list[Document]:
     """Documentos de todas las entradas del directorio con `status` en `statuses`.
 
-    Lo usa el re-ingest para incluir en la reconstrucción de Supabase lo que ya
+    Lo usa el re-ingest para incluir en la reconstrucción de la base lo que ya
     fue revisado/subido (por defecto: aprobado o subido). Si la carpeta no
     existe, devuelve una lista vacía.
     """
