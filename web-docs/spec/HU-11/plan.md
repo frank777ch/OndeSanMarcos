@@ -1,7 +1,7 @@
 # HU-11 · Plan técnico
 
 - **Spec:** [spec.md](spec.md)
-- **Estado:** Borrador
+- **Estado:** Ejecutado
 
 ## 1. Enfoque
 1. Ampliar el módulo de datos a 55 lugares con `keywords` y 9 categorías.
@@ -77,7 +77,7 @@ Conteo final: facultades 26, cafeterías 5, auditorios 2, campos deportivos 4, p
 | `selectPlace` quita el filtro en el store | Hacerlo en `PlaceSearch` | La regla se aplica igual si luego elige el lugar el chat o la ficha |
 | `FlyToSelection` observa el store | `PlaceSearch` llama a `flyTo` | Desacopla la búsqueda del mapa y permite probar cada parte por separado |
 | Búsqueda en memoria sobre 55 elementos | Índice o librería de búsqueda | El tamaño no lo justifica |
-| Ranking: empieza con > contiene > palabra clave | Orden alfabético | Pone arriba lo más probable |
+| Ranking: palabra clave exacta > nombre empieza con > nombre contiene > palabra clave contiene | Orden alfabético | Pone arriba lo más probable; una sigla («FISI») debe ganar a una coincidencia casual dentro de otro nombre («Físicas») |
 | Cuadro combinado ARIA (`role="combobox"` + `listbox`) | Lista de botones | Cumple RF-11.17 y es el patrón estándar |
 
 ## 6. Estrategia de pruebas
@@ -88,7 +88,7 @@ Conteo final: facultades 26, cafeterías 5, auditorios 2, campos deportivos 4, p
 | RF-11.13, RF-11.15, RF-11.16 | `store/useMapStore.test.ts` (`selectPlace` quita o conserva el filtro; `clearSelection`; `id` inválido) |
 | RF-11.5, RF-11.6, RF-11.9, RF-11.11, RF-11.13, RF-11.16, RF-11.17 | `components/PlaceSearch.test.tsx` (React Testing Library: escribir, elegir con clic y con teclado, limpiar, sin resultados, ARIA) |
 | RF-11.13 | `components/FlyToSelection.test.tsx` (con `useMap` simulado, comprueba `flyTo` con las coordenadas) |
-| RF-11.14 | `components/PlacesLayer` se prueba solo por la expresión de filtro (función pura `selectedFilter(id)` en `utils/places.ts`) |
+| RF-11.14 | `utils/places.test.ts` (función pura `selectedFilter(id)`; la capa en sí se verifica a mano) |
 
 Manual (requiere token de Mapbox): escenarios 1–12 de `spec.md` sobre el mapa real; en especial el anillo (RF-11.14) y el vuelo (RF-11.13).
 
@@ -101,3 +101,5 @@ Manual (requiere token de Mapbox): escenarios 1–12 de `spec.md` sobre el mapa 
 
 ## 8. Historial
 - 2026-10-23 · Plan creado tras resolver las preguntas abiertas del spec.
+- 2026-10-23 · Ranking con palabra clave exacta primero (ver historial de la spec).
+- 2026-10-23 · Ejecutado. Se añadió `selectedFilter` en `utils/places.ts` y los íconos `Landmark`, `HeartPulse`, `ConciergeBell` y `MapPin` para los chips nuevos.

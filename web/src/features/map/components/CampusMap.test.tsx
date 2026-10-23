@@ -11,6 +11,7 @@ vi.mock('react-map-gl/mapbox', () => ({
     return <div data-testid="map" />
   }),
   NavigationControl: () => null,
+  useMap: () => ({ current: undefined }),
   Source: () => null,
   Layer: () => null,
 }))

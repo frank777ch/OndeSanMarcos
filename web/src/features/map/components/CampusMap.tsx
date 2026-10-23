@@ -5,7 +5,8 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Config } from '@/config'
 import { IconButton } from '@/components/IconButton/IconButton'
 import { CAMPUS, CAMPUS_MAX_BOUNDS } from '../constants/campus'
-import { CategoryChips } from './CategoryChips'
+import { FlyToSelection } from './FlyToSelection'
+import { MapToolbar } from './MapToolbar'
 import { PlacesLayer } from './PlacesLayer'
 import styles from './CampusMap.module.css'
 
@@ -57,8 +58,9 @@ export function CampusMap() {
       >
         <NavigationControl position="top-right" visualizePitch />
         <PlacesLayer />
+        <FlyToSelection />
       </Map>
-      <CategoryChips />
+      <MapToolbar />
       <div className={styles.actions}>
         <IconButton label="Volver al campus" onClick={backToCampus}>
           <LocateFixed size={20} />

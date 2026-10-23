@@ -6,7 +6,7 @@ import { CategoryChips } from './CategoryChips'
 describe('CategoryChips', () => {
   beforeEach(() => useMapStore.setState({ activeCategory: null }))
 
-  it('RF-10.5: muestra un botón por categoría en el orden definido, sin ninguno activo', () => {
+  it('RF-11.5: muestra un botón por categoría en el orden definido, sin ninguno activo', () => {
     render(<CategoryChips />)
     const buttons = screen.getAllByRole('button')
     expect(buttons.map((b) => b.textContent)).toEqual([
@@ -15,6 +15,10 @@ describe('CategoryChips', () => {
       'Auditorios',
       'Campos deportivos',
       'Puertas',
+      'Administración',
+      'Salud',
+      'Servicios',
+      'Otros',
     ])
     for (const b of buttons) expect(b).toHaveAttribute('aria-pressed', 'false')
   })

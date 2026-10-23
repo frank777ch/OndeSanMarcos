@@ -10,7 +10,7 @@ El mapa del campus está vacío. El visitante necesita ver los lugares de la UNM
 
 ## 2. Alcance
 **Dentro:**
-- Datos de los 40 lugares con coordenadas y categoría.
+- Datos de los lugares con coordenadas y categoría (40 al implementar HU-10; 55 desde HU-11).
 - Capa de puntos con nombre sobre el mapa.
 - Barra de filtros por categoría (una activa a la vez, o ninguna).
 - Estado del filtro compartido (se conserva al ir al Asistente y volver).
@@ -26,11 +26,11 @@ El mapa del campus está vacío. El visitante necesita ver los lugares de la UNM
 
 | ID | Requisito |
 |---|---|
-| RF-10.1 | Los lugares se definen en un único módulo de datos. Cada lugar tiene `id` único, `name`, `category` y `coordinates` `[lng, lat]`. Hay 40 lugares. |
-| RF-10.2 | Existen exactamente 5 categorías: Facultades, Puertas, Cafeterías, Auditorios y Campos deportivos. Cada una tiene `id`, etiqueta en español, color e ícono. Todo lugar pertenece a una categoría existente. |
+| RF-10.1 | Los lugares se definen en un único módulo de datos. Cada lugar tiene `id` único, `name`, `category` y `coordinates` `[lng, lat]`. Hay 40 lugares. *(HU-11: pasan a 55.)* |
+| RF-10.2 | Existen 5 categorías: Facultades, Puertas, Cafeterías, Auditorios y Campos deportivos. *(HU-11: se añaden Administración, Salud, Servicios y Otros, hasta 9.)* Cada una tiene `id`, etiqueta en español, color e ícono. Todo lugar pertenece a una categoría existente. |
 | RF-10.3 | Cuando se abre `/mapa`, el sistema debe mostrar todos los lugares como un círculo con su nombre debajo. |
 | RF-10.4 | El círculo de cada lugar debe tener el color de su categoría, con borde blanco. |
-| RF-10.5 | El sistema debe mostrar sobre el mapa una barra con un chip por categoría, en el orden: Facultades, Cafeterías, Auditorios, Campos deportivos, Puertas. Cada chip tiene ícono y etiqueta, y es un botón con `aria-pressed`. |
+| RF-10.5 | El sistema debe mostrar sobre el mapa una barra con un chip por categoría, en el orden: Facultades, Cafeterías, Auditorios, Campos deportivos, Puertas. *(HU-11: después van Administración, Salud, Servicios y Otros.)* Cada chip tiene ícono y etiqueta, y es un botón con `aria-pressed`. |
 | RF-10.6 | Cuando el usuario activa un chip, el mapa debe mostrar solo los lugares de esa categoría. |
 | RF-10.7 | Cuando el usuario pulsa el chip que ya está activo, el sistema debe desactivarlo y volver a mostrar todos los lugares. |
 | RF-10.8 | Solo puede haber una categoría activa a la vez: activar otro chip reemplaza al anterior. |
@@ -41,17 +41,17 @@ El mapa del campus está vacío. El visitante necesita ver los lugares de la UNM
 **Escenario 1: ver todo** (RF-10.3, RF-10.4)
 - **Dado** que abro `/mapa` con el token de Mapbox configurado
 - **Cuando** el mapa termina de cargar
-- **Entonces** veo 40 puntos con su nombre, coloreados por categoría, y ningún chip está activo.
+- **Entonces** veo todos los puntos (40; 55 desde HU-11) con su nombre, coloreados por categoría, y ningún chip está activo.
 
 **Escenario 2: filtrar** (RF-10.6)
 - **Dado** que veo todos los lugares
 - **Cuando** pulso «Cafeterías»
-- **Entonces** solo quedan 3 puntos y el chip aparece resaltado.
+- **Entonces** solo quedan los puntos de cafeterías (3; 5 desde HU-11) y el chip aparece resaltado.
 
 **Escenario 3: quitar el filtro** (RF-10.7)
 - **Dado** que «Cafeterías» está activo
 - **Cuando** vuelvo a pulsarlo
-- **Entonces** reaparecen los 40 puntos y el chip deja de estar resaltado.
+- **Entonces** reaparecen todos los puntos y el chip deja de estar resaltado.
 
 **Escenario 4: cambiar de filtro** (RF-10.8)
 - **Dado** que «Cafeterías» está activo
@@ -70,3 +70,4 @@ El mapa del campus está vacío. El visitante necesita ver los lugares de la UNM
 - 2026-10-23 · Borrador creado y aprobado.
 - 2026-10-23 · Implementada. Se añadió `@types/geojson` como dependencia de desarrollo para tipar el GeoJSON.
 - 2026-10-23 · Se separó en `spec.md`, `plan.md` y `task.md`.
+- 2026-10-23 · HU-11 amplía los datos (55 lugares, 9 categorías) y cambia RF-10.1, RF-10.2 y RF-10.5; ver `../HU-11/spec.md`. Los tests de datos pasaron a `RF-11.x`.

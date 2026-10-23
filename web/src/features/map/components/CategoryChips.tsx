@@ -1,4 +1,15 @@
-import { Building2, Coffee, DoorOpen, Dumbbell, Mic, type LucideIcon } from 'lucide-react'
+import {
+  Building2,
+  Coffee,
+  ConciergeBell,
+  DoorOpen,
+  Dumbbell,
+  HeartPulse,
+  Landmark,
+  MapPin,
+  Mic,
+  type LucideIcon,
+} from 'lucide-react'
 import { PLACE_CATEGORIES, type PlaceCategoryId } from '../data/places'
 import { useMapStore } from '../store/useMapStore'
 import styles from './CategoryChips.module.css'
@@ -9,6 +20,10 @@ const ICONS: Record<PlaceCategoryId, LucideIcon> = {
   auditorios: Mic,
   'campos-deportivos': Dumbbell,
   puertas: DoorOpen,
+  administracion: Landmark,
+  salud: HeartPulse,
+  servicios: ConciergeBell,
+  otros: MapPin,
 }
 
 export function CategoryChips() {

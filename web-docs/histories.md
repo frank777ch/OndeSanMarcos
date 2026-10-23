@@ -82,7 +82,7 @@ Estados: ⬜ pendiente · ✅ hecha
 - Datos de lugares (facultades, bibliotecas, comedores, servicios, etc.) con coordenadas y categoría; capa de puntos con íconos; chips de categoría (una activa a la vez o ninguna).
 - **Aceptación:** se ven todos los lugares; al activar una categoría solo aparecen los de ese tipo; al desactivarla vuelven todos.
 
-### HU-11 · Buscar un lugar ⬜
+### HU-11 · Buscar un lugar ✅
 **Como** visitante, **quiero** buscar un lugar por nombre **para** ir directo a él.
 - Barra de búsqueda con resultados mientras escribo (sin distinguir tildes ni mayúsculas); al elegir un resultado la cámara vuela al lugar.
 - **Aceptación:** buscar "biblioteca" lista las coincidencias; elegir una centra el mapa y abre su ficha.

@@ -1,6 +1,6 @@
 # HU-11 · Buscar un lugar
 
-- **Estado:** Aprobada
+- **Estado:** Implementada (escenarios 1–12 con el mapa real pendientes de verificar a mano: requieren token de Mapbox)
 - **Historia:** ver `../../histories.md#hu-11`
 - **Depende de:** HU-09 (mapa), HU-10 (lugares y filtros)
 - **Archivos hermanos:** [plan.md](plan.md) · [task.md](task.md)
@@ -45,7 +45,7 @@ Hoy el mapa solo tiene 40 puntos y no incluye lugares que el asistente sí conoc
 | RF-11.7 | Cuando el usuario escribe, el sistema debe mostrar debajo de la barra los lugares cuyo nombre o palabras clave contienen el texto, sin distinguir mayúsculas ni tildes («psicologia» encuentra «Facultad de Psicología», «oca» encuentra «Oficina Central de Admisión (OCA)»). |
 | RF-11.8 | Cuando el texto tiene menos de 2 caracteres (sin contar espacios sobrantes), el sistema no debe mostrar resultados. |
 | RF-11.9 | Cuando el texto no coincide con ningún lugar, el sistema debe mostrar el mensaje «No encontramos ese lugar». |
-| RF-11.10 | La lista debe ordenar primero los lugares cuyo nombre empieza con el texto, luego los que lo contienen en el nombre y al final los que solo coinciden por palabra clave, y mostrar como máximo 8. |
+| RF-11.10 | La lista debe ordenar así: primero los lugares con una palabra clave exactamente igual al texto (una sigla como «fisi»), luego los cuyo nombre empieza con el texto, luego los que lo contienen en el nombre y al final los que solo contienen el texto en una palabra clave. Debe mostrar como máximo 8. |
 | RF-11.11 | Cada resultado debe mostrar el nombre del lugar y su categoría. |
 | RF-11.12 | La búsqueda debe resolverse sin llamar al backend. |
 
@@ -74,7 +74,7 @@ Hoy el mapa solo tiene 40 puntos y no incluye lugares que el asistente sí conoc
 
 **Escenario 3: palabra clave** (RF-11.3, RF-11.7)
 - **Cuando** escribo «fisi»
-- **Entonces** aparece «Facultad de Ingeniería de Sistemas e Informática» y en el mapa no hay un segundo punto repetido.
+- **Entonces** «Facultad de Ingeniería de Sistemas e Informática» aparece primera (aunque «Ciencias Físicas» también contenga «fisi») y en el mapa no hay un segundo punto repetido.
 
 **Escenario 4: lugar que antes no estaba** (RF-11.2, RF-11.7)
 - **Cuando** escribo «biblioteca»
@@ -122,3 +122,5 @@ Hoy el mapa solo tiene 40 puntos y no incluye lugares que el asistente sí conoc
 ## 6. Historial
 - 2026-10-23 · Borrador creado con preguntas abiertas.
 - 2026-10-23 · Preguntas resueltas (unificar datos, volar y resaltar, quitar filtro). Spec aprobada.
+- 2026-10-23 · RF-11.10 y escenario 3: una palabra clave exacta (sigla) va antes que las coincidencias en el nombre. Hallado al probar: «fisi» también está dentro de «Físicas».
+- 2026-10-23 · Implementada.

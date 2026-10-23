@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { routes } from '@/routes'
 
 // mapbox-gl necesita WebGL, que jsdom no tiene.
-vi.mock('react-map-gl/mapbox', () => ({ default: () => null, NavigationControl: () => null }))
+vi.mock('react-map-gl/mapbox', () => ({ default: () => null, NavigationControl: () => null, useMap: () => ({ current: undefined }), Source: () => null, Layer: () => null }))
 vi.mock('mapbox-gl/dist/mapbox-gl.css', () => ({}))
 
 async function renderAt(path: string) {

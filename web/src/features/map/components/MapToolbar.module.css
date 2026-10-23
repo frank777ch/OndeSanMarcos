@@ -1,0 +1,15 @@
+.toolbar {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  right: 4.5rem; /* deja libres los controles de zoom */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+.toolbar > * {
+  pointer-events: auto;
+}

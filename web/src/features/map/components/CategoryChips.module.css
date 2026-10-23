@@ -1,8 +1,4 @@
 .bar {
-  position: absolute;
-  top: var(--space-4);
-  left: var(--space-4);
-  right: 4.5rem; /* deja libres los controles de zoom */
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
