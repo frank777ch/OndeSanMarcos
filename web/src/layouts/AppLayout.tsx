@@ -12,7 +12,7 @@ export function AppLayout() {
   return (
     <div className="grid h-full grid-cols-[15rem_1fr] overflow-hidden">
       <aside className="flex flex-col gap-8 border-r border-border bg-surface px-4 py-6">
-        <div className="text-center font-display text-xl font-bold whitespace-nowrap text-primary">
+        <div className="font-display text-xl font-bold whitespace-nowrap text-primary">
           OndeSanMarcos
         </div>
         <nav aria-label="Principal" className="flex flex-col gap-1">
