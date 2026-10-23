@@ -77,7 +77,7 @@ Estados: ⬜ pendiente · ✅ hecha
 - Mapa Mapbox GL JS ocupando el área de contenido; cámara inicial centrada en la UNMSM con zoom e inclinación definidos; controles de zoom y de reorientar al norte; límites para no alejarse del campus; botón "Volver al campus".
 - **Aceptación:** el mapa carga, se puede mover y hacer zoom, y el botón regresa a la vista inicial; si falta el token se muestra un mensaje claro.
 
-### HU-10 · Lugares y filtros ⬜
+### HU-10 · Lugares y filtros ✅
 **Como** visitante, **quiero** ver los lugares del campus y filtrarlos por categoría **para** encontrar lo que busco.
 - Datos de lugares (facultades, bibliotecas, comedores, servicios, etc.) con coordenadas y categoría; capa de puntos con íconos; chips de categoría (una activa a la vez o ninguna).
 - **Aceptación:** se ven todos los lugares; al activar una categoría solo aparecen los de ese tipo; al desactivarla vuelven todos.

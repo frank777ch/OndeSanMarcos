@@ -1,6 +1,6 @@
 # HU-10 · Lugares y filtros
 
-- **Estado:** Aprobada
+- **Estado:** Implementada (escenarios 1–5 con el mapa real pendientes de verificar a mano: requieren token de Mapbox)
 - **Historia:** ver `../histories.md#hu-10`
 - **Depende de:** HU-09 (mapa del campus)
 
@@ -83,12 +83,12 @@ El mapa del campus está vacío. El visitante necesita ver los lugares de la UNM
 
 ## 6. Tareas
 - [x] Escribir spec
-- [ ] Extraer los 40 lugares a `data/places.ts`
-- [ ] `utils/places.ts` + tests
-- [ ] `store/useMapStore.ts` + tests
-- [ ] `PlacesLayer` y `CategoryChips` + tests
-- [ ] Integrar en `CampusMap`
-- [ ] Verificar escenarios 1–5
+- [x] Extraer los 40 lugares a `data/places.ts`
+- [x] `utils/places.ts` + tests
+- [x] `store/useMapStore.ts` + tests
+- [x] `PlacesLayer` y `CategoryChips` + tests
+- [x] Integrar en `CampusMap`
+- [ ] Verificar escenarios 1–5 con el mapa real (manual, con token)
 
 ## 7. Pruebas
 | Requisito | Test |
@@ -106,3 +106,4 @@ Los escenarios 1–5 con el mapa real se prueban a mano (requiere token de Mapbo
 
 ## 9. Historial
 - 2026-10-23 · Borrador creado y aprobado.
+- 2026-10-23 · Implementada. Se añadió `@types/geojson` como dependencia de desarrollo para tipar el GeoJSON.

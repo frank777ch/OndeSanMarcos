@@ -11,6 +11,8 @@ vi.mock('react-map-gl/mapbox', () => ({
     return <div data-testid="map" />
   }),
   NavigationControl: () => null,
+  Source: () => null,
+  Layer: () => null,
 }))
 vi.mock('mapbox-gl/dist/mapbox-gl.css', () => ({}))
 
