@@ -1,0 +1,43 @@
+# Entorno de desarrollo local: backend (FastAPI) + web (Vite).
+# Se usa con ./script/dev.sh
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: ./backend/.env
+        required: false
+    # --reload recarga el servidor al editar el código montado en /app.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+      # Algunos tests del backend leen archivos de la app anterior (se quita al borrar frontend/).
+      - ./frontend:/frontend:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    # Instala dependencias con `npm ci` solo si package-lock.json cambió
+    # (no modifica el lockfile del repo).
+    command: >
+      sh -c "cmp -s package-lock.json node_modules/.lock-copy ||
+      (npm ci --no-audit --no-fund && cp package-lock.json node_modules/.lock-copy);
+      npm run dev -- --host 0.0.0.0 --port 5173"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app
+      # node_modules vive en un volumen para no mezclar binarios de macOS y Linux.
+      - web_node_modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  web_node_modules:
