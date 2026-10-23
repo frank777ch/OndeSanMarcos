@@ -19,7 +19,7 @@ Crear un proyecto nuevo `web/` (Vite + React + TypeScript), portar la lógica pu
 ### 1. Proyecto base
 - `npm create vite@latest web -- --template react-ts`
 - Dependencias: `react-router-dom`, `zustand`, `mapbox-gl` + `react-map-gl` (wrapper declarativo, muy parecido a `<MapboxGL.MapView>`/`ShapeSource`/`LineLayer`), `lucide-react` (mismo set de íconos que `lucide-react-native`), `vite-plugin-svgr` (para los SVG de `src/shared/assets`).
-- Estilos: CSS Modules o Tailwind; colores de `frontend/src/theme/colors.ts`, `light.ts`, `dark.ts` → variables CSS en `:root`. Fuentes DM Sans y Funnel Display desde Google Fonts.
+- Estilos: **Tailwind CSS v4** (decidido el 2026-10-23, reemplaza a los CSS Modules con los que se hicieron HU-03 a HU-12); colores de `frontend/src/theme/colors.ts`, `light.ts`, `dark.ts` → variables CSS en `:root`. Fuentes DM Sans y Funnel Display desde Google Fonts.
 - Variables de entorno: `EXPO_PUBLIC_*` → `VITE_*` (`VITE_API_URL`, `VITE_MAPBOX_TOKEN`, `VITE_USE_MOCK_CHAT`, `VITE_ENABLE_DEV_LOGS`); `process.env.X` → `import.meta.env.X` en el port de `src/constants/config.ts`. Se eliminan las de Supabase.
 
 ### 2. Código que se copia casi sin cambios
@@ -62,6 +62,13 @@ Crear un proyecto nuevo `web/` (Vite + React + TypeScript), portar la lógica pu
 ### 6. Tests y docs
 - Pasar los tests de lógica pura (`geofence`, `useChatStore`, `useThemeStore`, `client`, `chatApi`, `useMapCamera`) de Jest a **Vitest** (API casi idéntica). Borrar los tests de auth.
 - Actualizar `README.md` y `documents/02-frontend.md` con el nuevo stack y comandos.
+
+## Estilos (Tailwind CSS v4)
+- Plugin `@tailwindcss/vite`; sin `tailwind.config.js`: los tokens viven en `@theme` dentro de `web/src/index.css` (colores, fuentes, radios, sombras). Generan utilidades como `bg-surface`, `text-muted`, `rounded-md`, `shadow-lg`, `font-display`.
+- Tema oscuro: `:root[data-theme='dark']` redefine las variables de color (HU-18).
+- Espaciados y tamaños de texto: escala por defecto de Tailwind (`p-4` = 1 rem, `text-sm`…).
+- Clases condicionales con el helper `cn()` (`web/src/lib/cn.ts`). Evitar sobrescribir utilidades con `className` externo: el orden lo decide el CSS generado, no el atributo.
+- Los `plan.md` de HU-10 a HU-12 mencionan archivos `.module.css`; ya no existen (el estilo está en las clases de cada componente).
 
 ## Metodología
 SDD (Spec-Driven Development): cada historia desde HU-10 tiene una carpeta `web-docs/spec/HU-XX/` con `spec.md`, `plan.md` y `task.md` que se escribe antes del código. Ver `web-docs/spec/README.md`.

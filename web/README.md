@@ -33,3 +33,6 @@ npm run dev            # http://localhost:5173
 | `npm run lint` | oxlint |
 
 El alias `@/` apunta a `src/`.
+
+## Estilos
+Tailwind CSS v4. Los tokens (colores, fuentes, radios, sombras) están en `@theme` dentro de `src/index.css`; el tema oscuro los redefine con `data-theme="dark"`.

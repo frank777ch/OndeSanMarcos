@@ -3,7 +3,6 @@ import { X } from 'lucide-react'
 import { IconButton } from '@/components/IconButton/IconButton'
 import { PLACE_CATEGORIES, PLACES } from '../data/places'
 import { useMapStore } from '../store/useMapStore'
-import styles from './PlaceCard.module.css'
 
 const CATEGORY_LABEL = Object.fromEntries(
   PLACE_CATEGORIES.map((c) => [c.id, c.label]),
@@ -11,8 +10,8 @@ const CATEGORY_LABEL = Object.fromEntries(
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className={styles.section}>
-      <h3 className={styles.sectionTitle}>{title}</h3>
+    <section className="mt-4 border-t border-border pt-3 text-sm">
+      <h3 className="mb-1 font-body text-xs font-bold tracking-wider text-muted uppercase">{title}</h3>
       {children}
     </section>
   )
@@ -20,7 +19,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function List({ items }: { items: string[] }) {
   return (
-    <ul className={styles.list}>
+    <ul className="m-0 list-disc pl-5">
       {items.map((item) => (
         <li key={item}>{item}</li>
       ))}
@@ -65,13 +64,13 @@ export function PlaceCard() {
   ].filter(Boolean) as string[]
 
   return (
-    <aside role="dialog" aria-labelledby={titleId} className={styles.card}>
-      <header className={styles.header}>
+    <aside role="dialog" aria-labelledby={titleId} className="mt-auto min-h-0 w-[min(24rem,100%)] flex-[0_1_auto] overflow-y-auto rounded-lg border border-border bg-bg px-6 py-4 shadow-lg">
+      <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 id={titleId} className={styles.name}>
+          <h2 id={titleId} className="text-lg">
             {place.name}
           </h2>
-          <p className={styles.category}>{CATEGORY_LABEL[place.category]}</p>
+          <p className="text-sm text-muted">{CATEGORY_LABEL[place.category]}</p>
         </div>
         <IconButton ref={closeRef} label="Cerrar" onClick={clearSelection}>
           <X size={18} />

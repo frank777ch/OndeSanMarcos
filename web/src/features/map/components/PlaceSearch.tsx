@@ -3,7 +3,7 @@ import { Search, X } from 'lucide-react'
 import { PLACE_CATEGORIES, PLACES, type Place } from '../data/places'
 import { useMapStore } from '../store/useMapStore'
 import { MIN_QUERY_LENGTH, normalizeText, searchPlaces } from '../utils/search'
-import styles from './PlaceSearch.module.css'
+import { cn } from '@/lib/cn'
 
 const CATEGORY_LABEL = Object.fromEntries(
   PLACE_CATEGORIES.map((c) => [c.id, c.label]),
@@ -75,9 +75,9 @@ export function PlaceSearch() {
   }
 
   return (
-    <div className={styles.search}>
-      <div className={styles.field}>
-        <Search size={18} aria-hidden="true" className={styles.icon} />
+    <div className="relative w-[min(26rem,100%)]">
+      <div className="relative flex items-center">
+        <Search size={18} aria-hidden="true" className="pointer-events-none absolute left-3 text-muted" />
         <input
           ref={inputRef}
           type="text"
@@ -89,7 +89,7 @@ export function PlaceSearch() {
           aria-activedescendant={showList && activeIndex >= 0 ? optionId(activeIndex) : undefined}
           placeholder="Buscar un lugar"
           autoComplete="off"
-          className={styles.input}
+          className="w-full rounded-full border border-border bg-bg px-10 py-3 shadow-md focus-visible:outline-none"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
@@ -104,7 +104,7 @@ export function PlaceSearch() {
           <button
             type="button"
             aria-label="Limpiar búsqueda"
-            className={styles.clear}
+            className="absolute right-2 inline-flex size-7 items-center justify-center rounded-full bg-transparent p-0 text-muted hover:bg-surface"
             onClick={clear}
           >
             <X size={16} aria-hidden="true" />
@@ -117,7 +117,7 @@ export function PlaceSearch() {
         role="listbox"
         aria-label="Resultados de la búsqueda"
         hidden={!showList}
-        className={styles.list}
+        className="absolute top-full right-0 left-0 mt-2 max-h-88 overflow-auto rounded-md border border-border bg-bg p-1 shadow-md"
         // Evita que el campo pierda el foco (y cierre la lista) antes del clic.
         onMouseDown={(e) => e.preventDefault()}
       >
@@ -128,20 +128,21 @@ export function PlaceSearch() {
               id={optionId(i)}
               role="option"
               aria-selected={i === activeIndex}
-              className={[styles.option, i === activeIndex && styles.highlighted]
-                .filter(Boolean)
-                .join(' ')}
+              className={cn(
+                'flex cursor-pointer flex-col rounded-sm px-3 py-2',
+                i === activeIndex && 'bg-primary-soft',
+              )}
               onClick={() => choose(place)}
               onMouseEnter={() => setActiveIndex(i)}
             >
-              <span className={styles.name}>{place.name}</span>
-              <span className={styles.category}>{CATEGORY_LABEL[place.category]}</span>
+              <span className="font-medium">{place.name}</span>
+              <span className="text-xs text-muted">{CATEGORY_LABEL[place.category]}</span>
             </li>
           ))}
       </ul>
 
       {showEmpty && (
-        <p role="status" className={styles.empty}>
+        <p role="status" className="absolute top-full right-0 left-0 mt-2 rounded-md border border-border bg-bg px-4 py-3 text-muted shadow-md">
           No encontramos ese lugar
         </p>
       )}

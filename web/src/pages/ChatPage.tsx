@@ -1,10 +1,9 @@
-import styles from './Page.module.css'
 
 export function ChatPage() {
   return (
-    <section className={styles.page}>
-      <h1>Asistente</h1>
-      <p className={styles.muted}>Aquí irá el chat con el asistente.</p>
+    <section className="flex flex-col gap-3 p-8">
+      <h1 className="text-3xl">Asistente</h1>
+      <p className="text-muted">Aquí irá el chat con el asistente.</p>
     </section>
   )
 }

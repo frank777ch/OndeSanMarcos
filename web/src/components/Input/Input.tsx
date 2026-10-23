@@ -1,5 +1,5 @@
 import { useId, type InputHTMLAttributes } from 'react'
-import styles from './Input.module.css'
+import { cn } from '@/lib/cn'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -12,9 +12,9 @@ export function Input({ label, error, id, className, ...rest }: InputProps) {
   const errorId = `${inputId}-error`
 
   return (
-    <div className={styles.field}>
+    <div className="flex flex-col gap-1">
       {label && (
-        <label htmlFor={inputId} className={styles.label}>
+        <label htmlFor={inputId} className="text-sm font-medium">
           {label}
         </label>
       )}
@@ -22,13 +22,15 @@ export function Input({ label, error, id, className, ...rest }: InputProps) {
         id={inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
-        className={[styles.input, error && styles.invalid, className]
-          .filter(Boolean)
-          .join(' ')}
+        className={cn(
+          'w-full rounded-md border border-border bg-bg px-4 py-3 placeholder:text-border-strong',
+          error && 'border-danger',
+          className,
+        )}
         {...rest}
       />
       {error && (
-        <p id={errorId} role="alert" className={styles.error}>
+        <p id={errorId} role="alert" className="text-sm text-danger">
           {error}
         </p>
       )}

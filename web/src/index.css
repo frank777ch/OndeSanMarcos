@@ -1,52 +1,82 @@
-@import './styles/tokens.css';
+@import 'tailwindcss';
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+/*
+ * Tokens de diseño (paleta de marca, Figma). En Tailwind v4 las variables de
+ * @theme generan las utilidades: bg-surface, text-muted, rounded-md, shadow-lg…
+ * El tema oscuro redefine las variables más abajo (data-theme="dark", HU-18).
+ */
+@theme {
+  --color-bg: #ffffff;
+  --color-surface: #f2f2f2;
+  --color-surface-strong: #e6e6e6;
+  --color-border: #dfdfdf;
+  --color-border-strong: #a3a3a3;
+  --color-ink: #0a0a0a;
+  --color-muted: #5e5e5e;
+  --color-primary: #3056ac;
+  --color-primary-hover: #1c2d8a;
+  --color-on-primary: #ffffff;
+  --color-primary-soft: #eaeef7;
+  --color-accent: #f6c25b;
+  --color-danger: #c62828;
+  --color-success: #2e7d32;
+  --color-overlay: rgb(10 10 10 / 0.5);
+
+  --font-display: 'Funnel Display', 'DM Sans', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+  --shadow-md: 0 4px 16px rgb(0 0 0 / 0.12);
+  --shadow-lg: 0 12px 40px rgb(0 0 0 / 0.2);
 }
 
-html,
-body,
-#root {
-  height: 100%;
+:root[data-theme='dark'] {
+  --color-bg: #0a0a0a;
+  --color-surface: #181818;
+  --color-surface-strong: #101010;
+  --color-border: #2f2f2f;
+  --color-border-strong: #5e5e5e;
+  --color-ink: #ffffff;
+  --color-muted: #dfdfdf;
+  --color-primary: #1c2d8a;
+  --color-primary-hover: #3056ac;
+  --color-primary-soft: #181818;
+  --color-overlay: rgb(0 0 0 / 0.65);
+  color-scheme: dark;
 }
 
-body {
-  margin: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: var(--text-md);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
 
-h1,
-h2,
-h3 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 600;
-  line-height: 1.2;
-}
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
 
-p {
-  margin: 0;
-}
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.2;
+  }
 
-button,
-input,
-textarea {
-  font: inherit;
-  color: inherit;
-}
+  button {
+    cursor: pointer;
+  }
 
-button {
-  cursor: pointer;
-}
-
-:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
 }
