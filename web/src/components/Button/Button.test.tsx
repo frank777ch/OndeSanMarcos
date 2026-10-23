@@ -25,4 +25,18 @@ describe('Button', () => {
     render(<Button>Ok</Button>)
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button')
   })
+
+  it('el tamaño «icon» es cuadrado y sin relleno horizontal', () => {
+    render(<Button size="icon" aria-label="Enviar">x</Button>)
+    const { className } = screen.getByRole('button', { name: 'Enviar' })
+    expect(className).toContain('size-11')
+    expect(className).not.toContain('px-6')
+  })
+
+  it('el tamaño «sm» no arrastra el relleno del tamaño normal', () => {
+    render(<Button size="sm">Ver</Button>)
+    const { className } = screen.getByRole('button', { name: 'Ver' })
+    expect(className).toContain('px-4')
+    expect(className).not.toContain('px-6')
+  })
 })

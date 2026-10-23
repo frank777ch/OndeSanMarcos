@@ -17,7 +17,8 @@ export function PlaceSearch() {
   const clearSelection = useMapStore((s) => s.clearSelection)
   const selectedPlaceId = useMapStore((s) => s.selectedPlaceId)
 
-  const [query, setQuery] = useState('')
+  // Si el mapa se abre con un lugar ya elegido (desde el chat), el campo ya lo muestra.
+  const [query, setQuery] = useState(() => PLACES.find((p) => p.id === selectedPlaceId)?.name ?? '')
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
 

@@ -10,6 +10,12 @@ const box = () => screen.getByRole('combobox', { name: 'Buscar un lugar' })
 describe('PlaceSearch', () => {
   beforeEach(() => useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null }))
 
+  it('RF-12.18 y RF-05.19: si el mapa se abre con un lugar ya elegido (desde el chat), el campo muestra su nombre', () => {
+    useMapStore.getState().selectPlace('biblioteca-central', 'other')
+    render(<PlaceSearch />)
+    expect(box()).toHaveValue('Biblioteca Central Pedro Zulen')
+  })
+
   it('RF-11.6: muestra el campo «Buscar un lugar»', () => {
     render(<PlaceSearch />)
     expect(box()).toBeInTheDocument()

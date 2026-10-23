@@ -47,4 +47,13 @@ describe('FlyToSelection', () => {
     act(() => useMapStore.getState().selectPlace('3', 'other'))
     expect(flyTo).toHaveBeenCalledTimes(1)
   })
+
+  it('RF-05.20 y RF-05.21: al volver al mapa con el lugar ya elegido desde otra fuente, vuela de nuevo', () => {
+    act(() => useMapStore.getState().selectPlace('3', 'other'))
+    const first = render(<FlyToSelection />)
+    expect(flyTo).toHaveBeenCalledTimes(1)
+    first.unmount()
+    render(<FlyToSelection />)
+    expect(flyTo).toHaveBeenCalledTimes(2)
+  })
 })

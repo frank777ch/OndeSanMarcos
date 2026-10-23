@@ -8,10 +8,10 @@
 | HU-02 | Proyecto base | ✅ Hecha |
 | HU-03 | Diseño y estructura (escritorio) | ✅ Hecha |
 | HU-04 | Conexión con el backend | ✅ Hecha |
-| HU-05 | Preguntar al asistente | ⬜ Pendiente |
+| HU-05 | Preguntar al asistente | ✅ Hecha |
 | HU-06 | Preguntas sugeridas | ⬜ Pendiente |
 | HU-07 | Historial de conversaciones | ⬜ Pendiente |
-| HU-08 | Lugares en las respuestas | ⬜ Pendiente |
+| HU-08 | Lugares en las respuestas | ✅ Hecha (dentro de HU-05) |
 | HU-09 | Mapa del campus | ✅ Hecha |
 | HU-10 | Lugares y filtros | ✅ Hecha |
 | HU-11 | Buscar un lugar | ✅ Hecha |
@@ -81,9 +81,9 @@ Estados: ⬜ pendiente · ✅ hecha
 
 ## Asistente
 
-### HU-05 · Preguntar al asistente ⬜
+### HU-05 · Preguntar al asistente ✅
 **Como** visitante, **quiero** escribir una pregunta y recibir una respuesta **para** resolver dudas sobre el campus.
-- Pantalla de chat con lista de mensajes, caja de texto (Enter envía, Shift+Enter salta de línea), burbujas de usuario y de asistente, indicador de "escribiendo…", desplazamiento automático al último mensaje; estado de error con botón "Reintentar"; aviso mientras el backend "despierta" (la primera consulta puede tardar).
+- Pantalla de chat con lista de mensajes, caja de texto (Enter envía, Shift+Enter salta de línea), burbujas de usuario y de asistente, indicador de "escribiendo…", desplazamiento automático al último mensaje; estado de error con botón "Reintentar"; tarjetas de lugar bajo la respuesta con botón "Ver en el mapa" (vuelo hasta el lugar y ficha abierta, absorbe HU-08).
 - **Aceptación:** la pregunta se envía, se ve la respuesta y no se pueden enviar mensajes vacíos ni dos consultas a la vez.
 
 ### HU-06 · Preguntas sugeridas ⬜
@@ -96,7 +96,7 @@ Estados: ⬜ pendiente · ✅ hecha
 - Conversaciones guardadas en `localStorage`; botón "Nueva conversación"; lista del historial con título y fecha; abrir y borrar conversaciones.
 - **Aceptación:** al recargar la página las conversaciones siguen ahí; se pueden abrir, crear y borrar.
 
-### HU-08 · Lugares en las respuestas ⬜
+### HU-08 · Lugares en las respuestas ✅ (hecha dentro de HU-05)
 **Como** visitante, **quiero** que cuando el asistente nombre un lugar pueda verlo en el mapa **para** saber dónde queda.
 - Tarjeta de lugar dentro de la respuesta con botón "Ver en el mapa" que navega a `/mapa` y deja el lugar como objetivo.
 - **Aceptación:** al pulsar el botón se abre el mapa centrado en ese lugar con su ficha abierta (depende de HU-09 y HU-12).

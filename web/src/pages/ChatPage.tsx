@@ -1,9 +1,12 @@
+import { ChatInput } from '@/features/chat/components/ChatInput'
+import { MessageList } from '@/features/chat/components/MessageList'
 
 export function ChatPage() {
   return (
-    <section className="flex flex-col gap-3 p-8">
-      <h1 className="text-3xl">Asistente</h1>
-      <p className="text-muted">Aquí irá el chat con el asistente.</p>
+    <section aria-label="Asistente" className="absolute inset-0 flex flex-col">
+      <h1 className="sr-only">Asistente</h1>
+      <MessageList />
+      <ChatInput />
     </section>
   )
 }
