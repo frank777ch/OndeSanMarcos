@@ -1,4 +1,6 @@
 .iconButton {
+  /* No se encoge dentro de contenedores flex (si no, se ovala junto a títulos largos). */
+  flex: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
