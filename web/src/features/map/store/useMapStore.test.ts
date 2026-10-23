@@ -57,7 +57,7 @@ describe('useMapStore', () => {
       expect(useMapStore.getState().activeCategory).toBe('puertas')
     })
 
-    it('RF-11.14: elegir otro lugar reemplaza al anterior', () => {
+    it('RF-11.13: elegir otro lugar reemplaza al anterior', () => {
       useMapStore.getState().selectPlace('3')
       useMapStore.getState().selectPlace('8')
       expect(useMapStore.getState().selectedPlaceId).toBe('8')

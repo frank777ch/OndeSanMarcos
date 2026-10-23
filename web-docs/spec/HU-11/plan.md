@@ -8,7 +8,7 @@
 2. Una utilidad pura de búsqueda (`searchPlaces`).
 3. Un store con el lugar seleccionado; elegir un lugar quita el filtro si lo oculta.
 4. Un componente `PlaceSearch` (cuadro combinado accesible) y un controlador que hace volar la cámara cuando cambia la selección.
-5. Una capa extra con el anillo de resaltado.
+5. ~~Una capa extra con el anillo de resaltado.~~ (Retirado; ver historial.)
 
 ## 2. Datos y tipos
 - `Place` añade `keywords: string[]` (puede ser vacío).
@@ -57,7 +57,6 @@ Conteo final: facultades 26, cafeterías 5, auditorios 2, campos deportivos 4, p
 | `web/src/features/map/components/MapToolbar.tsx` + `.module.css` | Nuevo: contenedor que apila búsqueda y chips arriba a la izquierda | RF-11.6 |
 | `web/src/features/map/components/CategoryChips.module.css` | Modifica: deja de ser `absolute` (lo posiciona `MapToolbar`) | RF-11.5 |
 | `web/src/features/map/components/FlyToSelection.tsx` | Nuevo: dentro de `<Map>`, observa `selectedPlaceId` y llama a `flyTo` | RF-11.13 |
-| `web/src/features/map/components/PlacesLayer.tsx` | Modifica: capa `places-selected` (anillo) con filtro por `id` | RF-11.14 |
 | `web/src/features/map/components/CampusMap.tsx` | Modifica: monta `MapToolbar` y `FlyToSelection` | RF-11.6 |
 | `web-docs/spec/HU-10/spec.md` | Modifica: RF-10.1, RF-10.2 y RF-10.5 pasan a 55 lugares y 9 categorías | — |
 
@@ -88,9 +87,8 @@ Conteo final: facultades 26, cafeterías 5, auditorios 2, campos deportivos 4, p
 | RF-11.13, RF-11.15, RF-11.16 | `store/useMapStore.test.ts` (`selectPlace` quita o conserva el filtro; `clearSelection`; `id` inválido) |
 | RF-11.5, RF-11.6, RF-11.9, RF-11.11, RF-11.13, RF-11.16, RF-11.17 | `components/PlaceSearch.test.tsx` (React Testing Library: escribir, elegir con clic y con teclado, limpiar, sin resultados, ARIA) |
 | RF-11.13 | `components/FlyToSelection.test.tsx` (con `useMap` simulado, comprueba `flyTo` con las coordenadas) |
-| RF-11.14 | `utils/places.test.ts` (función pura `selectedFilter(id)`; la capa en sí se verifica a mano) |
 
-Manual (requiere token de Mapbox): escenarios 1–12 de `spec.md` sobre el mapa real; en especial el anillo (RF-11.14) y el vuelo (RF-11.13).
+Manual (requiere token de Mapbox): escenarios 1–12 de `spec.md` sobre el mapa real; en especial el vuelo de la cámara (RF-11.13).
 
 ## 7. Riesgos y dependencias
 - **Datos de origen aproximados.** Las coordenadas de los 15 lugares nuevos vienen del asistente y pueden quedar algo desplazadas respecto al mapa real. Se verifican a ojo en el mapa y se corrigen en un cambio aparte.
@@ -103,3 +101,5 @@ Manual (requiere token de Mapbox): escenarios 1–12 de `spec.md` sobre el mapa 
 - 2026-10-23 · Plan creado tras resolver las preguntas abiertas del spec.
 - 2026-10-23 · Ranking con palabra clave exacta primero (ver historial de la spec).
 - 2026-10-23 · Ejecutado. Se añadió `selectedFilter` en `utils/places.ts` y los íconos `Landmark`, `HeartPulse`, `ConciergeBell` y `MapPin` para los chips nuevos.
+- 2026-10-23 · Se quita la capa del anillo y `selectedFilter` (RF-11.14 retirado). `PlacesLayer` vuelve a ser el de HU-10.
+- 2026-10-23 · `PlaceSearch.module.css`: `.input:focus-visible { outline: none }`. Se quita el contorno de foco por decisión de diseño; el campo conserva su sombra y el cursor de texto como indicación. Queda anotado como compromiso de accesibilidad.

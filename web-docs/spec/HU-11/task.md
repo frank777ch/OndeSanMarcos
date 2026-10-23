@@ -12,7 +12,7 @@
 - [x] T7 · `PlaceSearch` (cuadro combinado, teclado, limpiar, sin resultados) + `PlaceSearch.test.tsx` (RF-11.6 a RF-11.17)
 - [x] T8 · `MapToolbar`; `CategoryChips` deja de posicionarse solo; ajustar su test (RF-11.5, RF-11.6)
 - [x] T9 · `FlyToSelection` + test con `useMap` simulado (RF-11.13)
-- [x] T10 · `PlacesLayer`: capa del anillo de resaltado con `selectedFilter(id)` en `utils/places.ts` + test (RF-11.14)
+- [x] T10 · ~~Capa del anillo de resaltado~~ (hecha y luego retirada junto con RF-11.14)
 - [x] T11 · Integrar todo en `CampusMap` y actualizar el mock de `CampusMap.test.tsx`
 - [x] T12 · Actualizar `HU-10/spec.md` (RF-10.1, RF-10.2, RF-10.5) y su historial
 
@@ -26,5 +26,6 @@
 
 ## Pendiente / notas
 - Limpieza de datos pendiente: el punto 23 repite el nombre del 25.
-- Falta comprobar a mano los escenarios 1–12 en el navegador (requiere token de Mapbox). En especial el anillo de resaltado y el vuelo de la cámara.
+- Falta comprobar a mano los escenarios 1–12 en el navegador (requiere token de Mapbox). En especial el vuelo de la cámara.
 - Hallazgo al implementar: la sigla «fisi» está dentro de «Físicas»; se corrigió la spec (RF-11.10) para que la palabra clave exacta vaya primero.
+- Cambio posterior: se retiró el anillo de resaltado y el contorno de foco del buscador.

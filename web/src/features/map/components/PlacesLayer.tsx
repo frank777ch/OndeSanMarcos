@@ -2,12 +2,11 @@ import { useMemo } from 'react'
 import { Layer, Source } from 'react-map-gl/mapbox'
 import { PLACES } from '../data/places'
 import { useMapStore } from '../store/useMapStore'
-import { filterPlaces, placesToGeoJSON, selectedFilter } from '../utils/places'
+import { filterPlaces, placesToGeoJSON } from '../utils/places'
 
 /** Puntos de los lugares del campus, filtrados por la categoría activa. */
 export function PlacesLayer() {
   const activeCategory = useMapStore((s) => s.activeCategory)
-  const selectedPlaceId = useMapStore((s) => s.selectedPlaceId)
   const data = useMemo(
     () => placesToGeoJSON(filterPlaces(PLACES, activeCategory)),
     [activeCategory],
@@ -15,18 +14,6 @@ export function PlacesLayer() {
 
   return (
     <Source id="places" type="geojson" data={data}>
-      <Layer
-        id="places-selected"
-        type="circle"
-        slot="top"
-        filter={selectedFilter(selectedPlaceId)}
-        paint={{
-          'circle-radius': 16,
-          'circle-opacity': 0,
-          'circle-stroke-width': 3,
-          'circle-stroke-color': '#0a0a0a',
-        }}
-      />
       <Layer
         id="places-circles"
         type="circle"

@@ -16,7 +16,7 @@ Hoy el mapa solo tiene 40 puntos y no incluye lugares que el asistente sí conoc
 - Categorías nuevas para esos lugares, con sus chips de filtro.
 - Barra de búsqueda sobre el mapa con lista de resultados mientras se escribe.
 - Coincidencia sin distinguir tildes ni mayúsculas, por partes del nombre y por palabras clave.
-- Al elegir un resultado, el mapa vuela al lugar y lo resalta.
+- Al elegir un resultado, el mapa vuela al lugar.
 - Uso con teclado.
 
 **Fuera (y dónde se hace):**
@@ -53,9 +53,9 @@ Hoy el mapa solo tiene 40 puntos y no incluye lugares que el asistente sí conoc
 | ID | Requisito |
 |---|---|
 | RF-11.13 | Cuando el usuario elige un resultado (clic o Enter), el mapa debe volar hasta ese lugar, la lista debe cerrarse y el campo debe mostrar el nombre elegido. |
-| RF-11.14 | El lugar elegido debe quedar resaltado en el mapa con un anillo, hasta que el usuario limpie la búsqueda o elija otro lugar. |
+| RF-11.14 | **Retirado (2026-10-23).** Antes exigía resaltar el lugar elegido con un anillo; se quitó por decisión del equipo. El lugar elegido no lleva ningún resaltado: solo se centra la cámara. |
 | RF-11.15 | Cuando el lugar elegido está oculto por un filtro de categoría activo, el sistema debe quitar el filtro para que el lugar sea visible. Si el filtro coincide con la categoría del lugar, no cambia. |
-| RF-11.16 | El usuario debe poder vaciar la búsqueda con el botón «Limpiar búsqueda»: borra el texto, cierra la lista y quita el resaltado. |
+| RF-11.16 | El usuario debe poder vaciar la búsqueda con el botón «Limpiar búsqueda»: borra el texto, cierra la lista y quita la selección. |
 
 ### Accesibilidad
 | ID | Requisito |
@@ -88,24 +88,24 @@ Hoy el mapa solo tiene 40 puntos y no incluye lugares que el asistente sí conoc
 - **Cuando** escribo una sola letra
 - **Entonces** no aparece ninguna lista.
 
-**Escenario 7: elegir y resaltar** (RF-11.13, RF-11.14)
+**Escenario 7: elegir un lugar** (RF-11.13)
 - **Dado** que escribí «puerta 3»
 - **Cuando** pulso el resultado «Puerta 3»
-- **Entonces** el mapa vuela a ese punto, aparece un anillo alrededor, la lista se cierra y el campo dice «Puerta 3».
+- **Entonces** el mapa vuela a ese punto (sin anillo ni otro resaltado), la lista se cierra y el campo dice «Puerta 3».
 
 **Escenario 8: teclado** (RF-11.17)
 - **Cuando** escribo «facultad», bajo con ↓ dos veces y pulso Enter
 - **Entonces** se elige el segundo resultado de la lista.
 
 **Escenario 9: limpiar** (RF-11.16)
-- **Dado** que elegí un lugar y está resaltado
+- **Dado** que elegí un lugar
 - **Cuando** pulso «Limpiar búsqueda»
-- **Entonces** el campo queda vacío, la lista desaparece y el anillo se quita.
+- **Entonces** el campo queda vacío y la lista desaparece.
 
 **Escenario 10: filtro activo que oculta el lugar** (RF-11.15)
 - **Dado** que el filtro «Cafeterías» está activo
 - **Cuando** busco y elijo «Puerta 3»
-- **Entonces** el filtro se quita, se ven todos los lugares y «Puerta 3» está resaltada.
+- **Entonces** el filtro se quita, se ven todos los lugares y el mapa vuela a «Puerta 3».
 
 **Escenario 11: filtro que ya incluye el lugar** (RF-11.15)
 - **Dado** que el filtro «Puertas» está activo
@@ -117,10 +117,12 @@ Hoy el mapa solo tiene 40 puntos y no incluye lugares que el asistente sí conoc
 - **Entonces** veo 9 filtros y «Salud» muestra solo las 2 clínicas.
 
 ## 5. Preguntas abiertas
-- Ninguna. Decisiones tomadas: **unificar** las listas (P1), **volar y resaltar** al elegir (P2) y **quitar el filtro** si oculta el lugar (P3).
+- Ninguna. Decisiones tomadas: **unificar** las listas (P1), **volar** al elegir (P2, el resaltado se retiró después) y **quitar el filtro** si oculta el lugar (P3).
 
 ## 6. Historial
 - 2026-10-23 · Borrador creado con preguntas abiertas.
 - 2026-10-23 · Preguntas resueltas (unificar datos, volar y resaltar, quitar filtro). Spec aprobada.
 - 2026-10-23 · RF-11.10 y escenario 3: una palabra clave exacta (sigla) va antes que las coincidencias en el nombre. Hallado al probar: «fisi» también está dentro de «Físicas».
 - 2026-10-23 · Implementada.
+- 2026-10-23 · Se retira el anillo de resaltado (RF-11.14): al elegir un lugar solo vuela la cámara. Se actualizan RF-11.16 y los escenarios 7, 9 y 10.
+- 2026-10-23 · El campo de búsqueda ya no muestra contorno de foco del navegador (decisión de diseño; ver plan).

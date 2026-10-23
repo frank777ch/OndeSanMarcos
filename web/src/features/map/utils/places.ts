@@ -40,8 +40,3 @@ export function placesToGeoJSON(
   }))
   return { type: 'FeatureCollection', features }
 }
-
-/** Filtro de Mapbox que solo deja pasar el lugar con ese id (ninguno si es `null`). */
-export function selectedFilter(id: string | null): ['==', ['get', 'id'], string] {
-  return ['==', ['get', 'id'], id ?? '']
-}

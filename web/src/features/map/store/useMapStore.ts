@@ -4,7 +4,7 @@ import { PLACES, type PlaceCategoryId } from '../data/places'
 interface MapState {
   /** Categoría filtrada, o `null` si se ven todos los lugares. */
   activeCategory: PlaceCategoryId | null
-  /** Lugar elegido (resaltado y al que vuela la cámara), o `null`. */
+  /** Lugar elegido (al que vuela la cámara), o `null`. */
   selectedPlaceId: string | null
   /** Activa la categoría; si ya estaba activa, la desactiva. */
   toggleCategory: (id: PlaceCategoryId) => void

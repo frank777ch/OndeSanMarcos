@@ -1,5 +1,5 @@
 import { PLACE_CATEGORIES, PLACES } from '../data/places'
-import { filterPlaces, placesToGeoJSON, selectedFilter } from './places'
+import { filterPlaces, placesToGeoJSON } from './places'
 
 describe('filterPlaces', () => {
   it('RF-11.4: la lista completa tiene 55 lugares', () => {
@@ -32,15 +32,5 @@ describe('placesToGeoJSON', () => {
       const cat = PLACE_CATEGORIES.find((c) => c.id === f.properties.category)
       expect(f.properties.color).toBe(cat?.color)
     }
-  })
-})
-
-describe('selectedFilter', () => {
-  it('RF-11.14: deja pasar solo el lugar elegido', () => {
-    expect(selectedFilter('3')).toEqual(['==', ['get', 'id'], '3'])
-  })
-
-  it('RF-11.14: sin selección no coincide con ningún lugar', () => {
-    expect(selectedFilter(null)).toEqual(['==', ['get', 'id'], ''])
   })
 })

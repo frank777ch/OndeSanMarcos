@@ -25,6 +25,10 @@
   box-shadow: var(--shadow-md);
 }
 
+.input:focus-visible {
+  outline: none;
+}
+
 .clear {
   position: absolute;
   right: var(--space-2);
