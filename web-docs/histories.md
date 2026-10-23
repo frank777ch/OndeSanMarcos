@@ -28,7 +28,7 @@
 | HU-22 | Base de datos de lugares | ⬜ Pendiente |
 | HU-23 | Postgres con pgvector en Docker | ✅ Hecha |
 
-**Avance: 8 de 23 historias hechas.** HU-22 y HU-23 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 11 de 23 historias hechas.** HU-22 y HU-23 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
