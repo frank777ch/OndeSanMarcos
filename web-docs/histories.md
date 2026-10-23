@@ -7,7 +7,7 @@
 | HU-01 | Rama y documentación | ✅ Hecha |
 | HU-02 | Proyecto base | ✅ Hecha |
 | HU-03 | Diseño y estructura (escritorio) | ✅ Hecha |
-| HU-04 | Conexión con el backend | ⬜ Pendiente |
+| HU-04 | Conexión con el backend | ✅ Hecha |
 | HU-05 | Preguntar al asistente | ⬜ Pendiente |
 | HU-06 | Preguntas sugeridas | ⬜ Pendiente |
 | HU-07 | Historial de conversaciones | ⬜ Pendiente |
@@ -72,7 +72,7 @@ Estados: ⬜ pendiente · ✅ hecha
 - Solo escritorio (≥ 1024px). La adaptación a móvil queda en HU-21.
 - **Aceptación:** a 1440px se ve correcto y sin scroll de página; la navegación cambia de área sin recargar; los componentes base tienen tests.
 
-### HU-04 · Conexión con el backend ⬜
+### HU-04 · Conexión con el backend ✅
 **Como** desarrollador, **quiero** un cliente HTTP y una configuración central **para** que toda la app hable con el backend de forma uniforme.
 - Módulo de configuración leído de `import.meta.env`; cliente con timeout, manejo de errores y logs opcionales en desarrollo; función `sendChatQuery` para `POST /chat`; modo mock para trabajar sin backend.
 - **Aceptación:** con el backend local en `http://localhost:8000` se obtiene una respuesta real; con `VITE_USE_MOCK_CHAT=true` se obtiene una simulada; los errores de red y los timeouts devuelven un mensaje legible. Hay tests del cliente.
