@@ -13,7 +13,7 @@
 - [ ] `npm run build` sin errores
 - [ ] `npm run lint` sin avisos
 - [ ] Escenarios de `spec.md` comprobados (anotar los que son manuales)
-- [ ] `spec.md` en «Implementada» y ✅ en `../../histories.md`
+- [ ] `spec.md` en «Implementada»; tabla resumen y título en `../../histories.md` con ✅
 - [ ] Commit `feat(web): HU-XX …` con spec, plan, task y código
 
 ## Pendiente / notas

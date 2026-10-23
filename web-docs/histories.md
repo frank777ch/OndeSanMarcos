@@ -1,5 +1,35 @@
 # Historias de usuario: OndeSanMarcos Web
 
+## Resumen
+
+| ID | Nombre | Estado |
+|---|---|---|
+| HU-01 | Rama y documentación | ✅ Hecha |
+| HU-02 | Proyecto base | ✅ Hecha |
+| HU-03 | Diseño y estructura (escritorio) | ✅ Hecha |
+| HU-04 | Conexión con el backend | ⬜ Pendiente |
+| HU-05 | Preguntar al asistente | ⬜ Pendiente |
+| HU-06 | Preguntas sugeridas | ⬜ Pendiente |
+| HU-07 | Historial de conversaciones | ⬜ Pendiente |
+| HU-08 | Lugares en las respuestas | ⬜ Pendiente |
+| HU-09 | Mapa del campus | ✅ Hecha |
+| HU-10 | Lugares y filtros | ✅ Hecha |
+| HU-11 | Buscar un lugar | ✅ Hecha |
+| HU-12 | Ficha de lugar | ⬜ Pendiente |
+| HU-13 | Calcular una ruta | ⬜ Pendiente |
+| HU-14 | Ver la ruta | ⬜ Pendiente |
+| HU-15 | Mi ubicación | ⬜ Pendiente |
+| HU-16 | Guía paso a paso | ⬜ Pendiente |
+| HU-17 | Recorrer el campus con un avatar | ⬜ Pendiente |
+| HU-18 | Apariencia | ⬜ Pendiente |
+| HU-19 | Bienvenida | ⬜ Pendiente |
+| HU-20 | Calidad y cierre | ⬜ Pendiente |
+| HU-21 | Adaptación a móvil | ⬜ Pendiente |
+
+**Avance: 6 de 21 historias hechas.** Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+
+---
+
 **Producto:** aplicación web responsive para orientarse en el campus de la UNMSM. Sin registro ni login: se abre y se usa. Tiene dos áreas: **Mapa** (lugares, rutas, ubicación) y **Asistente** (chat que responde dudas del campus).
 
 **Alcance:** una app nueva construida desde cero en `web/` (Vite + React + TypeScript). El backend FastAPI y la base vectorial en Supabase ya existen y se consumen tal cual. Todo corre en local por ahora.

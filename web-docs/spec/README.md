@@ -30,7 +30,7 @@ web-docs/spec/
 3. **Planificar.** Completar `plan.md` (diseño técnico) y `task.md` (tareas en orden).
 4. **Implementar.** Ejecutar `task.md` tarea por tarea, marcando `[x]`, sin salirse del alcance de la spec.
 5. **Probar contra la spec.** Cada requisito (`RF-XX.N`) tiene al menos un test cuyo nombre empieza con su ID, por ejemplo `it('RF-10.5: ...')`. Los escenarios de aceptación se comprueban con test o a mano.
-6. **Cerrar.** `spec.md` en `Implementada`, ✅ en `../histories.md` y un commit `feat(web): HU-XX …` con spec, plan, task y código juntos.
+6. **Cerrar.** `spec.md` en `Implementada`, ✅ en `../histories.md` (tabla resumen del inicio y título de la historia) y un commit `feat(web): HU-XX …` con spec, plan, task y código juntos.
 
 ## Reglas
 
