@@ -53,6 +53,16 @@ Base de datos del asistente (Postgres + pgvector en un contenedor):
 
 La primera vez crea `backend/.env` y `web/.env` desde sus `.env.example`. El backend arranca en **modo mock** (`RAG_USE_MOCK=true`): no usa la base de datos ni necesita llaves de LLM. Para respuestas reales: `RAG_USE_MOCK=false`, `LLM_PROVIDER=gemini` y `LLM_API_KEY` en `backend/.env`, y `./script/dev.sh ingest` una vez.
 
+### Primer arranque con respuestas reales
+
+Levantar los contenedores crea la base **vacía**: el backend no carga los embeddings por su cuenta. Si preguntas al asistente antes de cargarlos, responde 503 («La base de conocimiento está vacía») y la web solo muestra «El asistente no está disponible por ahora». El orden es:
+
+1. En `backend/.env`: `RAG_USE_MOCK=false`, `LLM_PROVIDER=gemini` y `LLM_API_KEY`.
+2. `./script/dev.sh ingest`: levanta solo la base y las migraciones, y embebe el corpus (consume cuota de Gemini). No hace falta tener el backend corriendo.
+3. `./script/dev.sh`: levanta todo con normalidad.
+
+La carga se hace una sola vez: los datos viven en el volumen `db_data` y sobreviven a `down` y `clean`. Si ya hay datos, `ingest` se niega a correr salvo con `--force`. Para no volver a gastar cuota, haz `./script/dev.sh db-dump` tras ingerir y usa `./script/dev.sh db-restore` cuando necesites recargar (por ejemplo, tras un `db-reset`).
+
 ### Token de Mapbox
 
 El mapa necesita un token **público** de Mapbox (empieza con `pk.`). Se crea gratis en https://account.mapbox.com/access-tokens/ y se pega en `web/.env`:
