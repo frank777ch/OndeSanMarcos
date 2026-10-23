@@ -64,7 +64,7 @@ Crear un proyecto nuevo `web/` (Vite + React + TypeScript), portar la lógica pu
 - Actualizar `README.md` y `documents/02-frontend.md` con el nuevo stack y comandos.
 
 ## Metodología
-SDD (Spec-Driven Development): cada historia desde HU-10 tiene una spec en `web-docs/spec/` que se escribe antes del código. Ver `web-docs/spec/README.md`.
+SDD (Spec-Driven Development): cada historia desde HU-10 tiene una carpeta `web-docs/spec/HU-XX/` con `spec.md`, `plan.md` y `task.md` que se escribe antes del código. Ver `web-docs/spec/README.md`.
 
 ## Historias
 **Regla:** cada historia se implementa solo en escritorio (≥ 1024px); lo móvil va después en bloque (HU-21). Ver `histories.md` (HU-01 a HU-21). Se trata como una app nueva construida desde cero; el código anterior de `frontend/` solo sirve de referencia hasta HU-20.

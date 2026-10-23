@@ -1,8 +1,11 @@
 # HU-XX · Título
 
 - **Estado:** Borrador | Aprobada | Implementada
-- **Historia:** ver `../histories.md#hu-xx`
+- **Historia:** ver `../../histories.md#hu-xx`
 - **Depende de:** HU-…
+- **Archivos hermanos:** [plan.md](plan.md) · [task.md](task.md)
+
+> `spec.md` dice **qué** debe hacer la historia y **cómo se comprueba**. El cómo técnico va en `plan.md` y el trabajo pendiente en `task.md`.
 
 ## 1. Contexto y objetivo
 Por qué existe esta historia y qué logra el usuario. 2–4 líneas.
@@ -15,7 +18,7 @@ Por qué existe esta historia y qué logra el usuario. 2–4 líneas.
 - … (HU-…)
 
 ## 3. Requisitos
-Formato: «Cuando <situación>, el sistema debe <comportamiento>».
+Formato: «Cuando <situación>, el sistema debe <comportamiento>». Deben ser verificables.
 
 | ID | Requisito |
 |---|---|
@@ -23,27 +26,13 @@ Formato: «Cuando <situación>, el sistema debe <comportamiento>».
 | RF-XX.2 | … |
 
 ## 4. Escenarios de aceptación
-**Escenario: <nombre>** (cubre RF-XX.N)
+**Escenario 1: <nombre>** (cubre RF-XX.N)
 - **Dado** …
 - **Cuando** …
 - **Entonces** …
 
-## 5. Diseño
-- **Datos / tipos:** …
-- **Archivos nuevos o modificados:** `ruta` — qué hace
-- **Estado (stores):** …
-- **Decisiones y por qué:** …
-
-## 6. Tareas
-- [ ] …
-
-## 7. Pruebas
-| Requisito | Test |
-|---|---|
-| RF-XX.1 | `archivo.test.ts` › «RF-XX.1: …» |
-
-## 8. Preguntas abiertas
+## 5. Preguntas abiertas
 - …
 
-## 9. Historial
+## 6. Historial
 - AAAA-MM-DD · Borrador creado.

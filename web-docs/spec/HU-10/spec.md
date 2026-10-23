@@ -1,8 +1,9 @@
 # HU-10 · Lugares y filtros
 
 - **Estado:** Implementada (escenarios 1–5 con el mapa real pendientes de verificar a mano: requieren token de Mapbox)
-- **Historia:** ver `../histories.md#hu-10`
+- **Historia:** ver `../../histories.md#hu-10`
 - **Depende de:** HU-09 (mapa del campus)
+- **Archivos hermanos:** [plan.md](plan.md) · [task.md](task.md)
 
 ## 1. Contexto y objetivo
 El mapa del campus está vacío. El visitante necesita ver los lugares de la UNMSM (facultades, puertas, cafeterías, auditorios, campos deportivos) y poder quedarse solo con un tipo para encontrar lo que busca.
@@ -62,48 +63,10 @@ El mapa del campus está vacío. El visitante necesita ver los lugares de la UNM
 - **Cuando** voy a «Asistente» y vuelvo a «Mapa»
 - **Entonces** «Auditorios» sigue activo y se ven 2 puntos.
 
-## 5. Diseño
-- **Datos:** `src/features/map/data/places.ts`.
-  - `PlaceCategoryId = 'facultades' | 'cafeterias' | 'auditorios' | 'campos-deportivos' | 'puertas'`.
-  - `PLACE_CATEGORIES: PlaceCategory[]` con `{ id, label, color }` en el orden de RF-10.5.
-  - `PLACES: Place[]` con `{ id, name, category, coordinates: LngLat }`.
-  - Origen: los 40 puntos de `frontend/src/features/map/constants/unmsm.ts` (`UNMSM_POIS`). Los `id` originales ("1"…"40") se conservan como string.
-- **Lógica:** `src/features/map/utils/places.ts`
-  - `filterPlaces(places, category | null)` devuelve todos o los de la categoría.
-  - `placesToGeoJSON(places)` devuelve un `FeatureCollection` de puntos con `properties: { id, name, category, color }`.
-- **Estado:** `src/features/map/store/useMapStore.ts` (zustand): `activeCategory: PlaceCategoryId | null` y `toggleCategory(id)`.
-- **UI:**
-  - `components/CategoryChips.tsx` + `.module.css`: barra superior izquierda sobre el mapa.
-  - `components/PlacesLayer.tsx`: `<Source>` + capa `circle` + capa `symbol` (texto) de react-map-gl. Color con expresión `['get', 'color']`. Capas con `slot="top"` para dibujarse sobre el estilo Standard.
-  - `CampusMap.tsx`: monta `PlacesLayer` y `CategoryChips`.
-- **Decisiones:**
-  - Se filtra en JS (`filterPlaces`) y se reenvía el GeoJSON, en vez de usar `filter` del mapa: es más simple de testear.
-  - El orden de chips es el de la app anterior; el de `PLACE_CATEGORIES` sigue ese orden.
-  - Íconos de los chips con `lucide-react`: `Building2`, `Coffee`, `Mic`, `Dumbbell`, `DoorOpen`.
-
-## 6. Tareas
-- [x] Escribir spec
-- [x] Extraer los 40 lugares a `data/places.ts`
-- [x] `utils/places.ts` + tests
-- [x] `store/useMapStore.ts` + tests
-- [x] `PlacesLayer` y `CategoryChips` + tests
-- [x] Integrar en `CampusMap`
-- [ ] Verificar escenarios 1–5 con el mapa real (manual, con token)
-
-## 7. Pruebas
-| Requisito | Test |
-|---|---|
-| RF-10.1, RF-10.2 | `data/places.test.ts` |
-| RF-10.3, RF-10.4 | `utils/places.test.ts` (GeoJSON con color) |
-| RF-10.5, RF-10.10 | `components/CategoryChips.test.tsx` |
-| RF-10.6, RF-10.7, RF-10.8 | `store/useMapStore.test.ts` y `CategoryChips.test.tsx` |
-| RF-10.9 | `store/useMapStore.test.ts` (el estado sobrevive al desmontar/volver a montar) |
-
-Los escenarios 1–5 con el mapa real se prueban a mano (requiere token de Mapbox).
-
-## 8. Preguntas abiertas
+## 5. Preguntas abiertas
 - Ninguna.
 
-## 9. Historial
+## 6. Historial
 - 2026-10-23 · Borrador creado y aprobado.
 - 2026-10-23 · Implementada. Se añadió `@types/geojson` como dependencia de desarrollo para tipar el GeoJSON.
+- 2026-10-23 · Se separó en `spec.md`, `plan.md` y `task.md`.

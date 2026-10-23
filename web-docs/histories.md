@@ -4,7 +4,7 @@
 
 **Alcance:** una app nueva construida desde cero en `web/` (Vite + React + TypeScript). El backend FastAPI y la base vectorial en Supabase ya existen y se consumen tal cual. Todo corre en local por ahora.
 
-**Flujo de trabajo:** rama `feat/web`, un commit por historia (`feat(web): HU-XX …`). El detalle técnico está en `plan.md`. Desde HU-10 se trabaja con **SDD**: cada historia tiene una spec en `spec/` que se escribe y aprueba antes de programar (ver `spec/README.md`).
+**Flujo de trabajo:** rama `feat/web`, un commit por historia (`feat(web): HU-XX …`). El detalle técnico está en `plan.md`. Desde HU-10 se trabaja con **SDD**: cada historia tiene una carpeta `spec/HU-XX/` con `spec.md`, `plan.md` y `task.md` que se escribe y aprueba antes de programar (ver `spec/README.md`).
 
 **Regla de implementación (decidida):** cada historia se implementa **solo para escritorio** (≥ 1024px). Lo móvil se hace **después, en bloque, en HU-21**. Por eso en HU-01 a HU-20 se ignoran las menciones a "móvil" o "pantallas pequeñas"; no hay que diseñar breakpoints responsive todavía. Sí hay que evitar anchos fijos que luego compliquen la adaptación (usar `rem`, flex/grid y variables CSS).
 
