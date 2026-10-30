@@ -31,7 +31,7 @@ export function CategoryChips() {
   const toggleCategory = useMapStore((s) => s.toggleCategory)
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar lugares por categoría">
+    <div className="flex w-full min-w-0 gap-2 overflow-x-auto [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar lugares por categoría">
       {PLACE_CATEGORIES.map(({ id, label }) => {
         const Icon = ICONS[id]
         const active = activeCategory === id
@@ -41,7 +41,7 @@ export function CategoryChips() {
             type="button"
             aria-pressed={active}
             className={cn(
-              'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition-colors',
+              'inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition-colors',
               active
                 ? 'border-primary bg-primary text-on-primary'
                 : 'border-border bg-bg text-ink hover:bg-surface',

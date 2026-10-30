@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import Map, { NavigationControl, type MapRef } from 'react-map-gl/mapbox'
+import Map, { AttributionControl, type MapRef } from 'react-map-gl/mapbox'
 import { LocateFixed } from 'lucide-react'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Config } from '@/config'
@@ -53,6 +53,8 @@ export function CampusMap() {
           pitch: CAMPUS.camera.pitch,
           bearing: CAMPUS.camera.bearing,
         }}
+        logoPosition="bottom-left"
+        attributionControl={false}
         maxBounds={CAMPUS_MAX_BOUNDS}
         minZoom={CAMPUS.minZoom}
         maxZoom={CAMPUS.maxZoom}
@@ -68,7 +70,8 @@ export function CampusMap() {
         }}
         style={{ width: '100%', height: '100%' }}
       >
-        <NavigationControl position="top-right" visualizePitch />
+        {/* Logo y atribución juntos, abajo a la izquierda; la atribución va plegada en la «i». */}
+        <AttributionControl position="bottom-left" compact />
         <PlacesLayer />
         <FlyToSelection />
       </Map>

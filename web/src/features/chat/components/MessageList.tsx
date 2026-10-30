@@ -33,7 +33,7 @@ export function MessageList() {
         className="h-full overflow-y-auto"
       >
         {/* La barra de desplazamiento queda en el borde; el contenido va en una columna de 48 rem. */}
-        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6 px-6 py-6">
+        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col gap-6 px-4 py-6 md:px-6">
           {messages.length === 0 && status === 'idle' && <ChatWelcome />}
           {messages.map((m) =>
             m.role === 'user' ? (

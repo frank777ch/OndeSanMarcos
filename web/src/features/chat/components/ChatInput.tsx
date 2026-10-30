@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Send } from 'lucide-react'
 import { Button } from '@/components/Button/Button'
 import { useChatStore } from '../store/useChatStore'
@@ -12,11 +12,6 @@ export function ChatInput() {
 
   const sending = status === 'sending'
   const canSend = normalizeQuery(text) !== '' && !sending
-
-  // Foco al entrar y cuando termina una consulta (respuesta o error).
-  useEffect(() => {
-    if (!sending) inputRef.current?.focus()
-  }, [sending])
 
   // La caja crece con el texto; el tope de 6 líneas lo pone `max-h-36` (9 rem).
   useLayoutEffect(() => {
@@ -39,7 +34,7 @@ export function ChatInput() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 pt-2 pb-6">
+    <div className="mx-auto w-full max-w-3xl px-4 pt-2 pb-4 md:px-6 md:pb-6">
       <div className="flex items-center gap-3 rounded-lg border border-border bg-bg p-3 shadow-md focus-within:border-primary">
         <textarea
           ref={inputRef}

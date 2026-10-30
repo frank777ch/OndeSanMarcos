@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useChatStore } from '../store/useChatStore'
 import { ChatInput } from './ChatInput'
@@ -14,11 +14,6 @@ describe('ChatInput', () => {
   beforeEach(() => {
     send.mockReset()
     reset()
-  })
-
-  it('RF-05.15: el foco está en la caja al entrar', () => {
-    render(<ChatInput />)
-    expect(box()).toHaveFocus()
   })
 
   it('RF-05.1: Enter envía el texto y vacía la caja', async () => {
@@ -58,15 +53,6 @@ describe('ChatInput', () => {
     expect(button()).toBeDisabled()
     await userEvent.type(box(), '{Enter}')
     expect(send).not.toHaveBeenCalled()
-  })
-
-  it('RF-05.15: al terminar la consulta el foco vuelve a la caja', () => {
-    reset('sending')
-    render(<ChatInput />)
-    act(() => (document.activeElement as HTMLElement | null)?.blur())
-    expect(box()).not.toHaveFocus()
-    act(() => useChatStore.setState({ status: 'idle' }))
-    expect(box()).toHaveFocus()
   })
 
   it('RF-05.6: la caja no acepta más de 1000 caracteres', () => {

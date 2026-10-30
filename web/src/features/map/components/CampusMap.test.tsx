@@ -21,8 +21,8 @@ vi.mock('react-map-gl/mapbox', () => ({
     useImperativeHandle(ref, () => ({ flyTo }))
     return <div data-testid="map" />
   }),
-  NavigationControl: () => null,
   useMap: () => ({ current: undefined }),
+  AttributionControl: () => null,
   Source: () => null,
   Layer: () => null,
 }))

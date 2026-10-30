@@ -50,6 +50,17 @@
 }
 
 @layer base {
+  /* Tailwind usa rem: bajar la base en móvil reduce todo el texto a la vez. */
+  html {
+    font-size: 90%;
+  }
+
+  @media (min-width: 48rem) {
+    html {
+      font-size: 100%;
+    }
+  }
+
   html,
   body,
   #root {
@@ -79,4 +90,18 @@
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
+}
+
+/* Mapbox apila los controles de una esquina en columna; logo y atribución van en fila,
+   pegados y centrados verticalmente (se anulan sus márgenes por defecto). */
+div.mapboxgl-ctrl-bottom-left {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0 0 8px 8px;
+}
+
+div.mapboxgl-ctrl-bottom-left .mapboxgl-ctrl,
+div.mapboxgl-ctrl-bottom-left .mapboxgl-ctrl-logo {
+  margin: 0;
 }

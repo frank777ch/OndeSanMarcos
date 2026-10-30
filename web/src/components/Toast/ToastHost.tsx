@@ -16,7 +16,7 @@ export function ToastHost() {
   const dismiss = useToastStore((s) => s.dismiss)
 
   return (
-    <div className="fixed right-6 bottom-6 z-[1100] flex max-w-sm flex-col gap-2" role="status" aria-live="polite">
+    <div className="fixed right-4 bottom-20 left-4 z-[1100] flex flex-col gap-2 md:right-6 md:bottom-6 md:left-auto md:max-w-sm" role="status" aria-live="polite">
       {toasts.map((t) => (
         <div key={t.id} className={cn(
             'flex items-center justify-between gap-3 rounded-md border-l-4 bg-bg px-4 py-3 shadow-md',

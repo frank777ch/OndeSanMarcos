@@ -8,10 +8,9 @@ import { PlaceSearch } from './PlaceSearch'
  */
 export function MapOverlay() {
   return (
-    // right-18: deja libres los controles de zoom. bottom-10: deja visibles el
-    // logo y la atribución de Mapbox. Solo los hijos reciben el puntero.
-    <div className="pointer-events-none absolute top-4 right-18 bottom-10 left-4 flex flex-col items-start gap-3 *:pointer-events-auto">
-      <div className="flex flex-none flex-col items-start gap-3 *:pointer-events-auto">
+    // bottom-10: deja visibles el logo y la atribución de Mapbox. Solo los hijos reciben el puntero.
+    <div className="pointer-events-none absolute top-4 right-4 bottom-10 left-4 flex flex-col items-start gap-3 *:pointer-events-auto">
+      <div className="flex w-full min-w-0 flex-none flex-col items-start gap-3 *:pointer-events-auto">
         <PlaceSearch />
         <CategoryChips />
       </div>
