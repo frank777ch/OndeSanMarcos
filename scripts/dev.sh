@@ -3,7 +3,8 @@
 # y la web (Vite :5173) con Docker.
 #
 # Uso: ./script/dev.sh [comando] [args]
-#   up          (por defecto) construye y levanta todo en primer plano (Ctrl+C detiene)
+#   up          (por defecto) construye y levanta todo en primer plano (Ctrl+C detiene).
+#               Escucha en 0.0.0.0: abre http://<IP-de-tu-Mac>:5173 desde el celular (misma wifi)
 #   up -d       levanta en segundo plano
 #   down        detiene y elimina los contenedores (la base de datos se conserva)
 #   logs        sigue los logs (acepta un servicio: db | migrate | backend | web)
@@ -65,12 +66,25 @@ ensure_db() {
   docker compose run --rm migrate >/dev/null
 }
 
+# IP de la red local, para abrir la web desde el celular (vacía si no se detecta).
+lan_ip() {
+  ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null \
+    || hostname -I 2>/dev/null | awk '{print $1}' || true
+}
+
 cmd="${1:-up}"
 [ $# -gt 0 ] && shift
 
 case "$cmd" in
   up)
     echo "Backend: http://localhost:8000/docs   Web: http://localhost:5173   Base de datos: localhost:${DB_PORT:-5432}"
+    # La web y el backend escuchan en 0.0.0.0. Desde el celular «localhost» sería el
+    # propio celular, así que la web apunta al backend por la IP de la red local.
+    ip="$(lan_ip)"
+    if [ -n "$ip" ]; then
+      export LAN_API_URL="http://$ip:8000"
+      echo "Celular (misma red wifi): http://$ip:5173"
+    fi
     docker compose up --build "$@"
     ;;
   down) docker compose down "$@" ;;

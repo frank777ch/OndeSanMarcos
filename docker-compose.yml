@@ -37,7 +37,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "0.0.0.0:8000:8000"
     env_file:
       - path: ./backend/.env
         required: false
@@ -70,8 +70,12 @@ services:
       sh -c "cmp -s package-lock.json node_modules/.lock-copy ||
       (npm ci --no-audit --no-fund && cp package-lock.json node_modules/.lock-copy);
       npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      # dev.sh up define LAN_API_URL (IP de la red local) para que el celular alcance el
+      # backend; tiene prioridad sobre VITE_API_URL de web/.env.
+      VITE_API_URL: ${LAN_API_URL:-http://localhost:8000}
     ports:
-      - "5173:5173"
+      - "0.0.0.0:5173:5173"
     volumes:
       - ./web:/app
       # node_modules vive en un volumen para no mezclar binarios de macOS y Linux.
