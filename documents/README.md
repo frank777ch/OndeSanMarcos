@@ -22,6 +22,7 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 | 8   | [Despliegue en Render](./08-despliegue-render.md)                     | Cómo desplegar el backend (subcarpeta `backend/`) en Render, variables, verificación y consumo del front. |
 | 9   | [pgvector en Supabase](./09-pgvector-supabase.md)                     | Recuperación semántica con pgvector: Supabase local, ingesta con embeddings Gemini y verificación.        |
 | 10  | [Despliegue a producción (VPS)](./10-despliegue-vps.md)               | VPS con Docker + Caddy, Supabase free, CI/CD por SSH, builds EAS, Google Play, seguridad y costos.        |
+| 11  | [Flujo de trabajo y publicación](./11-flujo-de-trabajo.md)            | Ramas y PRs, actualizaciones OTA, APKs en GitHub Releases, página de descargas y qué hacer si algo falla. |
 | 📸  | [Capturas](./screenshots/)                                            | Imágenes para la sustentación: estándar de nombres + checklist de capturas.                               |
 
 ---

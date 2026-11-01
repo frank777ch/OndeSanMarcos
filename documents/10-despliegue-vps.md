@@ -220,16 +220,22 @@ for ENV in preview production; do
 done
 ```
 
-### Compilar
+### Compilar y publicar
+
+No se compila a mano: al fusionar en `main`, `app-release.yml` publica una OTA o
+genera un APK en GitHub Releases según haya cambiado o no la huella nativa. El
+flujo completo y la configuración inicial (keystore, `EXPO_TOKEN`, primer APK)
+están en [11-flujo-de-trabajo.md](./11-flujo-de-trabajo.md).
+
+Builds manuales, si hacen falta:
 
 ```bash
-npx eas-cli build --platform android --profile preview      # APK para repartir / testers
-npx eas-cli build --platform android --profile production   # AAB para Google Play
+npx eas-cli build --platform android --profile release-apk   # el mismo APK que publica el CI
+npx eas-cli build --platform android --profile production    # AAB para Google Play
 ```
 
-El APK de `preview` se instala directo desde el enlace que da EAS. Probar de punta
-a punta: registro → correo → abrir el enlace en el celular → login → chat →
-“Ver en mapa” → ruta.
+Probar de punta a punta: registro → correo → abrir el enlace en el celular → login →
+chat → “Ver en mapa” → ruta.
 
 ---
 

@@ -1,5 +1,4 @@
 import { ExpoConfig, ConfigContext } from "expo/config";
-import "dotenv/config";
 
 // Única fuente de configuración de Expo (reemplaza a app.json).
 //
@@ -7,10 +6,11 @@ import "dotenv/config";
 // Expo del equipo y se pega aquí (ver documents/10-despliegue-vps.md §10.8).
 const EAS_PROJECT_ID: string | undefined = undefined;
 
-// Token público (pk.) de Mapbox. EXPO_PUBLIC_MAPBOX_TOKEN es el nombre vigente;
-// MAPBOX_PUBLIC_TOKEN se acepta por compatibilidad con .env antiguos.
-const MAPBOX_PUBLIC_TOKEN =
-  process.env.EXPO_PUBLIC_MAPBOX_TOKEN ?? process.env.MAPBOX_PUBLIC_TOKEN;
+// IMPORTANTE: esta config entra en la "huella" nativa (runtimeVersion con
+// policy "fingerprint"). No metas aquí valores que dependan del entorno
+// (tokens, URLs, process.env): la huella calculada en GitHub Actions dejaría de
+// coincidir con la del build y las actualizaciones OTA no llegarían a nadie.
+// Los valores públicos van como EXPO_PUBLIC_* (ver src/constants/config.ts).
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -41,6 +41,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   web: {
     favicon: "./assets/favicon.png",
   },
+  // Actualizaciones OTA (EAS Update). La huella cambia solo si cambia algo
+  // nativo (dependencias nativas, plugins, permisos, SDK); en ese caso hace
+  // falta un APK nuevo y la OTA no se aplica a builds incompatibles.
+  runtimeVersion: { policy: "fingerprint" },
+  ...(EAS_PROJECT_ID
+    ? {
+        updates: {
+          url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+          checkAutomatically: "ON_LOAD" as const,
+          fallbackToCacheTimeout: 0,
+        },
+      }
+    : {}),
   plugins: [
     [
       "expo-location",
@@ -50,20 +63,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     "expo-font",
-    [
-      "@rnmapbox/maps",
-      {
-        // Token secreto (sk.) solo para descargar el SDK al compilar. Va en las
-        // variables de EAS, nunca en el repo.
-        RNMAPBOX_MAPS_DOWNLOAD_TOKEN: process.env.RNMAPBOX_MAPS_DOWNLOAD_TOKEN,
-      },
-    ],
+    // El token secreto (sk.) para descargar el SDK lo lee Gradle directamente
+    // de la variable de entorno RNMAPBOX_MAPS_DOWNLOAD_TOKEN (variables de EAS).
+    "@rnmapbox/maps",
   ],
   experiments: {
     typedRoutes: false,
   },
   extra: {
     ...(EAS_PROJECT_ID ? { eas: { projectId: EAS_PROJECT_ID } } : {}),
-    mapboxPublicToken: MAPBOX_PUBLIC_TOKEN,
   },
 });

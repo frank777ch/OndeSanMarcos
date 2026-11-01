@@ -52,3 +52,7 @@ uvicorn app.main:app --reload
 ## Despliegue a producción
 
 Backend en un VPS con Docker + Caddy (`deploy/`), Supabase para cuentas y base vectorial, y la app Android con EAS. Guía completa: [`documents/10-despliegue-vps.md`](documents/10-despliegue-vps.md).
+
+## Flujo de trabajo
+
+Todo entra a `main` por Pull Request. Al fusionar, el backend se despliega solo al VPS y la app se publica sola: los cambios de JS/TS llegan por OTA al abrir la app, y los cambios nativos generan un APK en GitHub Releases que la app ofrece descargar. Detalles: [`documents/11-flujo-de-trabajo.md`](documents/11-flujo-de-trabajo.md).

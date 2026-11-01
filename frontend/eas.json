@@ -7,11 +7,13 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "environment": "development"
+      "environment": "development",
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
       "environment": "preview",
+      "channel": "preview",
       "android": {
         "buildType": "apk"
       }
@@ -19,8 +21,16 @@
     "production": {
       "autoIncrement": true,
       "environment": "production",
+      "channel": "production",
       "android": {
         "buildType": "app-bundle"
+      }
+    },
+    "release-apk": {
+      "extends": "production",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
       }
     }
   },

@@ -25,6 +25,14 @@ export const Config = {
      */
     useMock: process.env.EXPO_PUBLIC_USE_MOCK_CHAT === 'true',
   },
+  releases: {
+    /**
+     * Repositorio cuyos GitHub Releases publican el APK (tag `app-v<versionCode>`).
+     * La app consulta el último release para avisar cuando hay un APK nuevo
+     * (cambios nativos). Los cambios de JS/TS llegan solos por OTA.
+     */
+    repo: 'frank777ch/OndeSanMarcos',
+  },
   dev: {
     enableLogs: process.env.EXPO_PUBLIC_ENABLE_DEV_LOGS === 'true',
   },
