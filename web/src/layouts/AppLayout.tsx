@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { useState, type CSSProperties } from 'react'
+import { NavLink, Outlet, useMatch } from 'react-router-dom'
 import { MapPinned, MessageCircle, PanelLeft } from 'lucide-react'
 import { ToastHost } from '@/components/Toast/ToastHost'
 import { cn } from '@/lib/cn'
@@ -22,6 +22,9 @@ function readCollapsed(): boolean {
 export function AppLayout() {
   // Solo aplica desde md (barra lateral); en móvil la barra de abajo no cambia.
   const [collapsed, setCollapsed] = useState(readCollapsed)
+  // En el mapa la barra va encima y el mapa ocupa todo el ancho: así no se redimensiona
+  // al cambiar la barra (con la cámara 3D, redimensionar deforma la perspectiva).
+  const overMap = useMatch('/mapa') !== null
 
   const toggle = () => {
     const next = !collapsed
@@ -35,15 +38,14 @@ export function AppLayout() {
 
   return (
     <div
-      className={cn(
-        'flex h-full flex-col overflow-hidden md:grid motion-safe:md:transition-[grid-template-columns] motion-safe:md:duration-300 motion-safe:md:ease-in-out',
-        collapsed ? 'md:grid-cols-[4.5rem_1fr]' : 'md:grid-cols-[17rem_1fr]',
-      )}
+      // --sidebar-w lo leen la barra, el contenido y los controles del mapa (ver index.css).
+      style={{ '--sidebar-w': collapsed ? '4.5rem' : '17rem' } as CSSProperties}
+      className="relative flex h-full flex-col overflow-hidden"
     >
       {/* En móvil la barra va fija abajo del todo (después de <main>); desde md es la barra lateral. */}
       <aside
         id="sidebar"
-        className="order-2 flex-none border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:order-none md:flex md:flex-col md:gap-8 md:overflow-hidden md:border-t-0 md:border-r md:px-3 md:py-6"
+        className="order-2 flex-none border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:absolute md:inset-y-0 md:left-0 md:z-30 md:flex md:w-[var(--sidebar-w)] md:flex-col md:gap-8 md:overflow-hidden md:border-t-0 md:border-r md:px-3 md:py-6 motion-safe:md:transition-[width] motion-safe:md:duration-300 motion-safe:md:ease-in-out"
       >
         <div className="hidden items-center md:flex">
           <span
@@ -96,7 +98,12 @@ export function AppLayout() {
           ))}
         </nav>
       </aside>
-      <main className="relative min-h-0 min-w-0 flex-1 overflow-auto">
+      <main
+        className={cn(
+          'relative min-h-0 min-w-0 flex-1 overflow-auto md:absolute md:inset-y-0 md:right-0 motion-safe:md:transition-[left] motion-safe:md:duration-300 motion-safe:md:ease-in-out',
+          overMap ? 'md:left-0' : 'md:left-[var(--sidebar-w)]',
+        )}
+      >
         <Outlet />
       </main>
       <ToastHost />

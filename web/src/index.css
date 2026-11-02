@@ -101,6 +101,20 @@ div.mapboxgl-ctrl-bottom-left {
   margin: 0 0 8px 8px;
 }
 
+/* Desde md la barra lateral va encima del mapa: el logo y la atribución de Mapbox
+   (obligatorios) se corren para quedar siempre a la vista. */
+@media (min-width: 48rem) {
+  div.mapboxgl-ctrl-bottom-left {
+    margin-left: calc(var(--sidebar-w, 0px) + 8px);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    div.mapboxgl-ctrl-bottom-left {
+      transition: margin-left 300ms ease-in-out;
+    }
+  }
+}
+
 div.mapboxgl-ctrl-bottom-left .mapboxgl-ctrl,
 div.mapboxgl-ctrl-bottom-left .mapboxgl-ctrl-logo {
   margin: 0;

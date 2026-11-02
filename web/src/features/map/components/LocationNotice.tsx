@@ -30,7 +30,7 @@ export function LocationNotice() {
       role="dialog"
       aria-labelledby={titleId}
       aria-describedby={descId}
-      className="absolute bottom-10 left-1/2 z-20 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 rounded-lg border border-border bg-bg px-5 py-4 shadow-lg"
+      className="absolute bottom-10 left-1/2 z-20 w-[min(24rem,calc(100%-2rem))] -translate-x-1/2 md:left-[calc(50%+var(--sidebar-w)/2)] motion-safe:md:transition-[left] motion-safe:md:duration-300 motion-safe:md:ease-in-out rounded-lg border border-border bg-bg px-5 py-4 shadow-lg"
     >
       <div className="flex items-start gap-3">
         <MapPin size={20} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
