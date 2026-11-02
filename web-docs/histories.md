@@ -18,7 +18,7 @@
 | HU-12 | Ficha de lugar | ✅ Hecha |
 | HU-13 | Calcular una ruta | ⬜ Pendiente |
 | HU-14 | Ver la ruta | ⬜ Pendiente |
-| HU-15 | Mi ubicación | ⬜ Pendiente |
+| HU-15 | Mi ubicación | ✅ Hecha |
 | HU-16 | Guía paso a paso | ⬜ Pendiente |
 | HU-17 | Recorrer el campus con un avatar | ⬜ Pendiente |
 | HU-18 | Apariencia | ⬜ Pendiente |
@@ -139,7 +139,7 @@ Estados: ⬜ pendiente · ✅ hecha
 - Línea de la ruta sobre el mapa con marcadores de origen y destino; tarjeta con distancia y tiempo estimado a pie; botón para cancelar la ruta; la cámara encuadra toda la ruta.
 - **Aceptación:** al calcular una ruta se dibuja y se muestran distancia y tiempo; cancelar la limpia.
 
-### HU-15 · Mi ubicación ⬜
+### HU-15 · Mi ubicación ✅
 **Como** visitante, **quiero** ver dónde estoy en el mapa **para** orientarme.
 - Botón "Mi ubicación" con `navigator.geolocation`; explicación antes de pedir el permiso; mensajes claros si lo deniego o no está disponible; punto del usuario con círculo de precisión; aviso si estoy fuera del campus (geocerca).
 - **Aceptación:** con permiso aparece mi punto y el mapa me centra; sin permiso o fuera del campus aparece un mensaje, sin errores en consola. Tests de la geocerca.
