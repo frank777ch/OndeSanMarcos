@@ -20,6 +20,7 @@ Esta carpeta contiene la documentación de arquitectura, modelo de datos y flujo
 | 6   | [Backlog y roadmap](./06-backlog-y-roadmap.md)                        | Épicas, historias de usuario, estado actual vs. planificado, cronograma.                                  |
 | 7   | [Avance del backend RAG](./07-avance-backend.md)                      | Guía viva de lo construido en el backend: pipeline de ingesta, proveedores, contrato y cómo correrlo.     |
 | 8   | [Despliegue en Render](./08-despliegue-render.md)                     | Cómo desplegar el backend (subcarpeta `backend/`) en Render, variables, verificación y consumo del front. |
+| 10  | [Despliegue en Hetzner con Traefik](./10-despliegue-hetzner-traefik.md) | Cómo desplegar web, backend y Postgres+pgvector en un VPS de Hetzner con Docker Compose, Traefik y HTTPS automático. |
 | 📸  | [Capturas](./screenshots/)                                            | Imágenes para la sustentación: estándar de nombres + checklist de capturas.                               |
 
 ---
