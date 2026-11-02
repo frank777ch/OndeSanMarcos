@@ -16,7 +16,7 @@
 | HU-10 | Lugares y filtros | ✅ Hecha |
 | HU-11 | Buscar un lugar | ✅ Hecha |
 | HU-12 | Ficha de lugar | ✅ Hecha |
-| HU-13 | Calcular una ruta | ⬜ Pendiente |
+| HU-13 | Calcular una ruta | ✅ Hecha |
 | HU-14 | Ver la ruta | ⬜ Pendiente |
 | HU-15 | Mi ubicación | ✅ Hecha |
 | HU-16 | Guía paso a paso | ⬜ Pendiente |
@@ -28,7 +28,7 @@
 | HU-22 | Base de datos de lugares | ⬜ Pendiente |
 | HU-23 | Postgres con pgvector en Docker | ✅ Hecha |
 
-**Avance: 11 de 23 historias hechas.** HU-22 y HU-23 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 12 de 23 historias hechas.** HU-22 y HU-23 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
@@ -129,7 +129,7 @@ Estados: ⬜ pendiente · ✅ hecha
 
 ## Rutas y ubicación
 
-### HU-13 · Calcular una ruta ⬜
+### HU-13 · Calcular una ruta ✅
 **Como** visitante, **quiero** elegir un origen y un destino **para** saber por dónde caminar.
 - Grafo de caminos del campus a partir de los datos GeoJSON; búsqueda del camino más corto (A\* o Dijkstra) entre el punto más cercano a cada extremo; selector de origen (mi ubicación, un lugar o un punto en el mapa) y de destino.
 - **Aceptación:** con dos puntos válidos se calcula una ruta que sigue solo caminos del campus; si no hay camino se avisa. Tests del algoritmo y de la distancia (haversine).

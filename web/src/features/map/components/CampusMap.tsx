@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { AttributionControl, type MapRef } from 'react-map-gl/mapbox'
-import { LoaderCircle, LocateFixed } from 'lucide-react'
+import { Box, LoaderCircle, LocateFixed, Map as MapIcon } from 'lucide-react'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Config } from '@/config'
 import { IconButton } from '@/components/IconButton/IconButton'
 import { useToastStore } from '@/components/Toast/toastStore'
 import { CAMPUS, CAMPUS_MAX_BOUNDS } from '../constants/campus'
+import { RouteButton } from '@/features/routing/components/RouteButton'
+import { FlyToRoute } from '@/features/routing/components/FlyToRoute'
+import { RouteLayer } from '@/features/routing/components/RouteLayer'
+import { RouteDialog } from '@/features/routing/components/RouteDialog'
 import { useLocationStore } from '../store/useLocationStore'
 import { useMapStore } from '../store/useMapStore'
 import { placeIdFromFeatures } from '../utils/places'
@@ -18,11 +22,14 @@ import { UserLocationLayer } from './UserLocationLayer'
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard'
 const LOCATION_ZOOM = 18
+/** Por debajo de esta inclinación (grados) la vista se considera plana (2D). */
+const FLAT_PITCH = 1
 
 export function CampusMap() {
   const mapRef = useRef<MapRef>(null)
   const selectPlace = useMapStore((s) => s.selectPlace)
   const [cursor, setCursor] = useState('')
+  const [flat, setFlat] = useState(false)
   const permission = useLocationStore((s) => s.permission)
   const position = useLocationStore((s) => s.position)
   const locating = useLocationStore((s) => s.locating)
@@ -64,6 +71,13 @@ export function CampusMap() {
     }
   }
 
+  // Alterna entre la vista inclinada del campus y la vista plana, sin mover centro, zoom ni orientación.
+  const toggleView = () => {
+    const nextFlat = !flat
+    setFlat(nextFlat)
+    mapRef.current?.easeTo({ pitch: nextFlat ? 0 : CAMPUS.camera.pitch, duration: 800 })
+  }
+
   const onLocationButton = () => {
     if (hasLocationAccess) void goToMyLocation()
     else backToCampus()
@@ -102,6 +116,8 @@ export function CampusMap() {
         maxPitch={75}
         interactiveLayerIds={['places-circles']}
         cursor={cursor}
+        // La etiqueta del botón sigue a la inclinación real, también si el usuario la cambia con el mouse.
+        onPitchEnd={(e) => setFlat(e.viewState.pitch < FLAT_PITCH)}
         onMouseEnter={() => setCursor('pointer')}
         onMouseLeave={() => setCursor('')}
         onClick={(e) => {
@@ -113,6 +129,8 @@ export function CampusMap() {
       >
         {/* Logo y atribución juntos, abajo a la izquierda; la atribución va plegada en la «i». */}
         <AttributionControl position="bottom-left" compact />
+        <RouteLayer />
+        <FlyToRoute />
         <PlacesLayer />
         <UserLocationLayer />
         <FlyToSelection />
@@ -128,7 +146,12 @@ export function CampusMap() {
         >
           {locating ? <LoaderCircle size={20} className="animate-spin" /> : <LocateFixed size={20} />}
         </IconButton>
+        <RouteButton />
+        <IconButton label={flat ? 'Vista 3D' : 'Vista 2D'} onClick={toggleView}>
+          {flat ? <Box size={20} /> : <MapIcon size={20} />}
+        </IconButton>
       </div>
+      <RouteDialog />
     </div>
   )
 }

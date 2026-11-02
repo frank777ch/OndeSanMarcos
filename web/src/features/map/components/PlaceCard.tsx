@@ -1,7 +1,9 @@
 import { useEffect, useId, useRef } from 'react'
-import { X } from 'lucide-react'
+import { Route, X } from 'lucide-react'
+import { Button } from '@/components/Button/Button'
 import { IconButton } from '@/components/IconButton/IconButton'
 import { PLACE_CATEGORIES, PLACES } from '../data/places'
+import { useRouteStore } from '@/features/routing/store/useRouteStore'
 import { useMapStore } from '../store/useMapStore'
 
 const CATEGORY_LABEL = Object.fromEntries(
@@ -50,7 +52,8 @@ export function PlaceCard() {
   useEffect(() => {
     if (!isOpen) return
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') clearSelection()
+      // Con un diálogo modal encima (planificar ruta), Esc es suyo: la ficha sigue abierta.
+      if (e.key === 'Escape' && !document.querySelector('[aria-modal="true"]')) clearSelection()
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
@@ -76,6 +79,16 @@ export function PlaceCard() {
           <X size={18} />
         </IconButton>
       </header>
+
+      <Button
+        size="sm"
+        fullWidth
+        className="mt-3"
+        icon={<Route size={16} aria-hidden="true" />}
+        onClick={() => useRouteStore.getState().openDialog(place.id)}
+      >
+        Cómo llegar
+      </Button>
 
       {place.schedule && (
         <Section title="Horario">

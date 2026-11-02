@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { forwardRef, useImperativeHandle } from 'react'
 import { CAMPUS, CAMPUS_MAX_BOUNDS } from '../constants/campus'
@@ -8,6 +8,7 @@ import { useMapStore } from '../store/useMapStore'
 
 const flyTo = vi.fn()
 const setMaxBounds = vi.fn()
+const easeTo = vi.fn()
 const locate = vi.hoisted(() => vi.fn())
 const mapProps = vi.hoisted(() => {
   let current: Record<string, unknown> = {}
@@ -22,7 +23,7 @@ const mapProps = vi.hoisted(() => {
 vi.mock('react-map-gl/mapbox', () => ({
   default: forwardRef(function FakeMap(props: Record<string, unknown>, ref) {
     mapProps.set(props)
-    useImperativeHandle(ref, () => ({ flyTo, getMap: () => ({ setMaxBounds }) }))
+    useImperativeHandle(ref, () => ({ flyTo, easeTo, getMap: () => ({ setMaxBounds }) }))
     return <div data-testid="map" />
   }),
   useMap: () => ({ current: undefined }),
@@ -54,6 +55,49 @@ describe('CampusMap', () => {
     expect(flyTo).toHaveBeenCalledWith(
       expect.objectContaining({ center: CAMPUS.center, zoom: CAMPUS.camera.zoom }),
     )
+  })
+
+  it('RF-13.1 y RF-13.27: «Planificar ruta» va justo debajo del botón de ubicación y abre el diálogo sin dibujar nada', async () => {
+    config.mapbox.hasToken = true
+    config.mapbox.token = 'pk.test'
+    render(<CampusMap />)
+    const buttons = screen.getAllByRole('button')
+    const names = buttons.map((b) => b.getAttribute('aria-label'))
+    expect(names.indexOf('Planificar ruta')).toBe(names.indexOf('Volver al campus') + 1)
+    await userEvent.click(screen.getByRole('button', { name: 'Planificar ruta' }))
+    expect(screen.getByRole('dialog', { name: 'Planificar ruta' })).toBeInTheDocument()
+  })
+
+  describe('vista 2D / 3D', () => {
+    beforeEach(() => {
+      config.mapbox.hasToken = true
+      config.mapbox.token = 'pk.test'
+      easeTo.mockClear()
+    })
+
+    it('RF-13.43: el botón de vista va justo debajo de «Planificar ruta»', () => {
+      render(<CampusMap />)
+      const names = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'))
+      expect(names.indexOf('Vista 2D')).toBe(names.indexOf('Planificar ruta') + 1)
+    })
+
+    it('RF-13.44: aplana el mapa y luego vuelve a la inclinación del campus', async () => {
+      render(<CampusMap />)
+      await userEvent.click(screen.getByRole('button', { name: 'Vista 2D' }))
+      expect(easeTo).toHaveBeenLastCalledWith(expect.objectContaining({ pitch: 0 }))
+      await userEvent.click(screen.getByRole('button', { name: 'Vista 3D' }))
+      expect(easeTo).toHaveBeenLastCalledWith(expect.objectContaining({ pitch: CAMPUS.camera.pitch }))
+      expect(screen.getByRole('button', { name: 'Vista 2D' })).toBeInTheDocument()
+    })
+
+    it('RF-13.45: la etiqueta sigue a la inclinación real del mapa', () => {
+      render(<CampusMap />)
+      const onPitchEnd = mapProps.get().onPitchEnd as (e: { viewState: { pitch: number } }) => void
+      act(() => onPitchEnd({ viewState: { pitch: 0 } }))
+      expect(screen.getByRole('button', { name: 'Vista 3D' })).toBeInTheDocument()
+      act(() => (mapProps.get().onPitchEnd as typeof onPitchEnd)({ viewState: { pitch: 55 } }))
+      expect(screen.getByRole('button', { name: 'Vista 2D' })).toBeInTheDocument()
+    })
   })
 
   describe('mi ubicación', () => {

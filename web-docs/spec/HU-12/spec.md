@@ -129,3 +129,4 @@ La información existe para los lugares que el asistente ya conocía (en la app 
 - 2026-10-23 · Borrador creado con preguntas abiertas.
 - 2026-10-23 · Preguntas resueltas. Se añadieron RF-12.3 «sin mover la cámara», RF-12.17 (logo y atribución de Mapbox, requisito de su licencia) y RF-12.18 (campo de búsqueda sincronizado). Spec aprobada.
 - 2026-10-23 · Implementada.
+- 2026-11-02 · RF-12.13 queda reemplazado por RF-13.31: la ficha ya tiene el botón «Cómo llegar» (HU-13).

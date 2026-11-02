@@ -2,6 +2,8 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PLACES } from '../data/places'
 import { useMapStore } from '../store/useMapStore'
+import { RouteDialog } from '@/features/routing/components/RouteDialog'
+import { useRouteStore } from '@/features/routing/store/useRouteStore'
 import { PlaceCard } from './PlaceCard'
 
 const reset = () =>
@@ -68,10 +70,36 @@ describe('PlaceCard', () => {
     expect(within(section).getAllByRole('listitem').length).toBeGreaterThan(0)
   })
 
-  it('RF-12.13: no hay botón «Cómo llegar» todavía', () => {
-    render(<PlaceCard />)
+  it('RF-13.31 y RF-13.32: «Cómo llegar» abre el diálogo de ruta con ese lugar como destino', async () => {
+    useRouteStore.setState({ open: false, origin: null, destination: null, status: 'idle', result: null, activeRoute: null, notice: null })
+    render(
+      <>
+        <PlaceCard />
+        <RouteDialog />
+      </>,
+    )
     open('8')
-    expect(screen.queryByRole('button', { name: /cómo llegar/i })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Cómo llegar' }))
+    const dialog = screen.getByRole('dialog', { name: 'Planificar ruta' })
+    expect(within(dialog).getByRole('combobox', { name: 'Destino' })).toHaveValue(PLACES.find((p) => p.id === '8')!.name)
+    expect(within(dialog).getByRole('combobox', { name: 'Punto de partida' })).toHaveFocus()
+  })
+
+  it('RF-13.33: con el diálogo abierto la ficha sigue abierta y Esc solo cierra el diálogo', async () => {
+    useRouteStore.setState({ open: false, origin: null, destination: null, status: 'idle', result: null, activeRoute: null, notice: null })
+    render(
+      <>
+        <PlaceCard />
+        <RouteDialog />
+      </>,
+    )
+    open('8')
+    await userEvent.click(screen.getByRole('button', { name: 'Cómo llegar' }))
+    await userEvent.keyboard('{Escape}') // cierra la lista de «Mi ubicación»
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'Planificar ruta' })).not.toBeInTheDocument()
+    expect(useMapStore.getState().selectedPlaceId).toBe('8')
+    expect(screen.getByRole('dialog', { name: PLACES.find((p) => p.id === '8')!.name })).toBeInTheDocument()
   })
 
   it('RF-12.5: al elegir otro lugar la ficha cambia', () => {
