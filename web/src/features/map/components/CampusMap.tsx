@@ -18,15 +18,51 @@ import { UserLocationLayer } from './UserLocationLayer'
 
 const MAP_STYLE = 'mapbox://styles/mapbox/standard'
 const LOCATION_ZOOM = 18
+/** Espera sin cambios de tamaño antes de redimensionar el mapa. */
+const RESIZE_SETTLE_MS = 120
 
 export function CampusMap() {
   const mapRef = useRef<MapRef>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const selectPlace = useMapStore((s) => s.selectPlace)
   const [cursor, setCursor] = useState('')
   const permission = useLocationStore((s) => s.permission)
   const position = useLocationStore((s) => s.position)
   const locating = useLocationStore((s) => s.locating)
   const hasLocationAccess = permission === 'granted'
+
+  // Mapbox solo escucha el resize de la ventana: si cambia el ancho del contenedor
+  // (p. ej. al contraer la barra lateral) hay que avisarle. Se hace una sola vez, cuando
+  // el tamaño deja de cambiar: cada resize() borra el lienzo y, hecho en cada fotograma
+  // de la animación, el mapa parpadearía en blanco.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    let lastWidth = el.clientWidth
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const observer = new ResizeObserver(() => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        const map = mapRef.current?.getMap()
+        if (!map) return
+        const before = lastWidth
+        const after = el.clientWidth
+        lastWidth = after
+        map.resize()
+        // resize() deja el centro del mapa en el centro del lienzo nuevo, y el contenido
+        // da un salto de (after - before) / 2 píxeles. Se desplaza el centro para que
+        // lo que se veía a la izquierda no se mueva.
+        if (after !== before) {
+          map.jumpTo({ center: map.unproject([after - before / 2, el.clientHeight / 2]) })
+        }
+      }, RESIZE_SETTLE_MS)
+    })
+    observer.observe(el)
+    return () => {
+      clearTimeout(timer)
+      observer.disconnect()
+    }
+  }, [])
 
   // Consulta el permiso al entrar al mapa; no mueve la cámara (RF-15.10).
   useEffect(() => useLocationStore.getState().init(), [])
@@ -82,7 +118,7 @@ export function CampusMap() {
   }
 
   return (
-    <div className="relative size-full">
+    <div ref={containerRef} className="relative size-full">
       <Map
         ref={mapRef}
         mapboxAccessToken={Config.mapbox.token}
