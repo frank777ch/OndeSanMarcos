@@ -4,7 +4,7 @@ import { ExpoConfig, ConfigContext } from "expo/config";
 //
 // ID del proyecto en EAS. Se obtiene con `npx eas-cli init` usando la cuenta de
 // Expo del equipo y se pega aquí (ver documents/10-despliegue-vps.md §10.8).
-const EAS_PROJECT_ID: string | undefined = undefined;
+const EAS_PROJECT_ID: string | undefined = "3092fe63-a84c-4d9e-b388-6588c2669229";
 
 // IMPORTANTE: esta config entra en la "huella" nativa (runtimeVersion con
 // policy "fingerprint"). No metas aquí valores que dependan del entorno
@@ -16,6 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "OndeSanMarcos",
   slug: "ondesanmarcos",
+  owner: "ondesanmarcospes-team",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
