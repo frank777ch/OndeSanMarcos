@@ -1,0 +1,159 @@
+name: app-release
+
+# Publica la app móvil en cada push a main que toque frontend/.
+#
+#   ¿Cambió algo nativo? (huella = runtimeVersion "fingerprint")
+#     no → EAS Update (OTA): llega a todos al abrir la app, sin reinstalar.
+#     sí → build de APK en EAS → GitHub Release `app-v<versionCode>` con el APK.
+#          La app avisa "Descargar" y la página /descargar apunta al último.
+#
+# Se sabe si una huella ya tiene APK buscándola en el texto de los releases.
+# "Run workflow" con forzar_apk=true obliga a generar un APK nuevo.
+#
+# Secrets del repo (Settings → Secrets and variables → Actions):
+#   EXPO_TOKEN  token de acceso de la cuenta de Expo del equipo
+#               (expo.dev → Account settings → Access tokens).
+# Sin EXPO_TOKEN solo corren los tests.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/app-release.yml"
+  workflow_dispatch:
+    inputs:
+      forzar_apk:
+        description: "Generar un APK nuevo aunque no haya cambios nativos"
+        type: boolean
+        default: false
+
+concurrency:
+  group: app-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx jest --ci
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Sin cuenta de Expo configurada
+        if: env.EXPO_TOKEN == ''
+        working-directory: .
+        run: echo "::notice::Falta el secret EXPO_TOKEN; no se publica la app."
+
+      - uses: actions/checkout@v4
+        if: env.EXPO_TOKEN != ''
+        with:
+          fetch-depth: 0 # para armar las notas del release desde el APK anterior
+
+      - uses: actions/setup-node@v4
+        if: env.EXPO_TOKEN != ''
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: expo/expo-github-action@v8
+        if: env.EXPO_TOKEN != ''
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - if: env.EXPO_TOKEN != ''
+        run: npm ci
+
+      - name: Calcular huella nativa
+        id: fp
+        if: env.EXPO_TOKEN != ''
+        run: |
+          RUNTIME=$(npx expo-updates runtimeversion:resolve --platform android \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).runtimeVersion))')
+          echo "runtime=$RUNTIME" >> "$GITHUB_OUTPUT"
+          if gh api "repos/${{ github.repository }}/releases?per_page=100" --jq '.[].body' | grep -qF "$RUNTIME"; then
+            echo "tiene_apk=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tiene_apk=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Huella: $RUNTIME"
+
+      # --- Solo JS/TS: actualización OTA ---------------------------------
+      - name: Publicar actualización OTA
+        if: env.EXPO_TOKEN != '' && steps.fp.outputs.tiene_apk == 'true' && inputs.forzar_apk != true
+        run: |
+          eas update \
+            --channel production \
+            --environment production \
+            --platform android \
+            --message "$(git log -1 --format=%s)" \
+            --non-interactive
+          echo "::notice::OTA publicada para la huella ${{ steps.fp.outputs.runtime }}."
+
+      # --- Cambio nativo: APK + GitHub Release ---------------------------
+      - name: Compilar APK en EAS
+        id: build
+        if: env.EXPO_TOKEN != '' && (steps.fp.outputs.tiene_apk != 'true' || inputs.forzar_apk == true)
+        run: |
+          eas build --platform android --profile release-apk \
+            --non-interactive --wait --json > build.json
+          echo "url=$(jq -r '.[0].artifacts.buildUrl' build.json)" >> "$GITHUB_OUTPUT"
+          echo "version_code=$(jq -r '.[0].appBuildVersion' build.json)" >> "$GITHUB_OUTPUT"
+          echo "version=$(jq -r '.[0].appVersion' build.json)" >> "$GITHUB_OUTPUT"
+          BUILD_RUNTIME=$(jq -r '.[0].runtimeVersion' build.json)
+          echo "runtime=$BUILD_RUNTIME" >> "$GITHUB_OUTPUT"
+          if [ "$BUILD_RUNTIME" != "${{ steps.fp.outputs.runtime }}" ]; then
+            echo "::warning::La huella del build ($BUILD_RUNTIME) no coincide con la calculada aquí (${{ steps.fp.outputs.runtime }}). Revisa que app.config.ts no dependa de variables de entorno."
+          fi
+
+      - name: Publicar GitHub Release
+        if: steps.build.outcome == 'success'
+        run: |
+          TAG="app-v${{ steps.build.outputs.version_code }}"
+          curl -fsSL -o ondesanmarcos.apk "${{ steps.build.outputs.url }}"
+
+          PREV=$(git tag --list 'app-v*' --sort=-v:refname | head -n1)
+          {
+            echo "Versión ${{ steps.build.outputs.version }} (build ${{ steps.build.outputs.version_code }})."
+            echo
+            echo "Instálalo encima de la versión anterior; se conservan tus datos."
+            echo
+            echo "### Cambios"
+            if [ -n "$PREV" ]; then
+              git log --no-merges --format='- %s' "$PREV"..HEAD -- . | head -n 50
+            else
+              git log --no-merges --format='- %s' -n 20 -- .
+            fi
+            echo
+            echo "Huella nativa: \`${{ steps.build.outputs.runtime }}\`"
+          } > notes.md
+
+          gh release create "$TAG" ondesanmarcos.apk \
+            --target "$GITHUB_SHA" \
+            --title "OndeSanMarcos ${{ steps.build.outputs.version }} (build ${{ steps.build.outputs.version_code }})" \
+            --notes-file notes.md \
+            --latest
+          echo "::notice::Release $TAG publicado."

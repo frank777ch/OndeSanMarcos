@@ -1,0 +1,23 @@
+<!--
+  Plantilla "Confirm signup" de Supabase.
+  Dashboard → Authentication → Emails → Confirm signup:
+    Asunto:  Confirma tu cuenta de OndeSanMarcos
+    Cuerpo:  este archivo
+  {{ .ConfirmationURL }} verifica el correo y redirige a ondesanmarcos://verified-email
+  (debe estar en Authentication → URL Configuration → Redirect URLs).
+-->
+<div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1f2b;">
+  <h2 style="color: #003087; margin: 0 0 16px;">¡Bienvenido a OndeSanMarcos!</h2>
+  <p>Hola{{ if .Data.name }} {{ .Data.name }}{{ end }}, gracias por registrarte.</p>
+  <p>Abre este correo <strong>desde tu celular</strong> y toca el botón para activar tu cuenta:</p>
+  <p style="margin: 28px 0;">
+    <a href="{{ .ConfirmationURL }}"
+       style="background: #003087; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+      Confirmar mi cuenta
+    </a>
+  </p>
+  <p style="color: #5a6475; font-size: 14px;">Si no creaste una cuenta en OndeSanMarcos, ignora este mensaje.</p>
+  <p style="color: #5a6475; font-size: 12px; margin-top: 32px;">
+    Proyecto estudiantil. No es una aplicación oficial de la UNMSM.
+  </p>
+</div>

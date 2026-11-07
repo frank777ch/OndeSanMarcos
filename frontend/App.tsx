@@ -3,6 +3,8 @@ import { StatusBar } from "expo-status-bar";
 import { AuthProvider } from "@providers/AuthProvider";
 import { AppNavigator } from "@navigation/AppNavigator";
 import { useFonts } from "expo-font";
+import { useAppUpdates } from "@shared/hooks/useAppUpdates";
+import { UpdateBanner } from "@shared/components/UpdateBanner";
 import {
   FunnelDisplay_400Regular,
   FunnelDisplay_500Medium,
@@ -28,6 +30,8 @@ export default function App() {
     DMSans_700Bold,
   });
 
+  const { otaReady, applyOtaUpdate, apkRelease } = useAppUpdates();
+
   if (!fontsLoaded) {
     return null;
   }
@@ -36,6 +40,11 @@ export default function App() {
     <AuthProvider>
       <StatusBar style="auto" />
       <AppNavigator />
+      <UpdateBanner
+        otaReady={otaReady}
+        onApplyOta={applyOtaUpdate}
+        apkRelease={apkRelease}
+      />
     </AuthProvider>
   );
 }

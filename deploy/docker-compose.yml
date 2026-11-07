@@ -1,0 +1,70 @@
+# Producción en el VPS: FastAPI (api) detrás de Caddy (HTTPS automático).
+#
+#   cd deploy && cp .env.example .env   # completar valores
+#   docker compose up -d --build
+#
+# Dos modos (COMPOSE_PROFILES en deploy/.env):
+#   caddy  → Caddy propio en 80/443 con HTTPS automático (VPS dedicado).
+#   vacío  → sin Caddy; el api escucha en 127.0.0.1:${API_HOST_PORT} y lo
+#            publica el nginx/Caddy que ya tenga el VPS.
+# Ver documents/10-despliegue-vps.md.
+
+name: ondesanmarcos
+
+services:
+  api:
+    build: ../backend
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      # Solo localhost: para el proxy existente del VPS (modo sin Caddy).
+      - "127.0.0.1:${API_HOST_PORT:-8010}:8000"
+    mem_limit: 512m
+    logging: &default-logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2.10-alpine
+    profiles: ["caddy"]
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?Define DOMAIN en deploy/.env}
+      ACME_EMAIL: ${ACME_EMAIL:?Define ACME_EMAIL en deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv/site:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    mem_limit: 128m
+    logging: *default-logging
+
+  # Consulta la base cada 12 h: verifica la conexión y evita que Supabase
+  # (plan free) pause el proyecto tras una semana sin actividad.
+  keepalive:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on:
+      - api
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        sleep 60
+        while true; do
+          echo "$$(date -u +%FT%TZ) $$(curl -fsS --max-time 30 http://api:8000/health/db || echo 'FALLO')"
+          sleep 43200
+        done
+    mem_limit: 32m
+    logging: *default-logging
+
+volumes:
+  caddy_data:
+  caddy_config:

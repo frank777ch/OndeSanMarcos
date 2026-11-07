@@ -1,0 +1,13 @@
+# Nunca meter secretos ni entornos locales en la imagen.
+.env
+.env.*
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.rag_cache/
+tests/

@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, Alert } from "react-native";
 import { Image } from "expo-image";
 import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
-import Constants from "expo-constants";
+import { Config } from "@constants/config";
 
 import { MapSearchBar } from "../components/MapSearchBar";
 import { MapFilterChips } from "../components/MapFilterChips";
@@ -24,7 +24,7 @@ import { useThemeStore } from "../../../core/store/useThemeStore";
 import { isInsideCampus } from "../utils/geofence";
 import { useLocationPermission } from "../hooks/useLocationPermission";
 
-MapboxGL.setAccessToken(Constants.expoConfig?.extra?.mapboxPublicToken);
+MapboxGL.setAccessToken(Config.mapbox.token);
 
 // Distancia (m) que le falta al usuario para llegar al destino siguiendo la
 // polilínea de la ruta: tramo hasta el vértice más cercano + resto de la ruta.

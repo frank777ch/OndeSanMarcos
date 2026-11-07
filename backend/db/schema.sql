@@ -45,3 +45,10 @@ $$;
 -- consume el backend.
 grant select, insert, update, delete on table documents to service_role;
 grant execute on function match_documents(vector, int) to service_role;
+
+-- Cierra la tabla a los roles públicos (la anon key va en la app). Supabase les
+-- da privilegios por defecto sobre tablas nuevas; `service_role` ignora RLS.
+-- Igual que supabase/migrations/20261015000000_documents_rls.sql.
+alter table documents enable row level security;
+revoke all on table documents from anon, authenticated;
+revoke execute on function match_documents(vector, int) from public, anon, authenticated;

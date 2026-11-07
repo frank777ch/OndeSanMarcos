@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Descargar OndeSanMarcos</title>
+  <meta name="description" content="Descarga la app de OndeSanMarcos para Android.">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .btn {
+      display: inline-block;
+      background: var(--brand);
+      color: var(--surface);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 14px 24px;
+      border-radius: 10px;
+      margin: 8px 0 4px;
+    }
+    .versions { list-style: none; padding: 0; margin: 0; }
+    .versions li { padding: 12px 0; border-top: 1px solid var(--border); }
+    .versions li:first-child { border-top: 0; }
+    .versions .meta { font-size: 0.9rem; }
+    ol li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Descargar OndeSanMarcos</h1>
+    <p class="muted">App para Android. Las mejoras pequeñas llegan solas al abrir la app; solo
+      hace falta descargar de nuevo cuando la app te lo pida.</p>
+
+    <div class="card">
+      <h2 id="latest-title" style="margin-top:0">Última versión</h2>
+      <a class="btn" id="latest-link"
+         href="https://github.com/frank777ch/OndeSanMarcos/releases/latest/download/ondesanmarcos.apk">
+        Descargar APK
+      </a>
+      <p class="muted" id="latest-meta"></p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Cómo instalarla</h2>
+      <ol>
+        <li>Abre esta página desde tu celular Android y toca <strong>Descargar APK</strong>.</li>
+        <li>Abre el archivo descargado. La primera vez Android pedirá permitir
+          <em>instalar apps desconocidas</em> para tu navegador: acéptalo.</li>
+        <li>Toca <strong>Instalar</strong> (o <strong>Actualizar</strong> si ya la tenías). Tus datos se conservan.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Versiones anteriores</h2>
+      <ul class="versions" id="versions">
+        <li class="muted">Cargando…</li>
+      </ul>
+    </div>
+
+    <nav>
+      <a href="/">Inicio</a>
+      <a href="/privacidad">Política de privacidad</a>
+      <a href="https://github.com/frank777ch/OndeSanMarcos/releases">Todos los releases</a>
+    </nav>
+
+    <footer>© 2026 Equipo OndeSanMarcos</footer>
+  </main>
+
+  <script>
+    // Lee los releases `app-v<versionCode>` (los crea .github/workflows/app-release.yml).
+    (async () => {
+      const list = document.getElementById("versions");
+      try {
+        const res = await fetch(
+          "https://api.github.com/repos/frank777ch/OndeSanMarcos/releases?per_page=30",
+          { headers: { Accept: "application/vnd.github+json" } }
+        );
+        if (!res.ok) throw new Error(res.status);
+        const releases = (await res.json())
+          .filter((r) => !r.draft && !r.prerelease && /^app-v\d+$/.test(r.tag_name))
+          .map((r) => ({ ...r, apk: r.assets.find((a) => a.name.endsWith(".apk")) }))
+          .filter((r) => r.apk)
+          .sort((a, b) => Number(b.tag_name.slice(5)) - Number(a.tag_name.slice(5)));
+
+        if (releases.length === 0) {
+          list.innerHTML = '<li class="muted">Aún no hay versiones publicadas.</li>';
+          return;
+        }
+
+        const fecha = (iso) =>
+          new Date(iso).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric" });
+
+        const latest = releases[0];
+        document.getElementById("latest-link").href = latest.apk.browser_download_url;
+        document.getElementById("latest-meta").textContent =
+          `${latest.name} · publicada el ${fecha(latest.published_at)}`;
+
+        list.replaceChildren(
+          ...releases.slice(1).map((r) => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = r.apk.browser_download_url;
+            a.textContent = r.name;
+            const meta = document.createElement("div");
+            meta.className = "muted meta";
+            meta.textContent = `${fecha(r.published_at)} · `;
+            const notes = document.createElement("a");
+            notes.href = r.html_url;
+            notes.textContent = "ver cambios";
+            meta.append(notes);
+            li.append(a, meta);
+            return li;
+          })
+        );
+        if (releases.length === 1) {
+          list.innerHTML = '<li class="muted">Solo existe la versión actual.</li>';
+        }
+      } catch {
+        list.innerHTML =
+          '<li class="muted">No se pudo cargar la lista. Míralas en ' +
+          '<a href="https://github.com/frank777ch/OndeSanMarcos/releases">GitHub</a>.</li>';
+      }
+    })();
+  </script>
+</body>
+</html>
