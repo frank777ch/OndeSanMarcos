@@ -140,6 +140,14 @@ class Database:
             ).fetchone()
         return row is not None
 
+    def get_admin(self, username: str) -> dict | None:
+        """Fila del administrador (`username`, `password_hash`) o `None`."""
+        with self.connection() as conn:
+            return conn.execute(
+                "select username, password_hash from admin_users where username = %s",
+                (username,),
+            ).fetchone()
+
     def insert_admin(self, username: str, password_hash: str) -> bool:
         """Inserta el administrador; `False` si ya existía (sin error ni cambios)."""
         with self.connection() as conn:

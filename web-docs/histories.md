@@ -28,8 +28,9 @@
 | HU-22 | Base de datos de lugares | ⬜ Pendiente |
 | HU-23 | Postgres con pgvector en Docker | ✅ Hecha |
 | HU-24 | Usuario administrador inicial | ✅ Hecha |
+| HU-25 | Login de administrador (backend) | ✅ Hecha |
 
-**Avance: 13 de 24 historias hechas.** HU-22, HU-23 y HU-24 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 14 de 25 historias hechas.** HU-22 a HU-25 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
@@ -178,6 +179,13 @@ Estados: ⬜ pendiente · ✅ hecha
 - Fuera de alcance: iniciar sesión, tokens, proteger endpoints y pantallas de administración.
 - Depende de: HU-23. Spec en `spec/HU-24/`.
 - **Aceptación:** con las variables definidas, el primer arranque crea una fila con hash `$2b$`; reiniciar no duplica ni cambia el hash; sin variables o con la base apagada, el backend arranca igual.
+
+### HU-25 · Login de administrador (backend) ✅
+**Como** administrador, **quiero** iniciar sesión con mi usuario y contraseña **para** obtener un token y usar los endpoints de administración.
+- `POST /api/auth/login` (usuario y contraseña → token con vencimiento), `GET /api/auth/me` protegido y un mecanismo reutilizable para proteger endpoints; `JWT_SECRET` y `ACCESS_TOKEN_EXPIRE_MINUTES` en `backend/.env`; error genérico ante credenciales incorrectas; bloqueo tras 5 intentos fallidos.
+- Fuera de alcance: pantalla de login (HU-26), gestión de administradores, refresh de token.
+- Depende de: HU-24. Spec en `spec/HU-25/`.
+- **Aceptación:** el login correcto devuelve un token que `/me` acepta; credenciales incorrectas, token alterado o vencido dan 401; el sexto intento fallido seguido da 429; sin `JWT_SECRET` la app no arranca.
 
 ## Extras y cierre
 

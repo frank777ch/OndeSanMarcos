@@ -12,20 +12,7 @@ from app.auth.passwords import hash_password, verify_password
 from app.config import Settings, get_settings
 from app.main import create_app, seed_admin
 from app.rag.errors import RagProviderError
-
-
-class FakeAdminStore:
-    def __init__(self) -> None:
-        self.admins: dict[str, str] = {}
-
-    def admin_exists(self, username: str) -> bool:
-        return username in self.admins
-
-    def insert_admin(self, username: str, password_hash: str) -> bool:
-        if username in self.admins:
-            return False
-        self.admins[username] = password_hash
-        return True
+from tests.fake_admin import FakeAdminStore
 
 
 def test_rf_24_3_creates_the_admin_when_missing():

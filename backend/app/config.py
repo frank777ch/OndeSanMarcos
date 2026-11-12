@@ -70,6 +70,12 @@ class Settings(BaseSettings):
     admin_username: str = ""
     admin_password: str = ""
 
+    # --- Sesión del administrador (HU-25) ---
+    # Secreto con el que se firman los tokens (mínimo 32 caracteres; obligatoria).
+    # Generar: python -c "import secrets; print(secrets.token_urlsafe(48))"
+    jwt_secret: str = ""
+    access_token_expire_minutes: int = 60
+
     @property
     def cors_origins_list(self) -> list[str]:
         """`cors_origins` como lista (separada por comas)."""

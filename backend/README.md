@@ -169,6 +169,17 @@ otra, además de la que redacta la respuesta. Por eso:
 | `DATABASE_URL` | Cadena de conexión. En Docker la fija `docker-compose.yml` (host `db`); fuera de Docker usa `localhost:5432` (ver `.env.example`) |
 | `DB_CONNECT_TIMEOUT` | Segundos máximos para conectar antes de responder 503 (por defecto 3) |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Administrador inicial: al arrancar se crea en `admin_users` si no existe (contraseña hasheada con bcrypt, máx. 72 bytes). Si ya existe no se modifica. `DATABASE_URL` es obligatoria: sin ella la app no arranca y lo informa; cambia la contraseña fuera de desarrollo |
+| `JWT_SECRET` | Secreto para firmar los tokens del administrador (**obligatoria**, ≥ 32 caracteres; sin ella la app no arranca). Genérala con `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Vida del token en minutos (por defecto 60, sin renovación) |
+
+---
+
+## 🔐 Login de administrador
+
+- `POST /api/auth/login` con `{ "username", "password" }` → `{ "access_token", "token_type": "bearer", "expires_in" }`. Credenciales incorrectas: 401 (mismo mensaje exista o no el usuario). Tras 5 intentos fallidos seguidos de un usuario: 429 con `Retry-After` durante 15 minutos (contador en memoria: pensado para una sola instancia).
+- `GET /api/auth/me` con `Authorization: Bearer <token>` → `{ "username" }`; 401 si el token falta, está alterado, venció o el administrador ya no existe.
+- Para proteger un endpoint nuevo: `admin: str = Depends(get_current_admin)` (`app/auth/dependencies.py`).
+- Prueba rápida en `/docs` con el botón «Authorize» tras hacer login.
 
 ---
 

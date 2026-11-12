@@ -17,8 +17,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app import __version__
+from app.api.auth import router as auth_router
 from app.api.chat import router as chat_router
 from app.auth.admin import ensure_initial_admin
+from app.auth.tokens import require_jwt_secret
 from app.config import Settings, get_settings
 from app.rag.db import get_database
 from app.rag.providers import RagProviderError
@@ -58,6 +60,7 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        require_jwt_secret(settings.jwt_secret)
         seed_admin(settings)
         yield
 
@@ -83,6 +86,7 @@ def create_app() -> FastAPI:
         return {"status": "ok", "service": settings.app_name, "version": __version__}
 
     app.include_router(chat_router)
+    app.include_router(auth_router)
     return app
 
 
