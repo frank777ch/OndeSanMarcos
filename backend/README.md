@@ -168,6 +168,7 @@ otra, además de la que redacta la respuesta. Por eso:
 |---|---|
 | `DATABASE_URL` | Cadena de conexión. En Docker la fija `docker-compose.yml` (host `db`); fuera de Docker usa `localhost:5432` (ver `.env.example`) |
 | `DB_CONNECT_TIMEOUT` | Segundos máximos para conectar antes de responder 503 (por defecto 3) |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Administrador inicial: al arrancar se crea en `admin_users` si no existe (contraseña hasheada con bcrypt, máx. 72 bytes). Si ya existe no se modifica. `DATABASE_URL` es obligatoria: sin ella la app no arranca y lo informa; cambia la contraseña fuera de desarrollo |
 
 ---
 

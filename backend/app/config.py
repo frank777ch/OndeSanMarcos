@@ -65,6 +65,11 @@ class Settings(BaseSettings):
     # Caché en disco de los embeddings de documentos (evita gastar cuota de Gemini).
     embedding_cache_path: str = ".rag_cache/embeddings.jsonl"
 
+    # --- Administrador inicial (se crea al arrancar si no existe) ---
+    # Cambia la contraseña fuera de desarrollo. Vacío = no crear ninguno.
+    admin_username: str = ""
+    admin_password: str = ""
+
     @property
     def cors_origins_list(self) -> list[str]:
         """`cors_origins` como lista (separada por comas)."""

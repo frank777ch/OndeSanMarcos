@@ -8,20 +8,60 @@ paso posterior. Ejecuta en local con:
 
 from __future__ import annotations
 
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.api.chat import router as chat_router
-from app.config import get_settings
+from app.auth.admin import ensure_initial_admin
+from app.config import Settings, get_settings
+from app.rag.db import get_database
 from app.rag.providers import RagProviderError
+
+
+logger = logging.getLogger(__name__)
+
+
+def seed_admin(settings: Settings) -> None:
+    """Crea el administrador inicial.
+
+    Sin `DATABASE_URL` la app no arranca (error de configuración). Si faltan las
+    credenciales del admin o la base no responde, avisa y deja arrancar.
+    """
+    if not settings.database_url:
+        raise RuntimeError(
+            "No se puede iniciar: falta la variable de entorno DATABASE_URL "
+            "(defínela en backend/.env o en el entorno)."
+        )
+    if not (settings.admin_username and settings.admin_password):
+        logger.warning(
+            "No se creó el administrador inicial: faltan las variables de entorno "
+            "ADMIN_USERNAME y/o ADMIN_PASSWORD."
+        )
+        return
+    try:
+        ensure_initial_admin(
+            get_database(settings), settings.admin_username, settings.admin_password
+        )
+    except (RagProviderError, ValueError) as exc:
+        logger.warning("No se pudo crear el administrador inicial: %s", exc)
 
 
 def create_app() -> FastAPI:
     """Crea y configura la aplicación FastAPI."""
     settings = get_settings()
-    app = FastAPI(title=settings.app_name, version=__version__)
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        seed_admin(settings)
+        yield
+
+    app = FastAPI(title=settings.app_name, version=__version__, lifespan=lifespan)
 
     app.add_middleware(
         CORSMiddleware,

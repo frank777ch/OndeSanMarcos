@@ -131,6 +131,25 @@ class Database:
                     raise RagProviderError(EMPTY_MESSAGE)
         return list(rows)
 
+    # --- administradores ----------------------------------------------------
+
+    def admin_exists(self, username: str) -> bool:
+        with self.connection() as conn:
+            row = conn.execute(
+                "select 1 as found from admin_users where username = %s", (username,)
+            ).fetchone()
+        return row is not None
+
+    def insert_admin(self, username: str, password_hash: str) -> bool:
+        """Inserta el administrador; `False` si ya existía (sin error ni cambios)."""
+        with self.connection() as conn:
+            row = conn.execute(
+                "insert into admin_users (username, password_hash) values (%s, %s) "
+                "on conflict (username) do nothing returning id",
+                (username, password_hash),
+            ).fetchone()
+        return row is not None
+
     # --- escritura ----------------------------------------------------------
 
     def _insert(self, conn: psycopg.Connection[Any], rows: list[dict]) -> None:

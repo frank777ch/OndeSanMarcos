@@ -27,8 +27,9 @@
 | HU-21 | Adaptación a móvil | ⬜ Pendiente |
 | HU-22 | Base de datos de lugares | ⬜ Pendiente |
 | HU-23 | Postgres con pgvector en Docker | ✅ Hecha |
+| HU-24 | Usuario administrador inicial | ✅ Hecha |
 
-**Avance: 12 de 23 historias hechas.** HU-22 y HU-23 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 13 de 24 historias hechas.** HU-22, HU-23 y HU-24 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
@@ -170,6 +171,13 @@ Estados: ⬜ pendiente · ✅ hecha
 - Depende de: ninguna historia de la web. Es trabajo de backend. Para ingerir y responder con calidad real hace falta la clave de Gemini (ya en `backend/.env`).
 - Decisiones tomadas: solo `DATABASE_URL`; migraciones con Flyway; si la base está vacía, 503 con mensaje claro; la base se levanta siempre. Spec en `spec/HU-23/`.
 - **Aceptación:** `./script/dev.sh` levanta base, migraciones, backend y web; la ingesta carga el corpus en el Postgres local; con `RAG_USE_MOCK=false` y la clave de Gemini, `POST /api/chat` responde usando la búsqueda por vectores contra el contenedor; los tests del backend pasan sin Supabase; no queda ninguna referencia a Supabase en `backend/` ni en `docker-compose.yml`.
+
+### HU-24 · Usuario administrador inicial ✅
+**Como** equipo, **quiero** que exista un usuario administrador definido en el `.env` del backend **para** habilitar las futuras funciones de administración sin crearlo a mano.
+- Tabla `admin_users` (`username` único, `password_hash`) con la migración `V2`; `ADMIN_USERNAME` y `ADMIN_PASSWORD` en `backend/.env`; al iniciar la app se crea el administrador si no existe, con la contraseña hasheada (bcrypt); si ya existe no se modifica.
+- Fuera de alcance: iniciar sesión, tokens, proteger endpoints y pantallas de administración.
+- Depende de: HU-23. Spec en `spec/HU-24/`.
+- **Aceptación:** con las variables definidas, el primer arranque crea una fila con hash `$2b$`; reiniciar no duplica ni cambia el hash; sin variables o con la base apagada, el backend arranca igual.
 
 ## Extras y cierre
 

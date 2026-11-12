@@ -21,3 +21,14 @@ def test_database_url_defaults_to_empty_and_reads_env(monkeypatch):
 def test_db_connect_timeout_default_is_a_few_seconds():
     """RF-23.14: la conexión no debe colgarse más de unos segundos."""
     assert 1 <= Settings(_env_file=None).db_connect_timeout <= 5
+
+
+def test_rf_24_2_admin_settings_default_to_empty_and_read_env(monkeypatch):
+    monkeypatch.delenv("ADMIN_USERNAME", raising=False)
+    monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+    s = Settings(_env_file=None)
+    assert (s.admin_username, s.admin_password) == ("", "")
+    monkeypatch.setenv("ADMIN_USERNAME", "root")
+    monkeypatch.setenv("ADMIN_PASSWORD", "pw")
+    s = Settings(_env_file=None)
+    assert (s.admin_username, s.admin_password) == ("root", "pw")
