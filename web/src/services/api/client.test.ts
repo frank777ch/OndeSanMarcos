@@ -160,3 +160,40 @@ describe('logs de red', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 })
+
+describe('apiClient (HU-26)', () => {
+  const fetchMock = vi.fn()
+  beforeEach(() => vi.stubGlobal('fetch', fetchMock))
+  afterEach(() => {
+    fetchMock.mockReset()
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+    config.dev.enableLogs = false
+  })
+
+  it('get hace GET sin cuerpo y envía las cabeceras recibidas', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ ok: true }))
+    await apiClient.get('/api/auth/me', { Authorization: 'Bearer t' })
+    const [, init] = fetchMock.mock.calls[0]
+    expect(init.method).toBe('GET')
+    expect(init.body).toBeUndefined()
+    expect(init.headers).toEqual({ Authorization: 'Bearer t' })
+  })
+
+  it('RF-26.6: un 429 expone Retry-After como retryAfterSeconds', async () => {
+    fetchMock.mockResolvedValue(new Response('{}', { status: 429, headers: { 'Retry-After': '120' } }))
+    const error = await failure(apiClient.post('/x', {}))
+    expect(error.retryAfterSeconds).toBe(120)
+  })
+
+  it('RF-26.10: los logs de desarrollo no incluyen la contraseña ni el token', async () => {
+    config.dev.enableLogs = true
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    fetchMock.mockResolvedValue(new Response('{}', { status: 401 }))
+    await failure(apiClient.post('/api/auth/login', { username: 'a', password: 'clave-secreta' }, { Authorization: 'Bearer tok-secreto' }))
+    const written = JSON.stringify([...log.mock.calls, ...warn.mock.calls])
+    expect(written).not.toContain('clave-secreta')
+    expect(written).not.toContain('tok-secreto')
+  })
+})

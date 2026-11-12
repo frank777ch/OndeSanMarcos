@@ -27,13 +27,16 @@ export class ApiError extends Error {
   readonly kind: ApiErrorKind
   readonly status?: number
   readonly detail: string
+  /** Segundos de espera que indica el servidor (`Retry-After`), p. ej. en un 429. */
+  readonly retryAfterSeconds?: number
 
-  constructor(kind: ApiErrorKind, detail: string, status?: number) {
+  constructor(kind: ApiErrorKind, detail: string, status?: number, retryAfterSeconds?: number) {
     super(userMessageFor(kind, status))
     this.name = 'ApiError'
     this.kind = kind
     this.status = status
     this.detail = detail
+    this.retryAfterSeconds = retryAfterSeconds
   }
 }
 
@@ -45,7 +48,18 @@ function logFailure(error: ApiError): void {
   if (Config.dev.enableLogs) console.warn('[api]', error.kind, error.detail)
 }
 
-async function post<T>(endpoint: string, body: unknown): Promise<T> {
+interface RequestOptions {
+  body?: unknown
+  /** Cabeceras extra (p. ej. `Authorization`). Solo las añade `adminClient`. */
+  headers?: Record<string, string>
+}
+
+function parseRetryAfter(response: Response): number | undefined {
+  const seconds = Number(response.headers.get('Retry-After'))
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : undefined
+}
+
+async function request<T>(method: 'GET' | 'POST', endpoint: string, options: RequestOptions = {}): Promise<T> {
   const url = `${Config.api.baseUrl}${endpoint}`
   const started = performance.now()
   const elapsed = () => `${Math.round(performance.now() - started)}ms`
@@ -57,9 +71,12 @@ async function post<T>(endpoint: string, body: unknown): Promise<T> {
     let response: Response
     try {
       response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        method,
+        headers: {
+          ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}),
+          ...options.headers,
+        },
+        body: method === 'POST' ? JSON.stringify(options.body) : undefined,
         signal: controller.signal,
       })
     } catch (cause) {
@@ -67,23 +84,28 @@ async function post<T>(endpoint: string, body: unknown): Promise<T> {
       const aborted = controller.signal.aborted
       throw new ApiError(
         aborted ? 'timeout' : 'network',
-        `POST ${url}: ${aborted ? `sin respuesta tras ${Config.api.timeoutMs}ms` : String(cause)}`,
+        `${method} ${url}: ${aborted ? `sin respuesta tras ${Config.api.timeoutMs}ms` : String(cause)}`,
       )
     }
 
-    log('POST', url, response.status, elapsed())
+    log(method, url, response.status, elapsed())
     if (!response.ok) {
-      throw new ApiError('http', `POST ${url}: ${response.status} ${response.statusText}`, response.status)
+      throw new ApiError(
+        'http',
+        `${method} ${url}: ${response.status} ${response.statusText}`,
+        response.status,
+        parseRetryAfter(response),
+      )
     }
 
     try {
       return (await response.json()) as T
     } catch (cause) {
-      throw new ApiError('invalid', `POST ${url}: la respuesta no es JSON (${String(cause)})`)
+      throw new ApiError('invalid', `${method} ${url}: la respuesta no es JSON (${String(cause)})`)
     }
   } catch (error) {
     if (error instanceof ApiError) {
-      log('POST', url, error.kind, elapsed())
+      log(method, url, error.kind, elapsed())
       logFailure(error)
     }
     throw error
@@ -92,4 +114,9 @@ async function post<T>(endpoint: string, body: unknown): Promise<T> {
   }
 }
 
-export const apiClient = { post }
+export const apiClient = {
+  post: <T>(endpoint: string, body: unknown, headers?: Record<string, string>) =>
+    request<T>('POST', endpoint, { body, headers }),
+  get: <T>(endpoint: string, headers?: Record<string, string>) =>
+    request<T>('GET', endpoint, { headers }),
+}

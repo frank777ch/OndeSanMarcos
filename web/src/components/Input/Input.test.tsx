@@ -10,6 +10,11 @@ describe('Input', () => {
     expect(input).toHaveValue('biblioteca')
   })
 
+  it('muestra el elemento trailing dentro del campo', () => {
+    render(<Input label="Clave" trailing={<button type="button">ojo</button>} />)
+    expect(screen.getByRole('button', { name: 'ojo' })).toBeInTheDocument()
+  })
+
   it('muestra el error y lo marca como inválido', () => {
     render(<Input label="Buscar" error="Campo requerido" />)
     expect(screen.getByLabelText('Buscar')).toHaveAttribute('aria-invalid', 'true')

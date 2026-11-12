@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
+import { useAuthStore } from '@/features/admin/store/useAuthStore'
 import { routes } from '@/routes'
 
 // mapbox-gl necesita WebGL, que jsdom no tiene.
@@ -43,5 +44,25 @@ describe('rutas', () => {
     expect(
       screen.getByRole('heading', { name: 'Página no encontrada' }),
     ).toBeInTheDocument()
+  })
+
+  it('RF-26.19: la barra de visitantes no tiene enlaces al área de administración', async () => {
+    await renderAt('/asistente')
+    expect(screen.queryByRole('link', { name: /admin|perfil/i })).not.toBeInTheDocument()
+    expect(document.querySelector('a[href^="/admin"]')).toBeNull()
+  })
+
+  it('RF-26.20: /admin/login existe y una ruta desconocida sigue siendo 404', async () => {
+    await renderAt('/admin/login')
+    expect(screen.getByRole('heading', { name: 'Administración' })).toBeInTheDocument()
+    cleanup()
+    await renderAt('/no-existe')
+    expect(screen.getByRole('heading', { name: 'Página no encontrada' })).toBeInTheDocument()
+  })
+
+  it('RF-26.13: /admin sin sesión lleva a /admin/login', async () => {
+    useAuthStore.setState({ session: null })
+    const router = await renderAt('/admin')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/admin/login'))
   })
 })

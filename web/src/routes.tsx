@@ -1,9 +1,20 @@
 import { Navigate, type RouteObject } from 'react-router-dom'
+import { AdminGuard } from '@/features/admin/components/AdminGuard'
+import { AdminLayout } from '@/layouts/AdminLayout'
 import { AppLayout } from '@/layouts/AppLayout'
+import { AdminLoginPage } from '@/pages/AdminLoginPage'
+import { AdminProfilePage } from '@/pages/AdminProfilePage'
 import { ChatPage } from '@/pages/ChatPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export const routes: RouteObject[] = [
+  // Área de administración: sin enlace desde la web pública (se entra por la dirección).
+  { path: '/admin/login', element: <AdminLoginPage /> },
+  {
+    path: '/admin',
+    element: <AdminGuard />,
+    children: [{ element: <AdminLayout />, children: [{ index: true, element: <AdminProfilePage /> }] }],
+  },
   {
     element: <AppLayout />,
     children: [

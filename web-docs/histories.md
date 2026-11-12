@@ -29,8 +29,9 @@
 | HU-23 | Postgres con pgvector en Docker | ✅ Hecha |
 | HU-24 | Usuario administrador inicial | ✅ Hecha |
 | HU-25 | Login de administrador (backend) | ✅ Hecha |
+| HU-26 | Login de administrador (web) | ✅ Hecha |
 
-**Avance: 14 de 25 historias hechas.** HU-22 a HU-25 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
+**Avance: 15 de 26 historias hechas.** HU-22 a HU-26 tienen ID alto para no renumerar. HU-23 está hecha; conviene hacer HU-22 antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
 ---
 
@@ -186,6 +187,13 @@ Estados: ⬜ pendiente · ✅ hecha
 - Fuera de alcance: pantalla de login (HU-26), gestión de administradores, refresh de token.
 - Depende de: HU-24. Spec en `spec/HU-25/`.
 - **Aceptación:** el login correcto devuelve un token que `/me` acepta; credenciales incorrectas, token alterado o vencido dan 401; el sexto intento fallido seguido da 429; sin `JWT_SECRET` la app no arranca.
+
+### HU-26 · Login de administrador (web) ✅
+**Como** administrador, **quiero** iniciar y cerrar sesión desde la web **para** acceder al área de administración.
+- Pantalla `/admin/login` (usuario y contraseña, errores de credenciales, bloqueo y conexión); sesión guardada en la pestaña y mantenida al recargar; área `/admin` protegida con la barra lateral del mapa, una sola pestaña «Perfil» vacía y «Cerrar sesión»; un único punto para llamadas autenticadas a la API; si la sesión vence o es rechazada, vuelve al login. Sin enlace visible para los visitantes.
+- Fuera de alcance: funciones de administración (HU-22 y siguientes), refresh de token, «olvidé mi contraseña», móvil (HU-21).
+- Depende de: HU-25. Spec en `spec/HU-26/`.
+- **Aceptación:** con las credenciales correctas se llega a `/admin`; con las incorrectas aparece el error y se conserva el usuario; recargar mantiene la sesión; sin sesión `/admin` lleva al login; cerrar sesión (en la barra lateral) la termina; los visitantes no ven cambios.
 
 ## Extras y cierre
 
