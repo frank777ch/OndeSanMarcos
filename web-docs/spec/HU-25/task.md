@@ -21,7 +21,7 @@
 - [x] Tests del backend en verde (unitarias e integración, en Docker)
 - [x] Escenarios 1 a 5 de `spec.md` comprobados (1 a 4 a mano con `curl` contra el backend real y por tests; 5 por tests)
 - [x] `spec.md` en «Implementada»; tabla resumen y título en `../../histories.md` con ✅
-- [ ] Commit `feat(backend): HU-25 …` con spec, plan, task y código
+- [x] Commit `feat(backend): HU-25 …` con spec, plan, task y código
 
 ## Pendiente / notas
 - Pantalla de login en la web: HU-26.

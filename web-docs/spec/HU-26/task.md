@@ -13,15 +13,15 @@
 - [x] T8 · `layouts/AdminLayout.tsx` (pestaña «Perfil», «Cerrar sesión» en el pie) y `pages/AdminProfilePage.tsx` vacía + `AdminLayout.test.tsx` (RF-26.15, 26.16, 26.21)
 - [x] T9 · `routes.tsx`: `/admin/login` y `/admin`; ampliar `routes.test.tsx` (RF-26.13, 26.19, 26.20)
 - [x] T10 · Comprobar que con los logs de desarrollo activos no se escribe la contraseña ni el token (RF-26.10)
-- [ ] T11 · Probar a mano en el navegador con el backend de HU-25 y el administrador de HU-24: escenarios 1 a 9 (pendiente: solo se probó con tests y el backend por `curl`)
+- [x] T11 · Probar a mano en el navegador con el backend de HU-25 y el administrador de HU-24: escenarios 1 a 9
 
 ## Verificación final
 - [x] `npm run test` en verde (344 tests)
 - [x] `npm run build` sin errores
 - [x] `npm run lint` sin avisos
-- [ ] Escenarios de `spec.md` comprobados (por tests; falta la prueba manual en el navegador, T11)
+- [x] Escenarios de `spec.md` comprobados (por tests y a mano en el navegador)
 - [x] `spec.md` en «Implementada»; tabla resumen y título en `../../histories.md` con ✅
-- [ ] Commit `feat(web): HU-26 …` con spec, plan, task y código
+- [x] Commit `feat(web): HU-26 …` con spec, plan, task y código
 
 ## Pendiente / notas
 - Depende de HU-25 (login y `/me` en el backend): implementarla antes de T11.

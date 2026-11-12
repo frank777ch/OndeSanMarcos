@@ -1,6 +1,6 @@
 # HU-26 · Login de administrador (web)
 
-- **Estado:** Implementada (escenarios comprobados por tests; la prueba manual en el navegador queda pendiente)
+- **Estado:** Implementada
 - **Historia:** ver `../../histories.md#hu-26`
 - **Depende de:** HU-25 (endpoints de login y `/me` del backend) y HU-03 (estructura de la web).
 - **Archivos hermanos:** [plan.md](plan.md) · [task.md](task.md)

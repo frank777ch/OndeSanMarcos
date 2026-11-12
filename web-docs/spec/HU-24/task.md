@@ -16,7 +16,7 @@
 - [x] Tests del backend en verde (unitarios + integración, en Docker)
 - [x] Escenarios de `spec.md` comprobados (1 y 2 a mano con `ADMIN_*` por variable de entorno; 3 por tests)
 - [x] `spec.md` en «Implementada»; `histories.md` con ✅
-- [ ] Commit `feat(backend): HU-24 …`
+- [x] Commit `feat(backend): HU-24 …`
 
 ## Pendiente / notas
 - `backend/.env` local aún no tiene `ADMIN_USERNAME`/`ADMIN_PASSWORD`: hay que añadirlos para que se cree el admin.
