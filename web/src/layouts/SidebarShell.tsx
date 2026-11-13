@@ -115,8 +115,12 @@ export function SidebarShell({ links, navLabel, overContent = false, footer }: S
       </aside>
       <main
         className={cn(
-          'relative min-h-0 min-w-0 flex-1 overflow-auto md:absolute md:inset-y-0 md:right-0 motion-safe:md:transition-[left] motion-safe:md:duration-300 motion-safe:md:ease-in-out',
-          overContent ? 'md:left-0' : 'md:left-[var(--sidebar-w)]',
+          'relative min-h-0 min-w-0 flex-1 overflow-auto md:absolute md:inset-y-0 md:right-0',
+          // Con el contenido bajo la barra (mapa) no se anima `left`: animarlo obligaba al mapa a redimensionarse
+          // en cada fotograma y se veía a tirones.
+          overContent
+            ? 'md:left-0'
+            : 'md:left-[var(--sidebar-w)] motion-safe:md:transition-[left] motion-safe:md:duration-300 motion-safe:md:ease-in-out',
         )}
       >
         <Outlet />

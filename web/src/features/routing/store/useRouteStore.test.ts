@@ -222,3 +222,19 @@ describe('useRouteStore', () => {
     })
   })
 })
+
+describe('routeHover', () => {
+  it('scheduleHide oculta la «X» tras el retraso y cancelHide lo evita', () => {
+    vi.useFakeTimers()
+    const s = useRouteStore.getState()
+    s.setRouteHover([1, 2])
+    s.scheduleHide(300)
+    s.cancelHide()
+    vi.advanceTimersByTime(500)
+    expect(useRouteStore.getState().routeHover).toEqual([1, 2])
+    s.scheduleHide(300)
+    vi.advanceTimersByTime(300)
+    expect(useRouteStore.getState().routeHover).toBeNull()
+    vi.useRealTimers()
+  })
+})

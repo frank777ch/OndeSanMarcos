@@ -5,6 +5,7 @@ import { CAMPUS, CAMPUS_MAX_BOUNDS } from '../constants/campus'
 import { useLocationStore } from '../store/useLocationStore'
 import { useToastStore } from '@/components/Toast/toastStore'
 import { useMapStore } from '../store/useMapStore'
+import { useRouteStore } from '@/features/routing/store/useRouteStore'
 
 const flyTo = vi.fn()
 const setMaxBounds = vi.fn()
@@ -123,8 +124,16 @@ describe('CampusMap', () => {
       })
     })
 
-    it('RF-15.8 y RF-15.12: sin permiso el botón vuelve al campus y no lee la ubicación', async () => {
+    it('RF-15.12: con el permiso sin responder el botón es «Mi ubicación» y lo pide al pulsarlo', async () => {
       useLocationStore.setState({ permission: 'prompt' })
+      locate.mockResolvedValue(pos)
+      render(<CampusMap />)
+      await userEvent.click(button('Mi ubicación'))
+      expect(locate).toHaveBeenCalled()
+    })
+
+    it('RF-15.8 y RF-15.12: con el permiso denegado el botón vuelve al campus y no lee la ubicación', async () => {
+      useLocationStore.setState({ permission: 'denied' })
       render(<CampusMap />)
       await userEvent.click(button('Volver al campus'))
       expect(locate).not.toHaveBeenCalled()
@@ -180,7 +189,10 @@ describe('CampusMap', () => {
   })
 
   describe('toque en el mapa', () => {
-    type ClickEvent = { features?: { properties?: Record<string, unknown> | null }[] }
+    type ClickEvent = {
+      features?: { properties?: Record<string, unknown> | null; layer?: { id: string } }[]
+      lngLat?: { lng: number; lat: number }
+    }
     const click = (e: ClickEvent) => (mapProps.get().onClick as (e: ClickEvent) => void)(e)
 
     beforeEach(() => {
@@ -191,7 +203,21 @@ describe('CampusMap', () => {
     })
 
     it('RF-12.3: solo los puntos de lugares son interactivos', () => {
-      expect(mapProps.get().interactiveLayerIds).toEqual(['places-circles'])
+      expect(mapProps.get().interactiveLayerIds).toEqual(['route-hit', 'places-circles'])
+    })
+
+    it('la ruta tiene prioridad: tocarla muestra la «X» y no elige el lugar de debajo', () => {
+      useRouteStore.setState({
+        activeRoute: { path: [[-77, -12]], distance: 1 } as never,
+        routeHover: null,
+      })
+      click({
+        features: [{ layer: { id: 'route-hit' } }, { properties: { id: idOf('puerta-3') } }],
+        lngLat: { lng: -77, lat: -12 },
+      })
+      expect(useRouteStore.getState().routeHover).toEqual([-77, -12])
+      expect(useMapStore.getState().selectedPlaceId).toBeNull()
+      useRouteStore.setState({ activeRoute: null, routeHover: null })
     })
 
     it('RF-12.3: tocar un punto elige el lugar con origen «map»', () => {

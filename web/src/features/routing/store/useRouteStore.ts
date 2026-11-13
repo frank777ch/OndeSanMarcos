@@ -15,6 +15,12 @@ interface RouteState {
   activeRoute: PlannedRoute | null
   /** Mensaje cuando «Mi ubicación» no se pudo usar. */
   notice: string | null
+  /** Punto de la ruta (lng/lat) sobre el que está el cursor o el dedo; ahí se muestra la «X» para quitarla. */
+  routeHover: [number, number] | null
+  setRouteHover: (point: [number, number] | null) => void
+  /** Oculta la «X» pasado un tiempo, salvo que se cancele antes. */
+  scheduleHide: (ms?: number) => void
+  cancelHide: () => void
   openDialog: (destinationId?: number) => void
   closeDialog: () => void
   setOrigin: (point: RoutePoint | null) => void
@@ -31,6 +37,7 @@ export const LOCATE_FAILED_NOTICE = 'No pudimos obtener tu ubicación.'
 
 /** Descarta resultados de cálculos que el usuario ya dejó atrás (RF-13.25). */
 let requestId = 0
+let hideTimer: ReturnType<typeof setTimeout> | undefined
 
 export const useRouteStore = create<RouteState>((set, get) => {
   const recompute = () => {
@@ -56,6 +63,17 @@ export const useRouteStore = create<RouteState>((set, get) => {
     result: null,
     activeRoute: null,
     notice: null,
+    routeHover: null,
+
+    setRouteHover: (point) => {
+      clearTimeout(hideTimer)
+      set({ routeHover: point })
+    },
+    scheduleHide: (ms = 300) => {
+      clearTimeout(hideTimer)
+      hideTimer = setTimeout(() => set({ routeHover: null }), ms)
+    },
+    cancelHide: () => clearTimeout(hideTimer),
 
     openDialog: (destinationId) => {
       set({ open: true, notice: null })
@@ -80,7 +98,10 @@ export const useRouteStore = create<RouteState>((set, get) => {
       const { result } = get()
       if (result?.ok) set({ activeRoute: result.route, open: false })
     },
-    clearActiveRoute: () => set({ activeRoute: null }),
+    clearActiveRoute: () => {
+      clearTimeout(hideTimer)
+      set({ activeRoute: null, routeHover: null })
+    },
 
     chooseMyLocation: async () => {
       const { permission } = useLocationStore.getState()

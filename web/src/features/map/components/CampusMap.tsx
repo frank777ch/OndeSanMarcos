@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Map, { AttributionControl, type MapRef } from 'react-map-gl/mapbox'
-import { Box, LoaderCircle, LocateFixed, Map as MapIcon } from 'lucide-react'
+import { Box, LoaderCircle, LocateFixed, Map as MapIcon, Route } from 'lucide-react'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Config } from '@/config'
-import { IconButton } from '@/components/IconButton/IconButton'
 import { useToastStore } from '@/components/Toast/toastStore'
 import { CAMPUS, CAMPUS_MAX_BOUNDS } from '../constants/campus'
-import { RouteButton } from '@/features/routing/components/RouteButton'
+import { useRouteStore } from '@/features/routing/store/useRouteStore'
 import { FlyToRoute } from '@/features/routing/components/FlyToRoute'
-import { RouteLayer } from '@/features/routing/components/RouteLayer'
+import { RouteLayer, ROUTE_HIT_LAYER } from '@/features/routing/components/RouteLayer'
+import { RouteRemoveButton } from '@/features/routing/components/RouteRemoveButton'
 import { RouteDialog } from '@/features/routing/components/RouteDialog'
 import { useLocationStore } from '../store/useLocationStore'
 import { useMapStore } from '../store/useMapStore'
@@ -16,6 +16,7 @@ import { placeIdFromFeatures } from '../utils/places'
 import { expandBounds } from '../utils/userLocation'
 import { FlyToSelection } from './FlyToSelection'
 import { LocationNotice } from './LocationNotice'
+import { MapActions } from './MapActions'
 import { MapOverlay } from './MapOverlay'
 import { PlacesLayer } from './PlacesLayer'
 import { UserLocationLayer } from './UserLocationLayer'
@@ -25,15 +26,29 @@ const LOCATION_ZOOM = 18
 /** Por debajo de esta inclinación (grados) la vista se considera plana (2D). */
 const FLAT_PITCH = 1
 
+const onRoute = (features?: { layer?: { id: string } }[]) => !!features?.some((f) => f.layer?.id === ROUTE_HIT_LAYER)
+
 export function CampusMap() {
   const mapRef = useRef<MapRef>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const selectPlace = useMapStore((s) => s.selectPlace)
   const [cursor, setCursor] = useState('')
   const [flat, setFlat] = useState(false)
   const permission = useLocationStore((s) => s.permission)
   const position = useLocationStore((s) => s.position)
   const locating = useLocationStore((s) => s.locating)
-  const hasLocationAccess = permission === 'granted'
+  // «Volver al campus» solo cuando no hay forma de ubicar al usuario; con el permiso pendiente, pedirlo.
+  const hasLocationAccess = permission !== 'denied' && permission !== 'unsupported'
+
+  // Al venir de otra página, <main> aún se está ensanchando (transición de `left`) cuando el mapa mide su
+  // lienzo; sin esto queda una franja vacía a un lado. Solo el contenedor cambia de tamaño, no la barra.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => mapRef.current?.resize())
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   // Consulta el permiso al entrar al mapa; no mueve la cámara (RF-15.10).
   useEffect(() => useLocationStore.getState().init(), [])
@@ -96,7 +111,7 @@ export function CampusMap() {
   }
 
   return (
-    <div className="relative size-full">
+    <div ref={containerRef} className="relative size-full">
       <Map
         ref={mapRef}
         mapboxAccessToken={Config.mapbox.token}
@@ -114,13 +129,31 @@ export function CampusMap() {
         minZoom={CAMPUS.minZoom}
         maxZoom={CAMPUS.maxZoom}
         maxPitch={75}
-        interactiveLayerIds={['places-circles']}
+        interactiveLayerIds={[ROUTE_HIT_LAYER, 'places-circles']}
         cursor={cursor}
         // La etiqueta del botón sigue a la inclinación real, también si el usuario la cambia con el mouse.
         onPitchEnd={(e) => setFlat(e.viewState.pitch < FLAT_PITCH)}
         onMouseEnter={() => setCursor('pointer')}
         onMouseLeave={() => setCursor('')}
+        onMouseMove={(e) => {
+          const { activeRoute, setRouteHover, scheduleHide } = useRouteStore.getState()
+          if (activeRoute && onRoute(e.features)) {
+            // La «X» se queda donde apareció (para poder llegar a ella); solo se reubica si el cursor ya se alejó mucho.
+            const { routeHover, cancelHide } = useRouteStore.getState()
+            const shown = routeHover && mapRef.current?.project(routeHover)
+            if (shown && Math.hypot(shown.x - e.point.x, shown.y - e.point.y) < 90) cancelHide()
+            else setRouteHover([e.lngLat.lng, e.lngLat.lat])
+          } else scheduleHide()
+        }}
         onClick={(e) => {
+          const { activeRoute, setRouteHover, scheduleHide } = useRouteStore.getState()
+          // La ruta tiene prioridad sobre los lugares. En táctil, el toque fija la «X» unos segundos.
+          if (activeRoute && onRoute(e.features)) {
+            setRouteHover([e.lngLat.lng, e.lngLat.lat])
+            scheduleHide(4000)
+            return
+          }
+          setRouteHover(null)
           // Tocar una zona sin lugares no cierra la ficha (RF-12.7).
           const id = placeIdFromFeatures(e.features)
           if (id !== null) selectPlace(id, 'map')
@@ -130,6 +163,7 @@ export function CampusMap() {
         {/* Logo y atribución juntos, abajo a la izquierda; la atribución va plegada en la «i». */}
         <AttributionControl position="bottom-left" compact />
         <RouteLayer />
+        <RouteRemoveButton />
         <FlyToRoute />
         <PlacesLayer />
         <UserLocationLayer />
@@ -137,20 +171,23 @@ export function CampusMap() {
       </Map>
       <MapOverlay />
       <LocationNotice />
-      <div className="absolute right-4 bottom-8 flex flex-col gap-2">
-        <IconButton
-          label={hasLocationAccess ? 'Mi ubicación' : 'Volver al campus'}
-          onClick={onLocationButton}
-          disabled={locating}
-          aria-busy={locating}
-        >
-          {locating ? <LoaderCircle size={20} className="animate-spin" /> : <LocateFixed size={20} />}
-        </IconButton>
-        <RouteButton />
-        <IconButton label={flat ? 'Vista 3D' : 'Vista 2D'} onClick={toggleView}>
-          {flat ? <Box size={20} /> : <MapIcon size={20} />}
-        </IconButton>
-      </div>
+      <MapActions
+        actions={[
+          {
+            label: hasLocationAccess ? 'Mi ubicación' : 'Volver al campus',
+            icon: locating ? <LoaderCircle size={20} className="animate-spin" /> : <LocateFixed size={20} />,
+            onClick: onLocationButton,
+            disabled: locating,
+            busy: locating,
+          },
+          {
+            label: 'Planificar ruta',
+            icon: <Route size={20} />,
+            onClick: () => useRouteStore.getState().openDialog(),
+          },
+          { label: flat ? 'Vista 3D' : 'Vista 2D', icon: flat ? <Box size={20} /> : <MapIcon size={20} />, onClick: toggleView },
+        ]}
+      />
       <RouteDialog />
     </div>
   )
