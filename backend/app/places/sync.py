@@ -16,11 +16,11 @@ RagSync = Literal["ok", "skipped", "failed"]
 
 
 class PlaceSync(Protocol):
-    def sync(self, place_id: str) -> RagSync: ...
+    def sync(self, place_id: int) -> RagSync: ...
 
 
 class NullPlaceSync:
-    def sync(self, place_id: str) -> RagSync:
+    def sync(self, place_id: int) -> RagSync:
         return "skipped"
 
 
@@ -29,7 +29,7 @@ def get_place_sync() -> PlaceSync:
     return NullPlaceSync()
 
 
-def safe_sync(sync: PlaceSync, place_id: str) -> RagSync:
+def safe_sync(sync: PlaceSync, place_id: int) -> RagSync:
     """Nunca lanza: un fallo se registra y se informa como `failed` (RF-30.24)."""
     try:
         return sync.sync(place_id)

@@ -78,9 +78,9 @@ def _clean(value: Any) -> Any:
 def _web_row(raw: dict, slug: str) -> dict:
     lng, lat = raw["coordinates"]
     row: dict[str, Any] = {
-        "id": slug,
+        "slug": slug,
         "name": raw["name"].strip(),
-        "category_id": raw["category"],
+        "category_slug": raw["category"],
         "lat": lat,
         "lng": lng,
         "keywords": list(raw.get("keywords") or []),
@@ -104,7 +104,7 @@ def build_seed(
     report = Report()
 
     categories = [
-        {"id": c["id"], "label": c["label"], "color": c["color"], "sort_order": index}
+        {"slug": c["id"], "label": c["label"], "color": c["color"], "sort_order": index}
         for index, c in enumerate(raw["categories"])
     ]
 
@@ -137,26 +137,26 @@ def build_seed(
     by_name = {normalize(p.name).strip(): p for p in backend_places}
     matched: set[str] = set()
     for row in rows:
-        backend = by_id.get(row["id"]) or by_name.get(normalize(row["name"]).strip())
-        place_ids = {row["id"]}
+        backend = by_id.get(row["slug"]) or by_name.get(normalize(row["name"]).strip())
+        place_ids = {row["slug"]}
         if backend is not None:
             matched.add(backend.id)
             place_ids.add(backend.id)
             if not row["schedule"] and backend.schedule:
                 row["schedule"] = backend.schedule
-                report.completed.append(f"{row['id']}: horario desde places.py")
+                report.completed.append(f"{row['slug']}: horario desde places.py")
             elif backend.schedule and row["schedule"] != backend.schedule:
-                report.differences.append(f"{row['id']}: horario «{row['schedule']}» ≠ «{backend.schedule}»")
+                report.differences.append(f"{row['slug']}: horario «{row['schedule']}» ≠ «{backend.schedule}»")
             if not row["keywords"] and backend.keywords:
                 row["keywords"] = list(backend.keywords)
-                report.completed.append(f"{row['id']}: palabras clave desde places.py")
+                report.completed.append(f"{row['slug']}: palabras clave desde places.py")
             elif backend.keywords and set(map(normalize, row["keywords"])) != set(map(normalize, backend.keywords)):
-                report.differences.append(f"{row['id']}: palabras clave distintas")
+                report.differences.append(f"{row['slug']}: palabras clave distintas")
         if not row["description"]:
             texts = [d.text for d in documents if d.place_id in place_ids]
             if texts:
                 row["description"] = "\n\n".join(texts)
-                report.completed.append(f"{row['id']}: descripción desde el corpus")
+                report.completed.append(f"{row['slug']}: descripción desde el corpus")
 
     report.only_in_backend = sorted(set(by_id) - matched)
     report.exported = len(rows)

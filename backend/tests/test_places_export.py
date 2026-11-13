@@ -44,7 +44,7 @@ def test_rf_22_7_derive_slug_uses_the_sigla_or_the_name_and_avoids_collisions():
 
 def test_rf_22_7_keeps_existing_slugs_and_derives_the_rest_without_collisions():
     seed, id_map, _ = build([web("rectorado", "Rectorado"), web("1", "Puerta 8"), web("2", "Puerta 8 ")])
-    ids = [p["id"] for p in seed["places"]]
+    ids = [p["slug"] for p in seed["places"]]
     assert "rectorado" in ids and "puerta-8" in ids
     assert len(ids) == len(set(ids))
     assert id_map["rectorado"] == "rectorado"
@@ -74,7 +74,7 @@ def test_rf_22_9_merges_duplicates_keeping_the_record_with_more_data():
         ]
     )
     assert len(seed["places"]) == 1
-    assert id_map["23"] == id_map["25"] == seed["places"][0]["id"]
+    assert id_map["23"] == id_map["25"] == seed["places"][0]["slug"]
     assert seed["places"][0]["careers"] == ["Industrial"]
     assert any("23" in line and "25" in line for line in report.merged)
 
@@ -86,7 +86,7 @@ def test_rf_22_10_completes_only_empty_fields_from_places_py_and_the_corpus():
         [Document(id="d", title="t", text="Texto del corpus", place_id="derecho"),
          Document(id="o", title="t", text="No debe usarse", place_id="oca")],
     )
-    derecho, oca = {p["id"]: p for p in seed["places"]}["derecho"], {p["id"]: p for p in seed["places"]}["oca"]
+    derecho, oca = {p["slug"]: p for p in seed["places"]}["derecho"], {p["slug"]: p for p in seed["places"]}["oca"]
     assert derecho["schedule"] == "Lun–Sáb" and derecho["keywords"] == ["leyes"]
     assert derecho["description"] == "Texto del corpus"
     # La web gana cuando ya trae el valor.

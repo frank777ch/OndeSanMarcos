@@ -27,7 +27,7 @@ from typing import Any
 
 from app.rag.db import PLACE_SEED_COLUMNS, Database
 
-SCHEMA = "ondesanmarcos.places-seed/v1"
+SCHEMA = "ondesanmarcos.places-seed/v3"
 DEFAULT_SEED_PATH = Path(__file__).resolve().parents[2] / "db" / "seed" / "places.json"
 
 _SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -35,7 +35,7 @@ _COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
 _LIST_FIELDS = ("keywords", "detailed_schedule", "careers", "services")
 _TEXT_FIELDS = (
     "short_name", "description", "schedule", "phone", "annex", "email",
-    "website", "access_hint", "usage", "image_url", "parent_place_id",
+    "website", "access_hint", "usage", "image_url", "parent_slug",
 )
 
 
@@ -95,20 +95,20 @@ def validate_seed(seed: Seed) -> Seed:
     categories: list[dict] = []
     category_ids: set[str] = set()
     for index, raw in enumerate(seed.categories):
-        category_id = _blank_to_none(raw.get("id"))
-        label = f"categoría {category_id or f'#{index + 1}'}"
-        if not category_id or not _SLUG.match(category_id):
-            raise SeedError(f"{label}: el id debe ser un slug.")
-        if category_id in category_ids:
-            raise SeedError(f"{label}: id repetido.")
+        category_slug = _blank_to_none(raw.get("slug"))
+        label = f"categoría {category_slug or f'#{index + 1}'}"
+        if not category_slug or not _SLUG.match(category_slug):
+            raise SeedError(f"{label}: el slug debe tener minúsculas, dígitos y guiones.")
+        if category_slug in category_ids:
+            raise SeedError(f"{label}: slug repetido.")
         if not _blank_to_none(raw.get("label")):
             raise SeedError(f"{label}: falta la etiqueta.")
         if not _COLOR.match(str(raw.get("color", ""))):
             raise SeedError(f"{label}: el color debe ser #RRGGBB.")
-        category_ids.add(category_id)
+        category_ids.add(category_slug)
         categories.append(
             {
-                "id": category_id,
+                "slug": category_slug,
                 "label": raw["label"].strip(),
                 "color": raw["color"],
                 "sort_order": int(raw.get("sort_order", index)),
@@ -116,20 +116,20 @@ def validate_seed(seed: Seed) -> Seed:
         )
 
     places: list[dict] = []
-    place_ids: set[str] = set()
+    place_slugs: set[str] = set()
     for index, raw in enumerate(seed.places):
-        place_id = _blank_to_none(raw.get("id"))
-        label = f"lugar {place_id or f'#{index + 1}'}"
-        if not place_id or not _SLUG.match(place_id):
-            raise SeedError(f"{label}: el id debe ser un slug (minúsculas, dígitos y guiones).")
-        if place_id in place_ids:
-            raise SeedError(f"{label}: id repetido.")
+        slug = _blank_to_none(raw.get("slug"))
+        label = f"lugar {slug or f'#{index + 1}'}"
+        if not slug or not _SLUG.match(slug):
+            raise SeedError(f"{label}: el slug debe tener minúsculas, dígitos y guiones.")
+        if slug in place_slugs:
+            raise SeedError(f"{label}: slug repetido.")
         name = _blank_to_none(raw.get("name"))
         if not name:
             raise SeedError(f"{label}: falta el nombre.")
-        category_id = _blank_to_none(raw.get("category_id"))
-        if category_id not in category_ids:
-            raise SeedError(f"{label}: la categoría {category_id!r} no existe.")
+        category_slug = _blank_to_none(raw.get("category_slug"))
+        if category_slug not in category_ids:
+            raise SeedError(f"{label}: la categoría {category_slug!r} no existe.")
         lat, lng = _number(raw.get("lat")), _number(raw.get("lng"))
         if lat is None or not -90 <= lat <= 90:
             raise SeedError(f"{label}: latitud fuera de rango ({raw.get('lat')!r}).")
@@ -137,9 +137,9 @@ def validate_seed(seed: Seed) -> Seed:
             raise SeedError(f"{label}: longitud fuera de rango ({raw.get('lng')!r}).")
 
         row: dict[str, Any] = {
-            "id": place_id,
+            "slug": slug,
             "name": name,
-            "category_id": category_id,
+            "category_slug": category_slug,
             "lat": lat,
             "lng": lng,
         }
@@ -150,13 +150,13 @@ def validate_seed(seed: Seed) -> Seed:
             if not isinstance(items, list) or not all(isinstance(i, str) for i in items):
                 raise SeedError(f"{label}: «{field}» debe ser una lista de textos.")
             row[field] = [i.strip() for i in items if i.strip()]
-        place_ids.add(place_id)
+        place_slugs.add(slug)
         places.append({column: row[column] for column in PLACE_SEED_COLUMNS})
 
     for row in places:
-        parent = row["parent_place_id"]
-        if parent is not None and (parent not in place_ids or parent == row["id"]):
-            raise SeedError(f"lugar {row['id']}: el lugar padre {parent!r} no es válido.")
+        parent = row["parent_slug"]
+        if parent is not None and (parent not in place_slugs or parent == row["slug"]):
+            raise SeedError(f"lugar {row['slug']}: el lugar padre {parent!r} no es válido.")
     return Seed(categories=categories, places=places)
 
 
@@ -174,17 +174,17 @@ def apply_seed(db: Database, seed: Seed) -> SeedResult:
 
 def _parents_last(rows: list[dict]) -> list[dict]:
     """Ordena para que cada lugar padre se inserte antes que sus hijos."""
-    by_id = {row["id"]: row for row in rows}
+    by_slug = {row["slug"]: row for row in rows}
     ordered: list[dict] = []
     seen: set[str] = set()
 
     def visit(row: dict) -> None:
-        if row["id"] in seen:
+        if row["slug"] in seen:
             return
-        seen.add(row["id"])
-        parent = row["parent_place_id"]
+        seen.add(row["slug"])
+        parent = row["parent_slug"]
         if parent is not None:
-            visit(by_id[parent])
+            visit(by_slug[parent])
         ordered.append(row)
 
     for row in rows:

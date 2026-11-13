@@ -18,6 +18,7 @@ from app.places.sync import get_place_sync
 from app.rag.errors import RagProviderError
 from tests.fake_admin import FakeAdminStore
 from tests.fake_db import FakeDatabase
+from tests.fake_places_admin import cid
 
 SECRET = "secreto-de-pruebas-con-mas-de-32-caracteres"
 
@@ -36,7 +37,7 @@ class SpySync:
 
 
 def base_place(**extra):
-    return {"name": "Laboratorio de Redes", "category_id": "facultades", "lat": -12.0535, "lng": -77.0857, **extra}
+    return {"name": "Laboratorio de Redes", "category_id": cid("facultades"), "lat": -12.0535, "lng": -77.0857, **extra}
 
 
 @pytest.fixture(autouse=True)
@@ -51,13 +52,14 @@ def secret(monkeypatch):
 def db():
     d = FakeDatabase()
     d.categories = {
-        "facultades": {"id": "facultades", "label": "Facultades", "color": "#3056ac", "sort_order": 0},
-        "puertas": {"id": "puertas", "label": "Puertas", "color": "#e74c3c", "sort_order": 1},
+        cid("facultades"): {"id": cid("facultades"), "slug": "facultades", "label": "Facultades", "color": "#3056ac", "sort_order": 0},
+        cid("puertas"): {"id": cid("puertas"), "slug": "puertas", "label": "Puertas", "color": "#e74c3c", "sort_order": 1},
     }
+    d.next_place_id = 1000
     d.place_rows = {
-        "fisi": {"id": "fisi", "name": "Facultad de Sistemas", "short_name": "FISI", "category_id": "facultades",
+        1: {"id": 1, "slug": "fisi", "name": "Facultad de Sistemas", "short_name": "FISI", "category_id": cid("facultades"),
                  "lat": -12.0535, "lng": -77.0857, "keywords": ["informática"], "updated_by": "otro"},
-        "puerta-3": {"id": "puerta-3", "name": "Puerta 3", "category_id": "puertas", "lat": -12.057, "lng": -77.08,
+        2: {"id": 2, "slug": "puerta-3", "name": "Puerta 3", "category_id": cid("puertas"), "lat": -12.057, "lng": -77.08,
                      "is_published": False},
     }
     return d
@@ -94,10 +96,10 @@ def errors(response):
 
 
 ADMIN_URLS = [
-    ("get", "/api/admin/places"), ("get", "/api/admin/places/fisi"), ("post", "/api/admin/places"),
-    ("put", "/api/admin/places/fisi"), ("post", "/api/admin/places/fisi/reindex"),
+    ("get", "/api/admin/places"), ("get", "/api/admin/places/1"), ("post", "/api/admin/places"),
+    ("put", "/api/admin/places/1"), ("post", "/api/admin/places/1/reindex"),
     ("get", "/api/admin/place-categories"), ("post", "/api/admin/place-categories"),
-    ("put", "/api/admin/place-categories/puertas"), ("delete", "/api/admin/place-categories/puertas"),
+    ("put", "/api/admin/place-categories/1"), ("delete", "/api/admin/place-categories/1"),
 ]
 
 
@@ -110,7 +112,7 @@ def test_rf_30_1_without_token_altered_or_expired_gives_401(anon, db):
             r = getattr(anon, method)(url, headers=headers, **({"json": {}} if method in ("post", "put") else {}))
             assert r.status_code == 401, (method, url, token)
             assert r.headers["www-authenticate"] == "Bearer"
-    assert "1000" not in db.place_rows
+    assert 1000 not in db.place_rows
 
 
 def test_rf_30_2_admin_responses_are_never_cached(client, anon):
@@ -124,27 +126,29 @@ def test_rf_30_3_list_has_hidden_places_and_internal_fields(client):
     r = client.get("/api/admin/places")
     assert r.status_code == 200
     rows = r.json()
-    assert [p["id"] for p in rows] == ["fisi", "puerta-3"]
+    assert [p["id"] for p in rows] == [1, 2]
     assert rows[0]["updated_by"] == "otro" and "created_at" in rows[0]
     assert rows[1]["is_published"] is False
 
 
 def test_rf_30_4_filters_combine(client, db):
-    db.place_rows["puerta-2"] = {"id": "puerta-2", "name": "Puerta 2", "category_id": "puertas",
+    db.place_rows[3] = {"id": 3, "slug": "puerta-2", "name": "Puerta 2", "category_id": cid("puertas"),
                                  "lat": -12.059, "lng": -77.079, "verified_at": datetime(2026, 1, 1, tzinfo=timezone.utc)}
     ids = lambda **p: [x["id"] for x in client.get("/api/admin/places", params=p).json()]  # noqa: E731
-    assert ids(category="puertas") == ["puerta-2", "puerta-3"]
-    assert ids(published="false") == ["puerta-3"]
-    assert ids(verified="true") == ["puerta-2"]
-    assert ids(verified="false", category="puertas") == ["puerta-3"]
-    assert ids(q="INFORMATICA") == ["fisi"]
-    assert ids(q="fi") == ["fisi"]
-    assert ids(q="puerta 3") == ["puerta-3"]
-    assert ids(q="puerta-3") == ["puerta-3"]
+    assert ids(category=cid("puertas")) == [3, 2]  # Puerta 2 (id 3) y Puerta 3 (id 2), por nombre
+    assert ids(published="false") == [2]
+    assert ids(verified="true") == [3]
+    assert ids(verified="false", category=cid("puertas")) == [2]
+    assert ids(q="INFORMATICA") == [1]
+    assert ids(q="fi") == [1]
+    assert ids(q="puerta 3") == [2]
+    assert ids(q="puerta-3") == [2]  # también por slug
+    assert ids(q="1") == [1]  # y por id
 
 
 def test_rf_30_5_detail_even_if_hidden_and_404(client):
-    assert client.get("/api/admin/places/puerta-3").status_code == 200
+    assert client.get("/api/admin/places/2").status_code == 200
+    assert client.get("/api/admin/places/999").status_code == 404
     assert client.get("/api/admin/places/nada").status_code == 404
 
 
@@ -153,10 +157,11 @@ def test_rf_30_6_creates_with_201_and_location_and_shows_in_public_api(client, s
     assert r.status_code == 201
     body = r.json()
     assert r.headers["location"] == f"/api/admin/places/{body['id']}"
-    assert body["id"] == "1000" and body["rag_sync"] == "ok"
-    assert [p["id"] for p in client.get("/api/places").json() if p["id"] == "1000"] == ["1000"]
+    assert body["id"] == 1000 and body["rag_sync"] == "ok"
+    assert body["slug"] == "laboratorio-de-redes"
+    assert [p["id"] for p in client.get("/api/places").json() if p["id"] == 1000] == [1000]
     assert client.get("/api/places/1000").status_code == 200
-    assert sync.calls == ["1000"]
+    assert sync.calls == [1000]
 
 
 def test_rf_30_7_required_fields_and_defaults(client):
@@ -170,19 +175,29 @@ def test_rf_30_7_required_fields_and_defaults(client):
 def test_rf_30_8_ids_are_incremental_and_id_in_body_is_rejected(client):
     a = client.post("/api/admin/places", json=base_place()).json()["id"]
     b = client.post("/api/admin/places", json=base_place()).json()["id"]
-    assert (a, b) == ("1000", "1001")
-    r = client.post("/api/admin/places", json=base_place(id="fisi"))
+    assert (a, b) == (1000, 1001)
+    r = client.post("/api/admin/places", json=base_place(id=5))
     assert r.status_code == 422 and "id" in errors(r)
+    r = client.post("/api/admin/places", json=base_place(slug="otro"))
+    assert r.status_code == 422 and "slug" in errors(r)
+
+
+def test_rf_38_slug_comes_from_the_name_is_unique_and_does_not_change_on_rename(client):
+    first = client.post("/api/admin/places", json=base_place(name="Cafetería Central")).json()
+    second = client.post("/api/admin/places", json=base_place(name="Cafetería Central")).json()
+    assert (first["slug"], second["slug"]) == ("cafeteria-central", "cafeteria-central-2")
+    renamed = client.put(f"/api/admin/places/{first['id']}", json=base_place(name="Otro nombre")).json()
+    assert renamed["slug"] == "cafeteria-central"
 
 
 def test_rf_30_9_put_replaces_everything_and_id_is_fixed(client):
-    r = client.put("/api/admin/places/fisi", json=base_place(name="Nuevo nombre"))
+    r = client.put("/api/admin/places/1", json=base_place(name="Nuevo nombre"))
     assert r.status_code == 200
     body = r.json()
-    assert body["id"] == "fisi" and body["name"] == "Nuevo nombre"
+    assert body["id"] == 1 and body["slug"] == "fisi" and body["name"] == "Nuevo nombre"
     assert body["keywords"] == [] and body["short_name"] is None
-    assert client.put("/api/admin/places/fisi", json=base_place(id="otro")).status_code == 422
-    assert client.put("/api/admin/places/nada", json=base_place()).status_code == 404
+    assert client.put("/api/admin/places/1", json=base_place(id=7)).status_code == 422
+    assert client.put("/api/admin/places/999", json=base_place()).status_code == 404
 
 
 def test_rf_30_10_updated_by_and_unknown_audit_fields_rejected(client):
@@ -193,28 +208,28 @@ def test_rf_30_10_updated_by_and_unknown_audit_fields_rejected(client):
 
 
 def test_rf_30_11_verified_sets_keeps_and_clears(client):
-    first = client.put("/api/admin/places/fisi", json=base_place(verified=True)).json()["verified_at"]
+    first = client.put("/api/admin/places/1", json=base_place(verified=True)).json()["verified_at"]
     assert first is not None
-    second = client.put("/api/admin/places/fisi", json=base_place(verified=True)).json()["verified_at"]
+    second = client.put("/api/admin/places/1", json=base_place(verified=True)).json()["verified_at"]
     assert second == first
-    assert client.put("/api/admin/places/fisi", json=base_place(verified=False)).json()["verified_at"] is None
+    assert client.put("/api/admin/places/1", json=base_place(verified=False)).json()["verified_at"] is None
 
 
 def test_rf_30_12_edit_without_changes_still_ok_and_updates_audit(client, db):
-    client.put("/api/admin/places/fisi", json=base_place())
-    before = db.place_rows["fisi"]["updated_at"]
-    r = client.put("/api/admin/places/fisi", json=base_place())
-    assert r.status_code == 200 and db.place_rows["fisi"]["updated_at"] >= before
-    assert db.place_rows["fisi"]["updated_by"] == "admin"
+    client.put("/api/admin/places/1", json=base_place())
+    before = db.place_rows[1]["updated_at"]
+    r = client.put("/api/admin/places/1", json=base_place())
+    assert r.status_code == 200 and db.place_rows[1]["updated_at"] >= before
+    assert db.place_rows[1]["updated_by"] == "admin"
 
 
 @pytest.mark.parametrize(
     "field,value",
     [
         ("name", ""), ("name", "x" * 201), ("lat", 40), ("lng", -70), ("lat", "no"),
-        ("category_id", "inexistente"), ("email", "x"), ("website", "javascript:alert(1)"),
+        ("category_id", 987654), ("category_id", "puertas"), ("email", "x"), ("website", "javascript:alert(1)"),
         ("image_url", "ftp://x.com/a.png"), ("description", "x" * 5001), ("phone", "x" * 301),
-        ("parent_place_id", "no-existe"), ("keywords", "no es lista"), ("careers", [f"c{i}" for i in range(51)]),
+        ("parent_place_id", 999), ("parent_place_id", "abc"), ("parent_place_id", 0), ("keywords", "no es lista"), ("careers", [f"c{i}" for i in range(51)]),
     ],
 )
 def test_rf_30_13_invalid_data_names_the_field_and_saves_nothing(client, db, field, value):
@@ -226,10 +241,10 @@ def test_rf_30_13_invalid_data_names_the_field_and_saves_nothing(client, db, fie
 
 
 def test_rf_30_13_parent_cannot_be_itself_or_form_a_cycle(client, db):
-    r = client.put("/api/admin/places/fisi", json=base_place(parent_place_id="fisi"))
+    r = client.put("/api/admin/places/1", json=base_place(parent_place_id=1))
     assert r.status_code == 422 and "parent_place_id" in errors(r)
-    assert client.put("/api/admin/places/puerta-3", json=base_place(parent_place_id="fisi")).status_code == 200
-    r = client.put("/api/admin/places/fisi", json=base_place(parent_place_id="puerta-3"))
+    assert client.put("/api/admin/places/2", json=base_place(parent_place_id=1)).status_code == 200
+    r = client.put("/api/admin/places/1", json=base_place(parent_place_id=2))
     assert r.status_code == 422 and "ciclo" in errors(r)["parent_place_id"]
 
 
@@ -248,63 +263,76 @@ def test_rf_30_15_unknown_field_is_rejected(client):
 
 
 def test_rf_30_16_unpublish_hides_from_public_api_but_not_from_admin(client):
-    client.put("/api/admin/places/fisi", json=base_place(is_published=False))
-    assert client.get("/api/places/fisi").status_code == 404
-    assert "fisi" not in [p["id"] for p in client.get("/api/places").json()]
-    assert [p["id"] for p in client.get("/api/admin/places", params={"published": "false"}).json()].count("fisi") == 1
-    client.put("/api/admin/places/fisi", json=base_place(is_published=True))
-    assert client.get("/api/places/fisi").status_code == 200
+    client.put("/api/admin/places/1", json=base_place(is_published=False))
+    assert client.get("/api/places/1").status_code == 404
+    assert 1 not in [p["id"] for p in client.get("/api/places").json()]
+    assert [p["id"] for p in client.get("/api/admin/places", params={"published": "false"}).json()].count(1) == 1
+    client.put("/api/admin/places/1", json=base_place(is_published=True))
+    assert client.get("/api/places/1").status_code == 200
 
 
 def test_rf_30_17_places_cannot_be_deleted(client, db):
-    r = client.delete("/api/admin/places/fisi")
+    r = client.delete("/api/admin/places/1")
     assert r.status_code == 405
-    assert "fisi" in db.place_rows
+    assert 1 in db.place_rows
 
 
 def test_rf_30_18_categories_with_count_including_hidden(client):
     rows = {c["id"]: c for c in client.get("/api/admin/place-categories").json()}
-    assert rows["puertas"]["places_count"] == 1 and rows["facultades"]["places_count"] == 1
-    assert list(rows) == ["facultades", "puertas"]
+    assert rows[cid("puertas")]["places_count"] == 1 and rows[cid("facultades")]["places_count"] == 1
+    assert rows[cid("puertas")]["slug"] == "puertas"
+    assert list(rows) == [cid("facultades"), cid("puertas")]
 
 
-def test_rf_30_19_create_category_duplicate_and_default_order(client):
-    r = client.post("/api/admin/place-categories", json={"id": "labs", "label": "Laboratorios", "color": "#112233"})
+def test_rf_39_slug_comes_from_the_label_and_is_unique(client):
+    r = client.post("/api/admin/place-categories", json={"label": "Laboratorios y Talleres", "color": "#112233"})
     assert r.status_code == 201 and r.json()["sort_order"] == 2
-    assert r.headers["location"] == "/api/admin/place-categories/labs"
-    dup = client.post("/api/admin/place-categories", json={"id": "labs", "label": "X", "color": "#112233"})
-    assert dup.status_code == 409
-    bad = client.post("/api/admin/place-categories", json={"id": "Bad Id", "label": "", "color": "rojo"})
-    assert bad.status_code == 422 and {"id", "label", "color"} <= set(errors(bad))
+    assert isinstance(r.json()["id"], int) and r.json()["slug"] == "laboratorios-y-talleres"
+    assert r.headers["location"] == f"/api/admin/place-categories/{r.json()['id']}"
+    again = client.post("/api/admin/place-categories", json={"label": "Laboratorios y Talleres", "color": "#112233"})
+    assert again.status_code == 201 and again.json()["slug"] == "laboratorios-y-talleres-2"
+    assert again.json()["id"] != r.json()["id"]
+    renamed = client.put(f"/api/admin/place-categories/{r.json()['id']}", json={"label": "Otro", "color": "#112233"})
+    assert renamed.json()["slug"] == "laboratorios-y-talleres"  # no cambia al renombrar
+
+
+def test_rf_30_19_create_category_rejects_bad_data_and_client_ids(client):
+    bad = client.post("/api/admin/place-categories", json={"label": "", "color": "rojo"})
+    assert bad.status_code == 422 and {"label", "color"} <= set(errors(bad))
+    for extra in ({"id": 5}, {"slug": "x"}):
+        r = client.post("/api/admin/place-categories", json={"label": "A", "color": "#112233", **extra})
+        assert r.status_code == 422
 
 
 def test_rf_30_20_update_category_keeps_id_and_404(client):
-    r = client.put("/api/admin/place-categories/puertas", json={"label": "Accesos", "color": "#000000", "sort_order": 5})
-    assert r.status_code == 200 and r.json()["id"] == "puertas" and r.json()["label"] == "Accesos"
-    assert client.put("/api/admin/place-categories/x", json={"label": "A", "color": "#000000"}).status_code == 404
-    assert client.put("/api/admin/place-categories/puertas", json={"id": "z", "label": "A", "color": "#000000"}).status_code == 422
+    puertas = cid("puertas")
+    r = client.put(f"/api/admin/place-categories/{puertas}", json={"label": "Accesos", "color": "#000000", "sort_order": 5})
+    assert r.status_code == 200 and r.json()["id"] == puertas and r.json()["label"] == "Accesos"
+    assert r.json()["slug"] == "puertas"
+    assert client.put("/api/admin/place-categories/987654", json={"label": "A", "color": "#000000"}).status_code == 404
+    assert client.put("/api/admin/place-categories/puertas", json={"label": "A", "color": "#000000"}).status_code == 422
+    assert client.put(f"/api/admin/place-categories/{puertas}", json={"id": 9, "label": "A", "color": "#000000"}).status_code == 422
 
 
 def test_rf_30_21_delete_category_only_when_empty(client, db):
-    r = client.delete("/api/admin/place-categories/puertas")
+    r = client.delete(f"/api/admin/place-categories/{cid('puertas')}")
     assert r.status_code == 409 and "1 lugar" in r.json()["detail"]
-    db.categories["vacia"] = {"id": "vacia", "label": "V", "color": "#111111", "sort_order": 9}
-    assert client.delete("/api/admin/place-categories/vacia").status_code == 204
-    assert client.delete("/api/admin/place-categories/vacia").status_code == 404
+    db.categories[500] = {"id": 500, "slug": "vacia", "label": "V", "color": "#111111", "sort_order": 9}
+    assert client.delete("/api/admin/place-categories/500").status_code == 204
+    assert client.delete("/api/admin/place-categories/500").status_code == 404
 
 
 def test_rf_30_22_category_changes_show_in_public_api(client, db):
-    client.post("/api/admin/place-categories", json={"id": "labs", "label": "Laboratorios", "color": "#112233"})
-    from app.api.places import get_places_store  # noqa: F401
+    client.post("/api/admin/place-categories", json={"label": "Laboratorios", "color": "#112233"})
 
-    assert "labs" in [c["id"] for c in client.get("/api/place-categories").json()]
+    assert "laboratorios" in [c["slug"] for c in client.get("/api/place-categories").json()]
 
 
 def test_rf_30_23_create_edit_and_unpublish_sync_after_saving(client, sync):
     client.post("/api/admin/places", json=base_place())
-    client.put("/api/admin/places/fisi", json=base_place())
-    client.put("/api/admin/places/fisi", json=base_place(is_published=False))
-    assert sync.calls == ["1000", "fisi", "fisi"]
+    client.put("/api/admin/places/1", json=base_place())
+    client.put("/api/admin/places/1", json=base_place(is_published=False))
+    assert sync.calls == [1000, 1, 1]
 
 
 def test_rf_30_24_sync_failure_keeps_the_change_and_is_reported(client, db, sync, caplog):
@@ -312,7 +340,7 @@ def test_rf_30_24_sync_failure_keeps_the_change_and_is_reported(client, db, sync
     with caplog.at_level(logging.ERROR):
         r = client.post("/api/admin/places", json=base_place())
     assert r.status_code == 201 and r.json()["rag_sync"] == "failed"
-    assert "1000" in db.place_rows
+    assert 1000 in db.place_rows
     assert "embeddings caídos" in caplog.text
 
 
@@ -320,12 +348,13 @@ def test_rf_30_24_skipped_without_assistant():
     # Implementación por defecto: sin asistente conectado.
     from app.places.sync import NullPlaceSync
 
-    assert NullPlaceSync().sync("x") == "skipped"
+    assert NullPlaceSync().sync(1) == "skipped"
 
 
 def test_rf_30_25_reindex_repeats_sync_and_404(client, sync):
-    r = client.post("/api/admin/places/fisi/reindex")
-    assert r.status_code == 200 and r.json()["rag_sync"] == "ok" and sync.calls == ["fisi"]
+    r = client.post("/api/admin/places/1/reindex")
+    assert r.status_code == 200 and r.json()["rag_sync"] == "ok" and sync.calls == [1]
+    assert client.post("/api/admin/places/999/reindex").status_code == 404
     assert client.post("/api/admin/places/nada/reindex").status_code == 404
 
 
@@ -338,7 +367,7 @@ def test_rf_30_28_database_down_gives_503(client, db):
     r = client.get("/api/admin/places")
     assert r.status_code == 503 and "base de datos" in r.json()["detail"]
     assert r.headers["cache-control"] == "no-store"
-    assert client.post("/api/admin/place-categories", json={"id": "a", "label": "A", "color": "#111111"}).status_code == 503
+    assert client.post("/api/admin/place-categories", json={"label": "A", "color": "#111111"}).status_code == 503
 
 
 def test_rf_30_29_openapi_has_tags_security_and_descriptions(client):

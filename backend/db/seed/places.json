@@ -1,56 +1,56 @@
 {
-  "schema": "ondesanmarcos.places-seed/v1",
+  "schema": "ondesanmarcos.places-seed/v3",
   "categories": [
     {
-      "id": "facultades",
+      "slug": "facultades",
       "label": "Facultades",
       "color": "#3056ac",
       "sort_order": 0
     },
     {
-      "id": "cafeterias",
+      "slug": "cafeterias",
       "label": "Cafeterías",
       "color": "#ff8f10",
       "sort_order": 1
     },
     {
-      "id": "auditorios",
+      "slug": "auditorios",
       "label": "Auditorios",
       "color": "#8e44ad",
       "sort_order": 2
     },
     {
-      "id": "campos-deportivos",
+      "slug": "campos-deportivos",
       "label": "Campos deportivos",
       "color": "#2e9e57",
       "sort_order": 3
     },
     {
-      "id": "puertas",
+      "slug": "puertas",
       "label": "Puertas",
       "color": "#e74c3c",
       "sort_order": 4
     },
     {
-      "id": "administracion",
+      "slug": "administracion",
       "label": "Administración",
       "color": "#00838f",
       "sort_order": 5
     },
     {
-      "id": "salud",
+      "slug": "salud",
       "label": "Salud",
       "color": "#d81b60",
       "sort_order": 6
     },
     {
-      "id": "servicios",
+      "slug": "servicios",
       "label": "Servicios",
       "color": "#6d4c41",
       "sort_order": 7
     },
     {
-      "id": "otros",
+      "slug": "otros",
       "label": "Otros",
       "color": "#757575",
       "sort_order": 8
@@ -58,9 +58,9 @@
   ],
   "places": [
     {
-      "id": "puerta-8",
+      "slug": "puerta-8",
       "name": "Puerta 8",
-      "category_id": "puertas",
+      "category_slug": "puertas",
       "lat": -12.051880164062666,
       "lng": -77.08761951511643,
       "keywords": [],
@@ -74,9 +74,9 @@
       "usage": null
     },
     {
-      "id": "puerta-7",
+      "slug": "puerta-7",
       "name": "Puerta 7",
-      "category_id": "puertas",
+      "category_slug": "puertas",
       "lat": -12.053801766665373,
       "lng": -77.08454506116111,
       "keywords": [],
@@ -90,9 +90,9 @@
       "usage": null
     },
     {
-      "id": "puerta-3",
+      "slug": "puerta-3",
       "name": "Puerta 3",
-      "category_id": "puertas",
+      "category_slug": "puertas",
       "lat": -12.057136012331654,
       "lng": -77.08001732406147,
       "keywords": [],
@@ -106,9 +106,9 @@
       "usage": null
     },
     {
-      "id": "puerta-2",
+      "slug": "puerta-2",
       "name": "Puerta 2",
-      "category_id": "puertas",
+      "category_slug": "puertas",
       "lat": -12.059496369475596,
       "lng": -77.07936395135454,
       "keywords": [],
@@ -122,9 +122,9 @@
       "usage": null
     },
     {
-      "id": "puerta-1",
+      "slug": "puerta-1",
       "name": "Puerta 1",
-      "category_id": "puertas",
+      "category_slug": "puertas",
       "lat": -12.060949126150703,
       "lng": -77.08583596979169,
       "keywords": [],
@@ -138,9 +138,9 @@
       "usage": null
     },
     {
-      "id": "puerta-6",
+      "slug": "puerta-6",
       "name": "Puerta 6",
-      "category_id": "puertas",
+      "category_slug": "puertas",
       "lat": -12.0544354,
       "lng": -77.0837569,
       "keywords": [],
@@ -154,9 +154,9 @@
       "usage": null
     },
     {
-      "id": "puerta-5",
+      "slug": "puerta-5",
       "name": "Puerta 5",
-      "category_id": "puertas",
+      "category_slug": "puertas",
       "lat": -12.0551539,
       "lng": -77.0824707,
       "keywords": [],
@@ -170,9 +170,9 @@
       "usage": null
     },
     {
-      "id": "fisi",
+      "slug": "fisi",
       "name": "Facultad de Ingeniería de Sistemas e Informática (FISI)",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0535548,
       "lng": -77.0857217,
       "keywords": [
@@ -198,9 +198,9 @@
       "usage": null
     },
     {
-      "id": "escuela-profesional-de-enfermeria-y-tecnologia-medica",
+      "slug": "escuela-profesional-de-enfermeria-y-tecnologia-medica",
       "name": "Escuela Profesional de Enfermería y Tecnología Médica",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.053249259683904,
       "lng": -77.08731436531114,
       "keywords": [],
@@ -214,9 +214,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-psicologia",
+      "slug": "facultad-de-psicologia",
       "name": "Facultad de Psicología",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0535766,
       "lng": -77.0867638,
       "keywords": [
@@ -239,9 +239,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ingenieria-electronica-y-electrica",
+      "slug": "facultad-de-ingenieria-electronica-y-electrica",
       "name": "Facultad de Ingeniería Electrónica y Eléctrica",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0552369,
       "lng": -77.0869915,
       "keywords": [
@@ -267,9 +267,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ingenieria-civil",
+      "slug": "facultad-de-ingenieria-civil",
       "name": "Facultad de Ingeniería Civil",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0558976,
       "lng": -77.087094,
       "keywords": [
@@ -291,9 +291,9 @@
       "usage": null
     },
     {
-      "id": "escuela-profesional-de-ing-de-mecanica-de-fluidos",
+      "slug": "escuela-profesional-de-ing-de-mecanica-de-fluidos",
       "name": "Escuela Profesional de Ing. de Mecanica de Fluidos",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0558976,
       "lng": -77.087094,
       "keywords": [],
@@ -307,9 +307,9 @@
       "usage": null
     },
     {
-      "id": "escuela-profesional-de-ingenieria-geografica",
+      "slug": "escuela-profesional-de-ingenieria-geografica",
       "name": "Escuela Profesional de Ingeniería Geografica",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0555738,
       "lng": -77.0860475,
       "keywords": [],
@@ -323,9 +323,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-educacion",
+      "slug": "facultad-de-educacion",
       "name": "Facultad de Educación",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0554579,
       "lng": -77.0851319,
       "keywords": [
@@ -348,9 +348,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-educacion-fisica",
+      "slug": "facultad-de-educacion-fisica",
       "name": "Facultad de Educación Física",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.054717,
       "lng": -77.084732,
       "keywords": [],
@@ -364,9 +364,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ingenieria-geologica-minera-y-metalurgica",
+      "slug": "facultad-de-ingenieria-geologica-minera-y-metalurgica",
       "name": "Facultad de Ingeniería Geológica, Minera y Metalúrgica",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0607884,
       "lng": -77.084739,
       "keywords": [
@@ -393,9 +393,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ingenieria-geologica",
+      "slug": "facultad-de-ingenieria-geologica",
       "name": "Facultad de Ingeniería Geológica",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.06022,
       "lng": -77.084194,
       "keywords": [],
@@ -409,9 +409,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-quimica-e-ingenieria-quimica",
+      "slug": "facultad-de-quimica-e-ingenieria-quimica",
       "name": "Facultad de Química e Ingeniería Química",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.060074,
       "lng": -77.0835806,
       "keywords": [
@@ -434,9 +434,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ciencias-biologicas",
+      "slug": "facultad-de-ciencias-biologicas",
       "name": "Facultad de Ciencias Biológicas",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0596728770671,
       "lng": -77.08205978986605,
       "keywords": [
@@ -461,9 +461,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ciencias-fisicas",
+      "slug": "facultad-de-ciencias-fisicas",
       "name": "Facultad de Ciencias Físicas",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0595585,
       "lng": -77.0818206,
       "keywords": [
@@ -486,9 +486,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ciencias-matematicas",
+      "slug": "facultad-de-ciencias-matematicas",
       "name": "Facultad de Ciencias Matemáticas",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0605261,
       "lng": -77.0823088,
       "keywords": [
@@ -513,9 +513,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ingenieria-industrial",
+      "slug": "facultad-de-ingenieria-industrial",
       "name": "Facultad de Ingeniería Industrial",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0596003,
       "lng": -77.0804662,
       "keywords": [
@@ -537,9 +537,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ciencias-administrativas",
+      "slug": "facultad-de-ciencias-administrativas",
       "name": "Facultad de Ciencias Administrativas",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0577069,
       "lng": -77.0813687,
       "keywords": [
@@ -563,9 +563,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ciencias-sociales",
+      "slug": "facultad-de-ciencias-sociales",
       "name": "Facultad de Ciencias Sociales",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0579798,
       "lng": -77.0816666,
       "keywords": [
@@ -592,9 +592,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ciencias-economicas-antiguo",
+      "slug": "facultad-de-ciencias-economicas-antiguo",
       "name": "Facultad de Ciencias Economicas (Antiguo)",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0580466,
       "lng": -77.0811987,
       "keywords": [
@@ -616,9 +616,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ciencias-contables",
+      "slug": "facultad-de-ciencias-contables",
       "name": "Facultad de Ciencias Contables",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0576735,
       "lng": -77.0804619,
       "keywords": [
@@ -640,9 +640,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-letras-y-ciencias-humanas",
+      "slug": "facultad-de-letras-y-ciencias-humanas",
       "name": "Facultad de Letras y Ciencias Humanas",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0574376,
       "lng": -77.0814113,
       "keywords": [
@@ -676,9 +676,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-odontologia",
+      "slug": "facultad-de-odontologia",
       "name": "Facultad de Odontología",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.054134481058806,
       "lng": -77.08604219318228,
       "keywords": [
@@ -700,9 +700,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ciencias-economicas-nuevo",
+      "slug": "facultad-de-ciencias-economicas-nuevo",
       "name": "Facultad de Ciencias Economicas (Nuevo)",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.0534471,
       "lng": -77.086256,
       "keywords": [
@@ -724,9 +724,9 @@
       "usage": null
     },
     {
-      "id": "facultad-de-ingenieria-de-minas",
+      "slug": "facultad-de-ingenieria-de-minas",
       "name": "Facultad de Ingeniería de Minas",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.052315,
       "lng": -77.0876297,
       "keywords": [],
@@ -740,9 +740,9 @@
       "usage": null
     },
     {
-      "id": "cafeteria-de-la-facultad-de-quimica-e-ingenieria-quimica",
+      "slug": "cafeteria-de-la-facultad-de-quimica-e-ingenieria-quimica",
       "name": "Cafetería de la Facultad de Química e Ingeniería Química",
-      "category_id": "cafeterias",
+      "category_slug": "cafeterias",
       "lat": -12.060082360827014,
       "lng": -77.08361038902244,
       "keywords": [
@@ -769,9 +769,9 @@
       "usage": null
     },
     {
-      "id": "cafeteria-de-la-facultad-de-odontologia",
+      "slug": "cafeteria-de-la-facultad-de-odontologia",
       "name": "Cafetería de la Facultad de Odontología",
-      "category_id": "cafeterias",
+      "category_slug": "cafeterias",
       "lat": -12.054603716785754,
       "lng": -77.08514887439485,
       "keywords": [
@@ -796,9 +796,9 @@
       "usage": null
     },
     {
-      "id": "cafeteria-de-la-facultad-de-ingenieria-civil",
+      "slug": "cafeteria-de-la-facultad-de-ingenieria-civil",
       "name": "Cafetería de la Facultad de Ingeniería Civil",
-      "category_id": "cafeterias",
+      "category_slug": "cafeterias",
       "lat": -12.0562339,
       "lng": -77.0872794,
       "keywords": [
@@ -823,9 +823,9 @@
       "usage": null
     },
     {
-      "id": "puerta-4",
+      "slug": "puerta-4",
       "name": "Puerta 4",
-      "category_id": "puertas",
+      "category_slug": "puertas",
       "lat": -12.0560269,
       "lng": -77.0811103,
       "keywords": [],
@@ -839,9 +839,9 @@
       "usage": null
     },
     {
-      "id": "auditorio-ella-dunbar-temple-unmsm",
+      "slug": "auditorio-ella-dunbar-temple-unmsm",
       "name": "Auditorio Ella Dunbar Temple - UNMSM",
-      "category_id": "auditorios",
+      "category_slug": "auditorios",
       "lat": -12.05667,
       "lng": -77.0860517,
       "keywords": [
@@ -863,9 +863,9 @@
       "usage": "Ceremonias de graduación, conferencias, eventos académicos y culturales de gran escala."
     },
     {
-      "id": "auditorio-rosa-alarco-larraburre",
+      "slug": "auditorio-rosa-alarco-larraburre",
       "name": "Auditorio Rosa Alarco Larraburre",
-      "category_id": "auditorios",
+      "category_slug": "auditorios",
       "lat": -12.055838267297563,
       "lng": -77.08521854944695,
       "keywords": [
@@ -886,9 +886,9 @@
       "usage": "Conferencias, charlas, seminarios y eventos de escala mediana."
     },
     {
-      "id": "cancha-de-la-facultad-de-ingenieria-de-sistemas-e-informatica",
+      "slug": "cancha-de-la-facultad-de-ingenieria-de-sistemas-e-informatica",
       "name": "Cancha de la Facultad de Ingeniería de Sistemas e Informática",
-      "category_id": "campos-deportivos",
+      "category_slug": "campos-deportivos",
       "lat": -12.0528848,
       "lng": -77.0852821,
       "keywords": [],
@@ -902,9 +902,9 @@
       "usage": null
     },
     {
-      "id": "cancha-de-la-facultad-de-ingenieria-de-minas",
+      "slug": "cancha-de-la-facultad-de-ingenieria-de-minas",
       "name": "Cancha de la Facultad de Ingeniería de Minas",
-      "category_id": "campos-deportivos",
+      "category_slug": "campos-deportivos",
       "lat": -12.0519369,
       "lng": -77.0869071,
       "keywords": [],
@@ -918,9 +918,9 @@
       "usage": null
     },
     {
-      "id": "rectorado",
+      "slug": "rectorado",
       "name": "Rectorado (Edificio Jorge Basadre)",
-      "category_id": "administracion",
+      "category_slug": "administracion",
       "lat": -12.056524,
       "lng": -77.086252,
       "keywords": [
@@ -941,9 +941,9 @@
       "usage": null
     },
     {
-      "id": "oca",
+      "slug": "oca",
       "name": "Oficina Central de Admisión (OCA)",
-      "category_id": "administracion",
+      "category_slug": "administracion",
       "lat": -12.05201,
       "lng": -77.085374,
       "keywords": [
@@ -965,9 +965,9 @@
       "usage": null
     },
     {
-      "id": "posgrado",
+      "slug": "posgrado",
       "name": "Escuela de Posgrado UNMSM",
-      "category_id": "administracion",
+      "category_slug": "administracion",
       "lat": -12.052401,
       "lng": -77.085791,
       "keywords": [
@@ -988,9 +988,9 @@
       "usage": null
     },
     {
-      "id": "cepreunmsm",
+      "slug": "cepreunmsm",
       "name": "Centro Preuniversitario UNMSM (CEPREUNMSM)",
-      "category_id": "administracion",
+      "category_slug": "administracion",
       "lat": -12.052116,
       "lng": -77.085392,
       "keywords": [
@@ -1013,9 +1013,9 @@
       "usage": null
     },
     {
-      "id": "clinica-universitaria",
+      "slug": "clinica-universitaria",
       "name": "Clínica Universitaria UNMSM",
-      "category_id": "salud",
+      "category_slug": "salud",
       "lat": -12.055662,
       "lng": -77.082159,
       "keywords": [
@@ -1042,9 +1042,9 @@
       "usage": null
     },
     {
-      "id": "clinica-odontologia",
+      "slug": "clinica-odontologia",
       "name": "Clínica de Odontología UNMSM",
-      "category_id": "salud",
+      "category_slug": "salud",
       "lat": -12.054709,
       "lng": -77.085822,
       "keywords": [
@@ -1066,9 +1066,9 @@
       "usage": null
     },
     {
-      "id": "comedor-universitario",
+      "slug": "comedor-universitario",
       "name": "Comedor Universitario",
-      "category_id": "servicios",
+      "category_slug": "servicios",
       "lat": -12.059418,
       "lng": -77.083055,
       "keywords": [
@@ -1096,9 +1096,9 @@
       "usage": null
     },
     {
-      "id": "biblioteca-central",
+      "slug": "biblioteca-central",
       "name": "Biblioteca Central Pedro Zulen",
-      "category_id": "servicios",
+      "category_slug": "servicios",
       "lat": -12.055881,
       "lng": -77.085872,
       "keywords": [
@@ -1124,9 +1124,9 @@
       "usage": null
     },
     {
-      "id": "residencia-universitaria",
+      "slug": "residencia-universitaria",
       "name": "Residencia Universitaria",
-      "category_id": "servicios",
+      "category_slug": "servicios",
       "lat": -12.055057,
       "lng": -77.084445,
       "keywords": [
@@ -1146,9 +1146,9 @@
       "usage": null
     },
     {
-      "id": "huaca-san-marcos",
+      "slug": "huaca-san-marcos",
       "name": "Huaca San Marcos",
-      "category_id": "otros",
+      "category_slug": "otros",
       "lat": -12.059995,
       "lng": -77.086027,
       "keywords": [
@@ -1170,9 +1170,9 @@
       "usage": null
     },
     {
-      "id": "cafeteria-clinica-universitaria",
+      "slug": "cafeteria-clinica-universitaria",
       "name": "Cafetería de la Clínica Universitaria",
-      "category_id": "cafeterias",
+      "category_slug": "cafeterias",
       "lat": -12.055859998919493,
       "lng": -77.08180709585918,
       "keywords": [
@@ -1198,9 +1198,9 @@
       "usage": null
     },
     {
-      "id": "cafeteria-industrial",
+      "slug": "cafeteria-industrial",
       "name": "Cafetería de la Facultad de Ingeniería Industrial",
-      "category_id": "cafeterias",
+      "category_slug": "cafeterias",
       "lat": -12.060103868074439,
       "lng": -77.0810236227308,
       "keywords": [
@@ -1227,9 +1227,9 @@
       "usage": null
     },
     {
-      "id": "estadio-universitario",
+      "slug": "estadio-universitario",
       "name": "Estadio Olímpico de San Marcos",
-      "category_id": "campos-deportivos",
+      "category_slug": "campos-deportivos",
       "lat": -12.055794,
       "lng": -77.084603,
       "keywords": [
@@ -1250,9 +1250,9 @@
       "usage": null
     },
     {
-      "id": "gimnasio-universitario",
+      "slug": "gimnasio-universitario",
       "name": "Gimnasio Universitario",
-      "category_id": "campos-deportivos",
+      "category_slug": "campos-deportivos",
       "lat": -12.05964,
       "lng": -77.084403,
       "keywords": [
@@ -1274,9 +1274,9 @@
       "usage": null
     },
     {
-      "id": "derecho",
+      "slug": "derecho",
       "name": "Facultad de Derecho y Ciencia Política",
-      "category_id": "facultades",
+      "category_slug": "facultades",
       "lat": -12.058368,
       "lng": -77.080267,
       "keywords": [

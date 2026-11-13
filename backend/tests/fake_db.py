@@ -13,8 +13,8 @@ class FakeDatabase(FakePlacesAdminMixin):
         self.places = dict(places or {})
         self.replaced: list[dict] | None = None
         self.place_replacements: dict[str, list[dict]] = {}
-        self.categories: dict[str, dict] = {}
-        self.place_rows: dict[str, dict] = {}
+        self.categories: dict[int, dict] = {}
+        self.place_rows: dict[int, dict] = {}
         self.insert_calls = 0
 
     def count(self) -> int:
@@ -36,8 +36,10 @@ class FakeDatabase(FakePlacesAdminMixin):
         self.insert_calls += 1
         added = 0
         for row in rows:
-            if row["id"] not in self.categories:
-                self.categories[row["id"]] = dict(row)
+            if all(c["slug"] != row["slug"] for c in self.categories.values()):
+                category_id = self.next_category_id
+                self.next_category_id += 1
+                self.categories[category_id] = {**row, "id": category_id}
                 added += 1
         return added
 
@@ -45,23 +47,29 @@ class FakeDatabase(FakePlacesAdminMixin):
         self.insert_calls += 1
         added = 0
         for row in rows:
-            if row["id"] not in self.place_rows:
-                self.place_rows[row["id"]] = dict(row)
-                added += 1
+            if any(r["slug"] == row["slug"] for r in self.place_rows.values()):
+                continue
+            place_id = self.next_place_id
+            self.next_place_id += 1
+            parent = next((r["id"] for r in self.place_rows.values() if r["slug"] == row["parent_slug"]), None)
+            category = next(c["id"] for c in self.categories.values() if c["slug"] == row["category_slug"])
+            data = {k: v for k, v in row.items() if k not in ("parent_slug", "category_slug")}
+            self.place_rows[place_id] = {**data, "id": place_id, "category_id": category, "parent_place_id": parent}
+            added += 1
         return added
 
     # --- lectura pública de lugares (HU-27) ---------------------------------
 
     def list_place_categories(self) -> list[dict]:
         rows = sorted(self.categories.values(), key=lambda c: (c.get("sort_order", 0), c["id"]))
-        return [{"id": c["id"], "label": c["label"], "color": c["color"]} for c in rows]
+        return [{"id": c["id"], "slug": c["slug"], "label": c["label"], "color": c["color"]} for c in rows]
 
-    def list_places(self, category_id: str | None = None) -> list[dict]:
+    def list_places(self, category_id: int | None = None) -> list[dict]:
         rows = [self._public(p) for p in self.place_rows.values()]
         rows = [p for p in rows if p["is_published"] and category_id in (None, p["category_id"])]
         return sorted(rows, key=lambda p: (p["name"], p["id"]))
 
-    def get_place(self, place_id: str) -> dict | None:
+    def get_place(self, place_id: int) -> dict | None:
         row = self.place_rows.get(place_id)
         if row is None:
             return None

@@ -179,7 +179,9 @@ otra, además de la que redacta la respuesta. Por eso:
 Los lugares viven en Postgres (migración `V3__places.sql`): nombre, categoría,
 coordenadas (`lat`, `lng`), palabras clave y los campos de la ficha (horario,
 teléfono, anexo, descripción, carreras, servicios, cómo llegar…). El `id` es un
-slug estable (`fisi`, `puerta-8`). `verified_at` vacío = dato sin confirmar con la
+número autoincremental (migración `V6`) y el nombre estandarizado en minúsculas y con
+guiones vive aparte, en `slug` (`fisi`, `biblioteca-central`): único, estable (no cambia al
+renombrar el lugar) y generado del nombre en los lugares nuevos. `verified_at` vacío = dato sin confirmar con la
 universidad (hoy todos). `is_published` permite ocultar un lugar sin borrarlo.
 
 ```bash
@@ -192,7 +194,9 @@ universidad (hoy todos). `is_published` permite ocultar un lugar sin borrarlo.
 - Tras `db-reset` hay que volver a correr `seed-places` (las migraciones crean las
   tablas vacías). Para rehacer un lugar, bórralo con `psql` y vuelve a cargar.
 - `db/seed/places.json` es la semilla versionada; `db/seed/place_id_map.json` traduce
-  los ids antiguos de la web (`"8"`) a los slugs (`fisi`). La semilla **no** depende de
+  los ids antiguos de la web (`"8"`) a los slugs (`fisi`). La semilla identifica cada lugar
+  por `slug` (y su padre por `parent_slug`); el `id` lo asigna la base, así que una segunda
+  corrida no cambia ni consume ids. La semilla **no** depende de
   `places.ts`, `places.py` ni del corpus.
 - La semilla se generó una sola vez a partir de los datos que la web tenía en el código
   (ya retirados, HU-28); desde entonces la fuente de verdad es la base de datos y este JSON
@@ -203,11 +207,11 @@ universidad (hoy todos). `is_published` permite ocultar un lugar sin borrarlo.
 
 | Endpoint | Devuelve |
 |---|---|
-| `GET /api/place-categories` | Categorías (`id`, `label`, `color`), ordenadas por `sort_order`. |
-| `GET /api/places` | Lugares **publicados**, ordenados por nombre. Filtro opcional `?category=<id>` (una categoría inexistente da `[]`). |
-| `GET /api/places/{id}` | Un lugar publicado. Si no existe, está oculto o el id no es un slug: el mismo `404`. |
+| `GET /api/place-categories` | Categorías (`id` numérico, `slug`, `label`, `color`), ordenadas por `sort_order`. |
+| `GET /api/places` | Lugares **publicados**, ordenados por nombre. Filtro opcional `?category=<id numérico>` (una categoría inexistente da `[]`; un valor que no es número, 422). |
+| `GET /api/places/{id}` | Un lugar publicado. `id` numérico. Si no existe, está oculto o no es un número: el mismo `404`. |
 
-Cada lugar trae `id`, `name`, `short_name`, `category_id`, `lat`, `lng`, `keywords`,
+Cada lugar trae `id` (número), `slug`, `name`, `short_name`, `category_id` (número), `lat`, `lng`, `keywords`,
 `description`, `schedule`, `detailed_schedule`, `phone`, `annex`, `email`, `website`,
 `access_hint`, `careers`, `services`, `usage`, `image_url`, `parent_place_id`,
 `is_published`, `verified_at` (vacío = dato sin confirmar) y `updated_at`. Las listas
@@ -222,7 +226,7 @@ anterior hasta 60 s.
 ```bash
 curl -i http://localhost:8000/api/places/fisi
 curl -i http://localhost:8000/api/places/fisi -H 'If-None-Match: "<etag>"'   # 304
-curl 'http://localhost:8000/api/places?category=puertas'
+curl 'http://localhost:8000/api/places?category=5'
 ```
 
 #### Búsqueda de lugares (`GET /api/places/search?q=`)
@@ -237,14 +241,14 @@ Todas las rutas llevan `Authorization: Bearer <token>` (se obtiene en `POST /api
 |---|---|
 | `GET /api/admin/places` | Todos los lugares, también los ocultos, con `created_at` y `updated_by`. Filtros: `category`, `published`, `verified`, `q` (sin tildes ni mayúsculas; nombre, sigla, palabras clave e id). |
 | `GET /api/admin/places/{id}` | Ficha completa, publicada o no. |
-| `POST /api/admin/places` | Crea un lugar (201 + `Location`). El `id` lo asigna el sistema (número incremental desde 1000); no se acepta en el cuerpo. |
+| `POST /api/admin/places` | Crea un lugar (201 + `Location`). El `id` (número incremental) y el `slug` (del nombre, con `-2`, `-3`… si ya existe) los asigna el sistema; no se aceptan en el cuerpo. |
 | `PUT /api/admin/places/{id}` | **Reemplazo completo**: lo que no se envía queda vacío. Para despublicar: `is_published: false`. |
 | `POST /api/admin/places/{id}/reindex` | Repite la sincronización con el asistente. |
-| `GET/POST /api/admin/place-categories`, `PUT/DELETE /api/admin/place-categories/{id}` | Categorías con su `places_count`. Solo se borra una categoría sin lugares (409 si tiene). |
+| `GET/POST /api/admin/place-categories`, `PUT/DELETE /api/admin/place-categories/{id}` | Categorías con su `places_count`. El `id` y el `slug` (de la etiqueta; `-2`, `-3`… si ya existe) los asigna el sistema. Solo se borra una categoría sin lugares (409 si tiene). |
 
 Los lugares **no se borran** (`DELETE` responde 405): se despublican.
 
-Campos obligatorios: `name`, `category_id`, `lat`, `lng` (dentro del área del campus: lat -12.070…-12.043, lng -77.096…-77.069). `verified: true` fija `verified_at` (si ya estaba, conserva la fecha); `false` la borra. Un campo desconocido, un `id`, una categoría o un lugar contenedor inexistente, un correo mal escrito o una URL que no sea `http(s)` dan **422** con `detail: [{loc: ["body", "<campo>"], msg}]`.
+Campos obligatorios: `name`, `category_id`, `lat`, `lng` (dentro del área del campus: lat -12.070…-12.043, lng -77.096…-77.069). `verified: true` fija `verified_at` (si ya estaba, conserva la fecha); `false` la borra. Un campo desconocido, un `id` o `slug`, una categoría o un lugar contenedor inexistente, un correo mal escrito o una URL que no sea `http(s)` dan **422** con `detail: [{loc: ["body", "<campo>"], msg}]`.
 
 Las respuestas de crear, editar y reindexar traen `rag_sync`: `ok`, `skipped` (el asistente aún no se conecta a los lugares, HU-29) o `failed` (el cambio **sí** se guardó; se repite con `/reindex`). La conexión con el asistente vive en `app/places/sync.py`.
 
@@ -253,7 +257,7 @@ TOKEN=$(curl -s localhost:8000/api/auth/login -H 'content-type: application/json
   -d '{"username":"admin","password":"..."}' | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
 curl -s localhost:8000/api/admin/places -H "Authorization: Bearer $TOKEN" \
   -H 'content-type: application/json' \
-  -d '{"name":"Laboratorio de Redes","category_id":"facultades","lat":-12.0535,"lng":-77.0857}'
+  -d '{"name":"Laboratorio de Redes","category_id":1,"lat":-12.0535,"lng":-77.0857}'
 ```
 
 ## 🔐 Login de administrador

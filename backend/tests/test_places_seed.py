@@ -19,11 +19,11 @@ from app.places.seed import (
 from app.rag.errors import RagProviderError
 from tests.fake_db import FakeDatabase
 
-CATEGORIES = [{"id": "facultades", "label": "Facultades", "color": "#3056ac", "sort_order": 0}]
+CATEGORIES = [{"slug": "facultades", "label": "Facultades", "color": "#3056ac", "sort_order": 0}]
 
 
 def place(**overrides):
-    base = {"id": "fisi", "name": "FISI", "category_id": "facultades", "lat": -12.05, "lng": -77.08}
+    base = {"slug": "fisi", "name": "FISI", "category_slug": "facultades", "lat": -12.05, "lng": -77.08}
     base.update(overrides)
     return base
 
@@ -47,7 +47,7 @@ def test_rf_22_4_list_items_are_trimmed_and_blanks_dropped():
 
 def test_rf_22_7_ids_must_be_unique_slugs():
     with pytest.raises(SeedError, match="Mi Lugar"):
-        validate_seed(make_seed(place(id="Mi Lugar")))
+        validate_seed(make_seed(place(slug="Mi Lugar")))
     with pytest.raises(SeedError, match="repetido"):
         validate_seed(make_seed(place(), place()))
 
@@ -56,13 +56,13 @@ def test_rf_22_7_ids_must_be_unique_slugs():
     ("overrides", "message"),
     [
         ({"name": " "}, "nombre"),
-        ({"category_id": "nada"}, "categoría"),
+        ({"category_slug": "nada"}, "categoría"),
         ({"lat": 200}, "latitud"),
         ({"lng": -181}, "longitud"),
         ({"lat": "x"}, "latitud"),
         ({"keywords": "fisi"}, "keywords"),
-        ({"parent_place_id": "no-existe"}, "padre"),
-        ({"parent_place_id": "fisi"}, "padre"),
+        ({"parent_slug": "no-existe"}, "padre"),
+        ({"parent_slug": "fisi"}, "padre"),
     ],
 )
 def test_rf_22_13_invalid_place_names_the_place_and_reason(overrides, message):
@@ -73,7 +73,7 @@ def test_rf_22_13_invalid_place_names_the_place_and_reason(overrides, message):
 
 def test_rf_22_13_invalid_place_cancels_everything_without_touching_the_db():
     db = FakeDatabase()
-    bad = make_seed(place(), place(id="otro", lat=999))
+    bad = make_seed(place(), place(slug="otro", lat=999))
     with pytest.raises(SeedError, match="otro"):
         apply_seed(db, bad)
     assert db.insert_calls == 0 and db.place_rows == {} and db.categories == {}
@@ -81,20 +81,22 @@ def test_rf_22_13_invalid_place_cancels_everything_without_touching_the_db():
 
 def test_rf_22_13_invalid_category():
     with pytest.raises(SeedError, match="color"):
-        validate_seed(make_seed(categories=[{"id": "x", "label": "X", "color": "rojo"}]))
+        validate_seed(make_seed(categories=[{"slug": "x", "label": "X", "color": "rojo"}]))
 
 
 def test_rf_22_12_second_run_inserts_nothing_and_keeps_edits():
     db = FakeDatabase()
-    seed = make_seed(place(schedule="Lun–Vie"), place(id="rectorado", name="Rectorado"))
+    seed = make_seed(place(schedule="Lun–Vie"), place(slug="rectorado", name="Rectorado"))
     first = apply_seed(db, seed)
     assert (first.categories_inserted, first.places_inserted, first.places_existing) == (1, 2, 0)
 
-    db.place_rows["fisi"]["schedule"] = "Editado a mano"
+    fisi = next(r for r in db.place_rows.values() if r["slug"] == "fisi")
+    ids_before = set(db.place_rows)
+    fisi["schedule"] = "Editado a mano"
     second = apply_seed(db, seed)
     assert (second.categories_inserted, second.places_inserted, second.places_existing) == (0, 0, 2)
-    assert len(db.place_rows) == 2
-    assert db.place_rows["fisi"]["schedule"] == "Editado a mano"
+    assert len(db.place_rows) == 2 and set(db.place_rows) == ids_before  # mismos ids, sin duplicar
+    assert fisi["schedule"] == "Editado a mano"
 
 
 def test_rf_22_6_parents_are_inserted_before_children():
@@ -102,10 +104,10 @@ def test_rf_22_6_parents_are_inserted_before_children():
 
     class Recorder(FakeDatabase):
         def insert_places(self, rows):
-            order.extend(r["id"] for r in rows)
+            order.extend(r["slug"] for r in rows)
             return super().insert_places(rows)
 
-    apply_seed(Recorder(), make_seed(place(id="hijo", parent_place_id="padre"), place(id="padre")))
+    apply_seed(Recorder(), make_seed(place(slug="hijo", parent_slug="padre"), place(slug="padre")))
     assert order == ["padre", "hijo"]
 
 
@@ -165,6 +167,6 @@ def test_scenario_7_seed_does_not_depend_on_knowledge_modules():
 def test_rf_22_7_the_real_seed_is_valid_with_unique_slugs():
     seed = load_seed()
     validated = validate_seed(seed)
-    ids = [p["id"] for p in validated.places]
+    ids = [p["slug"] for p in validated.places]
     assert len(ids) == len(set(ids)) > 0
     assert len(validated.categories) == 9

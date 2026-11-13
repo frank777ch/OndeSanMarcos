@@ -14,7 +14,6 @@ from app.schemas.places import PlaceOut
 
 _EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 _COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
-_SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 _SHORT = 300
 _LONG = 5000
@@ -48,12 +47,12 @@ def _http_url(value: str) -> str:
 
 
 class PlaceIn(BaseModel):
-    """Datos editables de un lugar. El `id` lo asigna el sistema y no se acepta."""
+    """Datos editables de un lugar. El `id` y el `slug` los asigna el sistema y no se aceptan."""
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     name: str = Field(..., min_length=1, max_length=200, description="Nombre completo (obligatorio).")
-    category_id: str = Field(..., min_length=1, max_length=64, description="Categoría existente (obligatorio).")
+    category_id: int = Field(..., gt=0, description="Id de una categoría existente (obligatorio).")
     lat: float = Field(..., description="Latitud; dentro del área del campus (obligatorio).")
     lng: float = Field(..., description="Longitud; dentro del área del campus (obligatorio).")
     short_name: str | None = Field(default=None, description="Nombre corto o sigla.")
@@ -70,11 +69,11 @@ class PlaceIn(BaseModel):
     services: list[str] = Field(default_factory=list, description="Servicios que ofrece.")
     usage: str | None = Field(default=None, description="Para qué se usa.")
     image_url: str | None = Field(default=None, description="Dirección de una imagen (http o https).")
-    parent_place_id: str | None = Field(default=None, description="Lugar que lo contiene.")
+    parent_place_id: int | None = Field(default=None, gt=0, description="Id del lugar que lo contiene.")
     is_published: bool = Field(default=True, description="Si es visible en el mapa y para el asistente.")
     verified: bool = Field(default=False, description="Si el dato está confirmado (fija `verified_at`).")
 
-    @field_validator(*_SHORT_TEXTS, "parent_place_id", mode="before")
+    @field_validator(*_SHORT_TEXTS, mode="before")
     @classmethod
     def _short_text(cls, value: object) -> str | None:
         return _clean_text(value, _SHORT)
@@ -164,19 +163,9 @@ class PlaceCategoryIn(BaseModel):
         return value
 
 
-class PlaceCategoryCreate(PlaceCategoryIn):
-    id: str = Field(..., min_length=1, max_length=64, description="Slug estable, ej. 'laboratorios'.")
-
-    @field_validator("id")
-    @classmethod
-    def _id(cls, value: str) -> str:
-        if not _SLUG.match(value):
-            raise ValueError("Solo minúsculas, dígitos y guiones.")
-        return value
-
-
 class PlaceCategoryAdminOut(BaseModel):
-    id: str
+    id: int
+    slug: str
     label: str
     color: str
     sort_order: int

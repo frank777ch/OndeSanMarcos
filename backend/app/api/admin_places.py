@@ -15,12 +15,11 @@ from app.auth.dependencies import get_current_admin
 from app.config import get_settings
 from app.places import service
 from app.places.sync import PlaceSync, get_place_sync, safe_sync
-from app.places.text import normalize_text
-from app.rag.db import DuplicateError, get_database
+from app.places.text import normalize_text, parse_place_id
+from app.rag.db import get_database
 from app.schemas.places_admin import (
     PlaceAdminOut,
     PlaceCategoryAdminOut,
-    PlaceCategoryCreate,
     PlaceCategoryIn,
     PlaceIn,
     PlaceSavedOut,
@@ -31,6 +30,14 @@ logger = logging.getLogger(__name__)
 _AUTH: dict[int | str, dict[str, Any]] = {401: {"description": "Falta la sesión de administrador o venció."}}
 _DB: dict[int | str, dict[str, Any]] = {**_AUTH, 503: {"description": "La base de datos no responde."}}
 _NOT_FOUND_PLACE = "Lugar no encontrado."
+
+
+def _pid(raw: str) -> int:
+    """Id de la ruta; un valor que no es un entero positivo es un lugar inexistente (404)."""
+    parsed = parse_place_id(raw)
+    if parsed is None:
+        raise HTTPException(status_code=404, detail=_NOT_FOUND_PLACE)
+    return parsed
 _NOT_FOUND_CATEGORY = "Categoría no encontrada."
 
 places_router = APIRouter(
@@ -45,18 +52,18 @@ categories_router = APIRouter(
 
 class AdminPlacesStore(Protocol):
     def admin_list_places(
-        self, category_id: str | None = None, published: bool | None = None, verified: bool | None = None
+        self, category_id: int | None = None, published: bool | None = None, verified: bool | None = None
     ) -> list[dict]: ...
-    def admin_get_place(self, place_id: str) -> dict | None: ...
-    def category_exists(self, category_id: str) -> bool: ...
-    def place_exists(self, place_id: str) -> bool: ...
-    def would_create_cycle(self, place_id: str, parent_id: str) -> bool: ...
+    def admin_get_place(self, place_id: int) -> dict | None: ...
+    def category_exists(self, category_id: int) -> bool: ...
+    def place_exists(self, place_id: int) -> bool: ...
+    def would_create_cycle(self, place_id: int, parent_id: int) -> bool: ...
     def create_place(self, data: dict, verified: bool, username: str) -> dict: ...
-    def update_place(self, place_id: str, data: dict, verified: bool, username: str) -> dict | None: ...
+    def update_place(self, place_id: int, data: dict, verified: bool, username: str) -> dict | None: ...
     def admin_list_categories(self) -> list[dict]: ...
-    def create_category(self, category_id: str, label: str, color: str, sort_order: int | None) -> dict: ...
-    def update_category(self, category_id: str, label: str, color: str, sort_order: int | None) -> dict | None: ...
-    def delete_category(self, category_id: str) -> tuple[str, int]: ...
+    def create_category(self, label: str, color: str, sort_order: int | None) -> dict: ...
+    def update_category(self, category_id: int, label: str, color: str, sort_order: int | None) -> dict | None: ...
+    def delete_category(self, category_id: int) -> tuple[str, int]: ...
 
 
 def get_admin_places_store() -> AdminPlacesStore:
@@ -69,7 +76,7 @@ def _saved(place: dict, rag_sync: str) -> PlaceSavedOut:
 
 
 def _matches(place: dict, needle: str) -> bool:
-    haystack = [place["id"], place["name"], place.get("short_name") or "", *place.get("keywords", [])]
+    haystack = [str(place["id"]), place["slug"], place["name"], place.get("short_name") or "", *place.get("keywords", [])]
     return any(needle in normalize_text(text) for text in haystack)
 
 
@@ -77,15 +84,15 @@ def _matches(place: dict, needle: str) -> bool:
     "", response_model=list[PlaceAdminOut], responses=_DB, summary="Todos los lugares (también los ocultos)"
 )
 def list_places(
-    category: str | None = Query(default=None, max_length=64, description="Solo esta categoría."),
+    category: int | None = Query(default=None, gt=0, description="Solo esta categoría (id)."),
     published: bool | None = Query(default=None, description="true = publicados, false = ocultos."),
     verified: bool | None = Query(default=None, description="true = verificados, false = sin verificar."),
-    q: str | None = Query(default=None, max_length=200, description="Texto en nombre, sigla, palabras clave o id."),
+    q: str | None = Query(default=None, max_length=200, description="Texto en nombre, sigla, palabras clave, slug o id."),
     _: str = Depends(get_current_admin),
     store: AdminPlacesStore = Depends(get_admin_places_store),
 ) -> list[dict]:
     """Lugares por nombre, con `created_at` y `updated_by`. Los filtros se combinan con «y»."""
-    places = store.admin_list_places(category or None, published, verified)
+    places = store.admin_list_places(category, published, verified)
     needle = normalize_text(q) if q else ""
     return [p for p in places if _matches(p, needle)] if needle else places
 
@@ -101,7 +108,7 @@ def get_place(
     _: str = Depends(get_current_admin),
     store: AdminPlacesStore = Depends(get_admin_places_store),
 ) -> dict:
-    place = store.admin_get_place(place_id)
+    place = store.admin_get_place(_pid(place_id))
     if place is None:
         raise HTTPException(status_code=404, detail=_NOT_FOUND_PLACE)
     return place
@@ -142,8 +149,9 @@ def update_place(
 ) -> PlaceSavedOut:
     """Reemplaza todos los campos editables: lo que no se envía queda vacío. Para despublicar
     se envía `is_published: false`. `verified` fija o borra `verified_at`."""
-    place = service.update_place(store, place_id, body, admin)
-    return _saved(place, safe_sync(sync, place_id))
+    pid = _pid(place_id)
+    place = service.update_place(store, pid, body, admin)
+    return _saved(place, safe_sync(sync, pid))
 
 
 @places_router.post(
@@ -158,10 +166,11 @@ def reindex_place(
     store: AdminPlacesStore = Depends(get_admin_places_store),
     sync: PlaceSync = Depends(get_place_sync),
 ) -> PlaceSavedOut:
-    place = store.admin_get_place(place_id)
+    pid = _pid(place_id)
+    place = store.admin_get_place(pid)
     if place is None:
         raise HTTPException(status_code=404, detail=_NOT_FOUND_PLACE)
-    return _saved(place, safe_sync(sync, place_id))
+    return _saved(place, safe_sync(sync, pid))
 
 
 # --- categorías ---------------------------------------------------------------
@@ -181,21 +190,18 @@ def list_categories(
     "",
     status_code=201,
     response_model=PlaceCategoryAdminOut,
-    responses={**_DB, 409: {"description": "Ya existe una categoría con ese id."}},
-    summary="Crear una categoría",
+    responses=_DB,
+    summary="Crear una categoría (el id y el slug los asigna el sistema)",
 )
 def create_category(
-    body: PlaceCategoryCreate,
+    body: PlaceCategoryIn,
     response: Response,
     admin: str = Depends(get_current_admin),
     store: AdminPlacesStore = Depends(get_admin_places_store),
 ) -> dict:
-    try:
-        category = store.create_category(body.id, body.label, body.color, body.sort_order)
-    except DuplicateError:
-        raise service.field_error("id", "Ya existe una categoría con ese id.", status=409) from None
-    response.headers["Location"] = f"/api/admin/place-categories/{body.id}"
-    logger.info("categoría creada id=%s por=%s", body.id, admin)
+    category = store.create_category(body.label, body.color, body.sort_order)
+    response.headers["Location"] = f"/api/admin/place-categories/{category['id']}"
+    logger.info("categoría creada id=%s por=%s", category["id"], admin)
     return category
 
 
@@ -206,7 +212,7 @@ def create_category(
     summary="Editar una categoría",
 )
 def update_category(
-    category_id: str,
+    category_id: int,
     body: PlaceCategoryIn,
     admin: str = Depends(get_current_admin),
     store: AdminPlacesStore = Depends(get_admin_places_store),
@@ -229,7 +235,7 @@ def update_category(
     summary="Borrar una categoría vacía",
 )
 def delete_category(
-    category_id: str,
+    category_id: int,
     admin: str = Depends(get_current_admin),
     store: AdminPlacesStore = Depends(get_admin_places_store),
 ) -> Response:

@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 class PlaceWriter(Protocol):
-    def category_exists(self, category_id: str) -> bool: ...
-    def place_exists(self, place_id: str) -> bool: ...
-    def would_create_cycle(self, place_id: str, parent_id: str) -> bool: ...
+    def category_exists(self, category_id: int) -> bool: ...
+    def place_exists(self, place_id: int) -> bool: ...
+    def would_create_cycle(self, place_id: int, parent_id: int) -> bool: ...
     def create_place(self, data: dict, verified: bool, username: str) -> dict: ...
-    def update_place(self, place_id: str, data: dict, verified: bool, username: str) -> dict | None: ...
+    def update_place(self, place_id: int, data: dict, verified: bool, username: str) -> dict | None: ...
 
 
 def field_error(field: str, message: str, status: int = 422) -> HTTPException:
@@ -28,7 +28,7 @@ def field_error(field: str, message: str, status: int = 422) -> HTTPException:
     )
 
 
-def _check_references(db: PlaceWriter, body: PlaceIn, place_id: str | None) -> None:
+def _check_references(db: PlaceWriter, body: PlaceIn, place_id: int | None) -> None:
     if not db.category_exists(body.category_id):
         raise field_error("category_id", "La categoría no existe.")
     parent = body.parent_place_id
@@ -53,7 +53,7 @@ def create_place(db: PlaceWriter, body: PlaceIn, username: str) -> dict:
     return place
 
 
-def update_place(db: PlaceWriter, place_id: str, body: PlaceIn, username: str) -> dict:
+def update_place(db: PlaceWriter, place_id: int, body: PlaceIn, username: str) -> dict:
     if not db.place_exists(place_id):
         raise HTTPException(status_code=404, detail="Lugar no encontrado.")
     _check_references(db, body, place_id)

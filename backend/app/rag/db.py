@@ -26,26 +26,32 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool, PoolTimeout
 
 from app.config import Settings
+from app.places.text import MAX_SLUG_LENGTH, slugify
 from app.rag.errors import RagProviderError
 
 EMPTY_MESSAGE = "La base de conocimiento está vacía; ejecuta ./script/dev.sh ingest"
 _BATCH = 100
+# Clave del bloqueo de aviso (advisory lock) que serializa la creación de lugares.
+_PLACE_SLUG_LOCK = 38_0001
+_CATEGORY_SLUG_LOCK = 39_0001
 
 # Columnas de `places` que trae la semilla (el resto tiene valor por defecto).
 # Columnas públicas de `places` (sin `created_at` ni `updated_by`): lista explícita
 # para que un campo interno nuevo no se filtre por error a la API.
 PUBLIC_PLACE_COLUMNS = (
-    "id", "name", "short_name", "category_id", "lat", "lng", "keywords",
+    "id", "slug", "name", "short_name", "category_id", "lat", "lng", "keywords",
     "description", "schedule", "detailed_schedule", "phone", "annex", "email",
     "website", "access_hint", "careers", "services", "usage", "image_url",
     "parent_place_id", "is_published", "verified_at", "updated_at",
 )
 
+# Columnas de la semilla: el lugar se identifica por `slug` (el id lo asigna la base) y su
+# lugar contenedor se indica por el slug del padre (`parent_slug`).
 PLACE_SEED_COLUMNS = (
-    "id", "name", "short_name", "category_id", "lat", "lng", "keywords",
+    "slug", "name", "short_name", "category_slug", "lat", "lng", "keywords",
     "description", "schedule", "detailed_schedule", "phone", "annex", "email",
     "website", "access_hint", "careers", "services", "usage", "image_url",
-    "parent_place_id",
+    "parent_slug",
 )
 
 
@@ -214,21 +220,21 @@ class Database:
         with self.connection() as conn:
             return list(
                 conn.execute(
-                    "select id, label, color from place_categories order by sort_order, id"
+                    "select id, slug, label, color from place_categories order by sort_order, id"
                 ).fetchall()
             )
 
-    def list_places(self, category_id: str | None = None) -> list[dict]:
+    def list_places(self, category_id: int | None = None) -> list[dict]:
         """Lugares publicados, por nombre; opcionalmente de una categoría (una consulta)."""
         query = sql.SQL(
             "select {cols} from places where is_published "
-            "and (%(category)s::text is null or category_id = %(category)s) "
+            "and (%(category)s::bigint is null or category_id = %(category)s) "
             "order by name, id"
         ).format(cols=_public_columns())
         with self.connection() as conn:
             return list(conn.execute(query, {"category": category_id}).fetchall())
 
-    def get_place(self, place_id: str) -> dict | None:
+    def get_place(self, place_id: int) -> dict | None:
         """Un lugar publicado, o `None` si no existe o está oculto (una consulta)."""
         query = sql.SQL("select {cols} from places where id = %s and is_published").format(
             cols=_public_columns()
@@ -292,14 +298,14 @@ class Database:
 
     def admin_list_places(
         self,
-        category_id: str | None = None,
+        category_id: int | None = None,
         published: bool | None = None,
         verified: bool | None = None,
     ) -> list[dict]:
         """Todos los lugares (publicados o no), con campos internos, por nombre."""
         query = sql.SQL(
             "select {cols} from places where "
-            "(%(category)s::text is null or category_id = %(category)s) "
+            "(%(category)s::bigint is null or category_id = %(category)s) "
             "and (%(published)s::boolean is null or is_published = %(published)s) "
             "and (%(verified)s::boolean is null or (verified_at is not null) = %(verified)s) "
             "order by name, id"
@@ -308,21 +314,21 @@ class Database:
         with self.connection() as conn:
             return list(conn.execute(query, params).fetchall())
 
-    def admin_get_place(self, place_id: str) -> dict | None:
+    def admin_get_place(self, place_id: int) -> dict | None:
         query = sql.SQL("select {cols} from places where id = %s").format(cols=_admin_columns())
         with self.connection() as conn:
             return conn.execute(query, (place_id,)).fetchone()
 
-    def category_exists(self, category_id: str) -> bool:
+    def category_exists(self, category_id: int) -> bool:
         with self.connection() as conn:
             row = conn.execute("select 1 as x from place_categories where id = %s", (category_id,)).fetchone()
         return row is not None
 
-    def place_exists(self, place_id: str) -> bool:
+    def place_exists(self, place_id: int) -> bool:
         with self.connection() as conn:
             return conn.execute("select 1 as x from places where id = %s", (place_id,)).fetchone() is not None
 
-    def would_create_cycle(self, place_id: str, parent_id: str) -> bool:
+    def would_create_cycle(self, place_id: int, parent_id: int) -> bool:
         """Si poner `parent_id` como contenedor de `place_id` formaría un ciclo."""
         with self.connection() as conn:
             row = conn.execute(
@@ -336,22 +342,45 @@ class Database:
         return bool(row and row["cycle"])
 
     def create_place(self, data: dict, verified: bool, username: str) -> dict:
-        """Crea un lugar con id incremental y devuelve la fila completa."""
+        """Crea un lugar (el id lo asigna la base; el slug sale del nombre) y devuelve la fila completa."""
         cols = EDITABLE_PLACE_COLUMNS
         query = sql.SQL(
-            "insert into places (id, {cols}, verified_at, updated_by) "
-            "values (nextval('places_id_seq')::text, {marks}, "
+            "insert into places (slug, {cols}, verified_at, updated_by) "
+            "values (%(slug)s, {marks}, "
             "case when %(verified)s then now() end, %(user)s) returning {out}"
         ).format(
             cols=sql.SQL(", ").join(sql.Identifier(c) for c in cols),
             marks=sql.SQL(", ").join(sql.Placeholder(c) for c in cols),
             out=_admin_columns(),
         )
-        params = {**{c: data.get(c) for c in cols}, "verified": verified, "user": username}
-        with self.connection() as conn:
+        with self.connection() as conn, conn.transaction():
+            # Un solo creador a la vez: sin esto, dos altas simultáneas con el mismo nombre elegirían el mismo slug.
+            conn.execute("select pg_advisory_xact_lock(%s)", (_PLACE_SLUG_LOCK,))
+            params = {
+                **{c: data.get(c) for c in cols},
+                "verified": verified,
+                "user": username,
+                "slug": self._free_slug(conn, slugify(data["name"])),
+            }
             return conn.execute(query, params).fetchone()  # type: ignore[return-value]
 
-    def update_place(self, place_id: str, data: dict, verified: bool, username: str) -> dict | None:
+    @staticmethod
+    def _free_slug(conn: psycopg.Connection[Any], base: str) -> str:
+        """`base`, o `base-2`, `base-3`… si ya hay un lugar con ese slug (la restricción única lo respalda)."""
+        taken = {
+            row["slug"]
+            for row in conn.execute(
+                "select slug from places where slug = %s or slug like %s", (base, f"{base}-%")
+            ).fetchall()
+        }
+        if base not in taken:
+            return base
+        n = 2
+        while f"{base}-{n}"[:MAX_SLUG_LENGTH] in taken:
+            n += 1
+        return f"{base}-{n}"[:MAX_SLUG_LENGTH]
+
+    def update_place(self, place_id: int, data: dict, verified: bool, username: str) -> dict | None:
         """Reemplaza los campos editables; `None` si el lugar no existe."""
         cols = EDITABLE_PLACE_COLUMNS
         query = sql.SQL(
@@ -372,34 +401,44 @@ class Database:
         with self.connection() as conn:
             return list(
                 conn.execute(
-                    "select c.id, c.label, c.color, c.sort_order, count(p.id)::int as places_count "
+                    "select c.id, c.slug, c.label, c.color, c.sort_order, count(p.id)::int as places_count "
                     "from place_categories c left join places p on p.category_id = c.id "
                     "group by c.id order by c.sort_order, c.id"
                 ).fetchall()
             )
 
-    def _category_row(self, conn: psycopg.Connection[Any], category_id: str) -> dict:
+    def _category_row(self, conn: psycopg.Connection[Any], category_id: int) -> dict:
         return conn.execute(  # type: ignore[return-value]
-            "select c.id, c.label, c.color, c.sort_order, count(p.id)::int as places_count "
+            "select c.id, c.slug, c.label, c.color, c.sort_order, count(p.id)::int as places_count "
             "from place_categories c left join places p on p.category_id = c.id "
             "where c.id = %s group by c.id",
             (category_id,),
         ).fetchone()
 
-    def create_category(self, category_id: str, label: str, color: str, sort_order: int | None) -> dict:
-        with self.connection() as conn:
-            try:
-                with conn.transaction():
-                    conn.execute(
-                        "insert into place_categories (id, label, color, sort_order) values "
-                        "(%s, %s, %s, coalesce(%s, (select coalesce(max(sort_order) + 1, 0) from place_categories)))",
-                        (category_id, label, color, sort_order),
-                    )
-            except psycopg.errors.UniqueViolation as exc:
-                raise DuplicateError(category_id) from exc
-            return self._category_row(conn, category_id)
+    def create_category(self, label: str, color: str, sort_order: int | None) -> dict:
+        """Crea una categoría: el id lo asigna la base y el slug sale de la etiqueta."""
+        with self.connection() as conn, conn.transaction():
+            conn.execute("select pg_advisory_xact_lock(%s)", (_CATEGORY_SLUG_LOCK,))
+            base = slugify(label, "categoria")
+            taken = {
+                row["slug"]
+                for row in conn.execute(
+                    "select slug from place_categories where slug = %s or slug like %s", (base, f"{base}-%")
+                ).fetchall()
+            }
+            slug, n = base, 2
+            while slug in taken:
+                slug = f"{base}-{n}"[:MAX_SLUG_LENGTH]
+                n += 1
+            row = conn.execute(
+                "insert into place_categories (slug, label, color, sort_order) values "
+                "(%s, %s, %s, coalesce(%s, (select coalesce(max(sort_order) + 1, 0) from place_categories))) "
+                "returning id",
+                (slug, label, color, sort_order),
+            ).fetchone()
+            return self._category_row(conn, row["id"])  # type: ignore[index]
 
-    def update_category(self, category_id: str, label: str, color: str, sort_order: int | None) -> dict | None:
+    def update_category(self, category_id: int, label: str, color: str, sort_order: int | None) -> dict | None:
         with self.connection() as conn:
             row = conn.execute(
                 "update place_categories set label = %s, color = %s, sort_order = coalesce(%s, sort_order) "
@@ -408,7 +447,7 @@ class Database:
             ).fetchone()
             return None if row is None else self._category_row(conn, category_id)
 
-    def delete_category(self, category_id: str) -> tuple[str, int]:
+    def delete_category(self, category_id: int) -> tuple[str, int]:
         """`("deleted"|"not_found"|"in_use", n)`; `n` = lugares que la usan."""
         with self.connection() as conn:
             with conn.transaction():
@@ -435,19 +474,34 @@ class Database:
                 return self._insert_missing(
                     conn,
                     "place_categories",
-                    ("id", "label", "color", "sort_order"),
+                    ("slug", "label", "color", "sort_order"),
                     rows,
                 )
 
     def insert_places(self, rows: list[dict]) -> int:
         """Inserta los lugares que faltan; devuelve cuántos entraron.
 
-        `on conflict do nothing`: un lugar que ya existe conserva sus datos
-        (las ediciones hechas después de la carga no se pisan).
+        Un lugar cuyo slug ya existe conserva sus datos (las ediciones hechas después de la
+        carga no se pisan). Los padres deben venir antes que sus hijos. Se usa `where not exists`
+        y no `on conflict`: así una segunda corrida no consume ids de la secuencia.
         """
+        cols = [c for c in PLACE_SEED_COLUMNS if c not in ("parent_slug", "category_slug")]
+        query = sql.SQL(
+            "insert into places ({cols}, category_id, parent_place_id) "
+            "select {marks}, (select id from place_categories where slug = %s), "
+            "(select id from places where slug = %s) "
+            "where not exists (select 1 from places where slug = %s)"
+        ).format(
+            cols=sql.SQL(", ").join(sql.Identifier(c) for c in cols),
+            marks=sql.SQL(", ").join(sql.Placeholder() for _ in cols),
+        )
+        inserted = 0
         with self.connection() as conn:
-            with conn.transaction():
-                return self._insert_missing(conn, "places", PLACE_SEED_COLUMNS, rows)
+            with conn.transaction(), conn.cursor() as cur:
+                for row in rows:
+                    cur.execute(query, [row[c] for c in cols] + [row["category_slug"], row["parent_slug"], row["slug"]])
+                    inserted += cur.rowcount
+        return inserted
 
     @staticmethod
     def _insert_missing(
@@ -457,7 +511,7 @@ class Database:
         rows: list[dict],
     ) -> int:
         query = sql.SQL(
-            "insert into {t} ({cols}) values ({marks}) on conflict (id) do nothing"
+            "insert into {t} ({cols}) values ({marks}) on conflict (slug) do nothing"
         ).format(
             t=sql.Identifier(table),
             cols=sql.SQL(", ").join(sql.Identifier(c) for c in columns),

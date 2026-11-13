@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from app.rag.db import ADMIN_PLACE_COLUMNS, EDITABLE_PLACE_COLUMNS, DuplicateError
+from app.places.text import MAX_SLUG_LENGTH, slugify
+from app.rag.db import ADMIN_PLACE_COLUMNS, EDITABLE_PLACE_COLUMNS
+
+_CATEGORY_IDS: dict[str, int] = {}
+
+
+def cid(slug: str) -> int:
+    """Id numérico estable de una categoría de prueba, a partir de su slug."""
+    return _CATEGORY_IDS.setdefault(slug, 100 + len(_CATEGORY_IDS))
+
 
 _LISTS = ("keywords", "detailed_schedule", "careers", "services")
 
@@ -14,9 +23,10 @@ def _now() -> datetime:
 
 
 class FakePlacesAdminMixin:
-    categories: dict[str, dict]
-    place_rows: dict[str, dict]
-    next_place_id: int = 1000
+    categories: dict[int, dict]
+    place_rows: dict[int, dict]
+    next_place_id: int = 1
+    next_category_id: int = 1000
 
     def _admin(self, row: dict) -> dict:
         defaults = {
@@ -57,12 +67,17 @@ class FakePlacesAdminMixin:
         return False
 
     def create_place(self, data, verified, username):
-        place_id = str(self.next_place_id)
+        place_id = self.next_place_id
         self.next_place_id += 1
+        taken = {r["slug"] for r in self.place_rows.values()}
+        base = slugify(data["name"])
+        slug, n = base, 2
+        while slug in taken:
+            slug, n = f"{base}-{n}"[:MAX_SLUG_LENGTH], n + 1
         now = _now()
         row = {c: data.get(c) for c in EDITABLE_PLACE_COLUMNS}
         row.update(
-            id=place_id, verified_at=now if verified else None,
+            id=place_id, slug=slug, verified_at=now if verified else None,
             created_at=now, updated_at=now, updated_by=username,
         )
         self.place_rows[place_id] = row
@@ -81,19 +96,27 @@ class FakePlacesAdminMixin:
 
     def _category_admin(self, c):
         count = sum(1 for p in self.place_rows.values() if p["category_id"] == c["id"])
-        return {"id": c["id"], "label": c["label"], "color": c["color"],
+        return {"id": c["id"], "slug": c["slug"], "label": c["label"], "color": c["color"],
                 "sort_order": c.get("sort_order", 0), "places_count": count}
 
     def admin_list_categories(self):
         rows = sorted(self.categories.values(), key=lambda c: (c.get("sort_order", 0), c["id"]))
         return [self._category_admin(c) for c in rows]
 
-    def create_category(self, category_id, label, color, sort_order):
-        if category_id in self.categories:
-            raise DuplicateError(category_id)
+    def create_category(self, label, color, sort_order):
+        base = slugify(label, "categoria")
+        taken = {c["slug"] for c in self.categories.values()}
+        slug, n = base, 2
+        while slug in taken:
+            slug = f"{base}-{n}"[:MAX_SLUG_LENGTH]
+            n += 1
         if sort_order is None:
             sort_order = max((c.get("sort_order", 0) for c in self.categories.values()), default=-1) + 1
-        self.categories[category_id] = {"id": category_id, "label": label, "color": color, "sort_order": sort_order}
+        category_id = self.next_category_id
+        self.next_category_id += 1
+        self.categories[category_id] = {
+            "id": category_id, "slug": slug, "label": label, "color": color, "sort_order": sort_order,
+        }
         return self._category_admin(self.categories[category_id])
 
     def update_category(self, category_id, label, color, sort_order):
