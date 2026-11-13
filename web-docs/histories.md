@@ -40,6 +40,7 @@
 | HU-34 | El asistente responde sobre eventos | ⬜ Pendiente |
 | HU-35 | Administrar eventos (web) | ⬜ Pendiente |
 | HU-36 | Buscador de lugares en el servidor | ⬜ Pendiente |
+| HU-37 | Perfil del administrador y cambio de contraseña | ⬜ Pendiente |
 
 **Avance: 18 de 35 historias hechas.** HU-22 a HU-35 tienen ID alto para no renumerar. Orden propuesto para los datos: HU-22 → 27 → 28 → 29 → 30 → 31 (lugares) y luego HU-32 → 33 → 34 → 35 (eventos); conviene terminarlos antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
@@ -279,6 +280,14 @@ Estados: ⬜ pendiente · ✅ hecha
 - Fuera de alcance: búsqueda semántica con pgvector («dónde almorzar»); búsqueda de eventos; móvil (HU-21).
 - Depende de: HU-27 y HU-28.
 - **Aceptación:** escribir «bibliotca» muestra la Biblioteca; un lugar despublicado no aparece; con el backend apagado el buscador sigue funcionando con la lista local.
+
+### HU-37 · Perfil del administrador y cambio de contraseña ⬜
+**Como** administrador, **quiero** ver mis datos y cambiar mi contraseña desde la pestaña «Perfil» **para** mantener mi cuenta segura sin tocar la base de datos.
+- Pestaña «Perfil» (`/admin`): muestra los datos de la cuenta (usuario, fecha de alta, vencimiento de la sesión) y un botón «Cambiar contraseña» que abre un diálogo con contraseña actual, nueva y confirmación.
+- Endpoint protegido `POST /api/auth/change-password`; `GET /api/auth/me` pasa a devolver también la fecha de alta.
+- Fuera de alcance: recuperar una contraseña olvidada; crear o borrar otros administradores; cambiar el nombre de usuario; móvil (HU-21).
+- Depende de: HU-25 y HU-26.
+- **Aceptación:** con la contraseña actual correcta se cambia y se puede entrar con la nueva; con la actual incorrecta no se cambia y el diálogo lo dice junto al campo.
 
 ## Extras y cierre
 
