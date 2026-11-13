@@ -58,7 +58,7 @@ La información existe para los lugares que el asistente ya conocía (en la app 
 | RF-12.14 | En escritorio la ficha debe mostrarse como una tarjeta flotante en la esquina inferior izquierda del mapa, de unos 24 rem de ancho, debajo del buscador y los filtros. |
 | RF-12.15 | Si el contenido es más alto que el espacio disponible, la tarjeta debe poder desplazarse por dentro, sin tapar el buscador ni los filtros. |
 | RF-12.16 | La tarjeta debe ser un diálogo no modal con el nombre del lugar como etiqueta; al abrirse, el foco pasa al botón «Cerrar»; al cerrarse, el foco vuelve al elemento que lo tenía antes. |
-| RF-12.17 | La tarjeta no debe tapar los controles de zoom, el botón «Volver al campus» ni el logo y la atribución de Mapbox (se deja un margen inferior). |
+| RF-12.17 | La tarjeta no debe tapar los controles de zoom, el botón «Volver al campus» ni la atribución a OpenStreetMap (se deja un margen inferior; desde HU-40 el mapa es propio). |
 
 ## 4. Escenarios de aceptación
 **Escenario 1: abrir tocando un punto** (RF-12.3, RF-12.9)
@@ -120,7 +120,7 @@ La información existe para los lugares que el asistente ya conocía (en la app 
 
 **Escenario 14: no tapa nada** (RF-12.15, RF-12.17)
 - **Cuando** abro la ficha más larga (por ejemplo la de una facultad con muchas carreras) en una ventana de 1440×800
-- **Entonces** la tarjeta hace scroll por dentro y se ven el buscador, los filtros, el botón de zoom y el logo de Mapbox.
+- **Entonces** la tarjeta hace scroll por dentro y se ven el buscador, los filtros, el botón de acciones y la atribución a OpenStreetMap.
 
 ## 5. Preguntas abiertas
 - Ninguna. Decisiones: mostrar **todos los datos disponibles** (P1), **ficha mínima** para lugares sin datos (P2), **sin botón «Cómo llegar»** hasta HU-13 (P3) y **tarjeta flotante abajo a la izquierda** (P4).
