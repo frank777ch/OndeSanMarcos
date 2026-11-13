@@ -58,7 +58,34 @@
   }
 }
 
+:root {
+  /* Colores del mapa propio (HU-40); los lee features/map/scene/useMapColors. */
+  --map-outside: #e9ecef;
+  --map-ground: #f6f5f1;
+  --map-green: #cfe6c3;
+  --map-pitch: #bcdcae;
+  --map-water: #b9d6ea;
+  --map-path: #ffffff;
+  --map-building: #d9d5cc;
+  --map-building-edge: #bdb8ac;
+  --map-boundary: #3056ac;
+  --map-label: #0a0a0a;
+  --map-label-halo: #ffffff;
+}
+
 :root[data-theme='dark'] {
+  --map-outside: #0d1117;
+  --map-ground: #1f2630;
+  --map-green: #2a3d34;
+  --map-pitch: #2f4a3b;
+  --map-water: #23384d;
+  --map-path: #3b4656;
+  --map-building: #3a4452;
+  --map-building-edge: #56637a;
+  --map-boundary: #7b95d6;
+  --map-label: #ffffff;
+  --map-label-halo: #0a0a0a;
+
   --color-bg: #0a0a0a;
   --color-surface: #181818;
   --color-surface-strong: #101010;
