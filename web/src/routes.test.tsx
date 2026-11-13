@@ -4,9 +4,8 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { useAuthStore } from '@/features/admin/store/useAuthStore'
 import { routes } from '@/routes'
 
-// mapbox-gl necesita WebGL, que jsdom no tiene.
-vi.mock('react-map-gl/mapbox', () => ({ default: () => null, AttributionControl: () => null, useMap: () => ({ current: undefined }), Source: () => null, Layer: () => null }))
-vi.mock('mapbox-gl/dist/mapbox-gl.css', () => ({}))
+// La escena 3D necesita WebGL, que jsdom no tiene.
+vi.mock('@/features/map/scene/CampusScene', () => ({ CampusScene: () => null }))
 
 async function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })

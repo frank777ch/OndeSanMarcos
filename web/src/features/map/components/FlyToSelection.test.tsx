@@ -3,16 +3,20 @@ import { act } from 'react'
 import { PLACES, idOf } from '@/test/fixtures/places'
 import { useMapStore } from '../store/useMapStore'
 
-const flyTo = vi.fn()
-vi.mock('react-map-gl/mapbox', () => ({ useMap: () => ({ current: { flyTo } }) }))
-
+import { useCameraStore } from '../scene/cameraStore'
 import { FlyToSelection } from './FlyToSelection'
+
+const flyTo = vi.fn()
+const realFlyTo = useCameraStore.getState().flyTo
 import { seedPlaces } from '@/test/fixtures/places'
 
 describe('FlyToSelection', () => {
+  afterAll(() => useCameraStore.setState({ flyTo: realFlyTo }))
+
   beforeEach(() => {
     seedPlaces()
     flyTo.mockClear()
+    useCameraStore.setState({ flyTo })
     useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null })
   })
 
@@ -21,13 +25,11 @@ describe('FlyToSelection', () => {
     expect(flyTo).not.toHaveBeenCalled()
   })
 
-  it('RF-11.13: al elegir un lugar vuela a sus coordenadas', () => {
+  it('RF-11.13 y RF-40.10: al elegir un lugar vuela a sus coordenadas', () => {
     render(<FlyToSelection />)
     act(() => useMapStore.getState().selectPlace(idOf('puerta-3')))
     const place = PLACES.find((p) => p.slug === 'puerta-3')!
-    expect(flyTo).toHaveBeenCalledWith(
-      expect.objectContaining({ center: place.coordinates, zoom: 18 }),
-    )
+    expect(flyTo).toHaveBeenCalledWith(place.coordinates, expect.objectContaining({ zoom: 18 }))
   })
 
   it('RF-11.13: al limpiar la selección no vuelve a volar', () => {

@@ -50,5 +50,8 @@ El mapa del formulario se descarga solo al abrir el diálogo (un chunk aparte). 
 
 La pestaña **Perfil** (`/admin/perfil`, última del menú; al entrar a `/admin` se abre Lugares) muestra el usuario, la fecha de alta y cuándo vence la sesión. «Cambiar contraseña» abre un diálogo (actual, nueva y confirmación; la nueva: 8 o más caracteres con letras y números). Si la actual es incorrecta el error sale junto a ese campo; tras 5 errores seguidos hay que esperar unos minutos. La sesión sigue abierta tras el cambio.
 
+## Datos del mapa
+El mapa de `/mapa` se dibuja con datos de **OpenStreetMap** (© colaboradores de OpenStreetMap, licencia [ODbL](https://opendatacommons.org/licenses/odbl/1-0/); ver https://www.openstreetmap.org/copyright): contorno de la Ciudad Universitaria (relación 6252388), edificios, áreas verdes y las avenidas y calles cercanas. Se descargaron una sola vez con `scripts/fetch-campus-osm.mjs` y se guardan en `src/features/map/data/campus-osm.json` (trae la fecha de descarga); la web no consulta ningún servicio externo para dibujarlo. La atribución debe seguir visible en el mapa, como enlace a la página de derechos de OpenStreetMap. Para actualizar los datos: `node scripts/fetch-campus-osm.mjs`, revisar el resultado y hacer commit.
+
 ## Estilos
 Tailwind CSS v4. Los tokens (colores, fuentes, radios, sombras) están en `@theme` dentro de `src/index.css`; el tema oscuro los redefine con `data-theme="dark"`.
