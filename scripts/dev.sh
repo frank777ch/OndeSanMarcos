@@ -14,6 +14,7 @@
 #
 # Base de datos (los vectores del asistente cuestan llamadas a Gemini: se cuidan):
 #   ingest [--force]   embebe el corpus y lo carga en la base. Se niega si ya hay datos
+#   seed-places        carga los lugares del campus (backend/db/seed/places.json). No pisa lo que ya existe
 #   psql               abre una consola SQL de la base
 #   db-dump            guarda los datos en backend/db/dumps/ (no llama a Gemini)
 #   db-restore [file]  restaura los datos desde un dump (por defecto, el último)
@@ -108,6 +109,10 @@ case "$cmd" in
   ingest)
     ensure_db
     docker compose run --rm --no-deps backend python -m app.rag.ingest_pgvector "$@"
+    ;;
+  seed-places)
+    ensure_db
+    docker compose run --rm --no-deps backend python -m app.places.seed "$@"
     ;;
   psql)
     docker compose up -d db >/dev/null

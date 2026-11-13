@@ -90,3 +90,14 @@ def test_no_supabase_references_in_backend_or_compose():
         if "supabase" in path.read_text(encoding="utf-8", errors="ignore").lower():
             offenders.append(str(path.relative_to(ROOT)))
     assert offenders == []
+
+
+def test_rf_22_15_seed_places_command_runs_the_seed_module():
+    """RF-22.15: el comando existe (el script vive en `scripts/` o `script/`)."""
+    path = next((p for p in (ROOT / "scripts" / "dev.sh", SCRIPT) if p.exists()), None)
+    if path is None:
+        pytest.skip("dev.sh no está disponible")
+    text = path.read_text(encoding="utf-8")
+    match = re.search(r"^  seed-places\)(.*?)^    ;;", text, re.S | re.M)
+    assert match, "No existe el comando seed-places en dev.sh"
+    assert "app.places.seed" in match.group(1) and "ensure_db" in match.group(1)
