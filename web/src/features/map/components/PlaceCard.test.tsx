@@ -1,17 +1,21 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { PLACES } from '../data/places'
+import { PLACES } from '@/test/fixtures/places'
 import { useMapStore } from '../store/useMapStore'
 import { RouteDialog } from '@/features/routing/components/RouteDialog'
 import { useRouteStore } from '@/features/routing/store/useRouteStore'
 import { PlaceCard } from './PlaceCard'
+import { seedPlaces } from '@/test/fixtures/places'
 
 const reset = () =>
   useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null })
 const open = (id: string) => act(() => useMapStore.getState().selectPlace(id, 'map'))
 
 describe('PlaceCard', () => {
-  beforeEach(reset)
+  beforeEach(() => {
+    seedPlaces()
+    reset()
+  })
 
   it('no se muestra sin lugar elegido', () => {
     render(<PlaceCard />)
@@ -20,14 +24,14 @@ describe('PlaceCard', () => {
 
   it('RF-12.9: siempre muestra nombre y categoría', () => {
     render(<PlaceCard />)
-    open('3')
+    open('puerta-3')
     const dialog = screen.getByRole('dialog', { name: 'Puerta 3' })
     expect(within(dialog).getByText('Puertas')).toBeInTheDocument()
   })
 
   it('RF-12.2 y RF-12.10: un lugar sin datos no muestra secciones', () => {
     render(<PlaceCard />)
-    open('3') // Puerta 3
+    open('puerta-3') // Puerta 3
     for (const title of ['Horario', 'Acerca de este lugar', 'Contacto', 'Carreras', 'Servicios', 'Uso']) {
       expect(screen.queryByRole('heading', { name: title })).not.toBeInTheDocument()
     }
@@ -35,8 +39,8 @@ describe('PlaceCard', () => {
 
   it('RF-12.10 y RF-12.12: la FISI muestra horario, descripción, contacto y carreras en lista', () => {
     render(<PlaceCard />)
-    open('8')
-    const fisi = PLACES.find((p) => p.id === '8')!
+    open('fisi')
+    const fisi = PLACES.find((p) => p.id === 'fisi')!
     expect(screen.getByRole('heading', { name: 'Horario' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Acerca de este lugar' })).toBeInTheDocument()
     expect(screen.getByText(`Teléfono: ${fisi.phone}`)).toBeInTheDocument()
@@ -46,19 +50,68 @@ describe('PlaceCard', () => {
 
   it('RF-12.10: sin teléfono no aparece la línea «Teléfono»', () => {
     render(<PlaceCard />)
-    open('12') // Ingeniería Civil: sin teléfono
+    open('facultad-de-ingenieria-civil') // Ingeniería Civil: sin teléfono
     expect(screen.queryByText(/Teléfono:/)).not.toBeInTheDocument()
+  })
+
+  describe('campos nuevos de la base (HU-28)', () => {
+    const rich = {
+      id: 'centro',
+      name: 'Centro de cómputo',
+      category: 'servicios',
+      coordinates: [-77.08, -12.05] as [number, number],
+      keywords: [],
+      email: 'cec@unmsm.edu.pe',
+      website: 'https://cec.unmsm.edu.pe/inicio',
+      accessHint: 'Entrando por la Puerta 3, a la derecha.',
+    }
+
+    it('RF-28.10: muestra correo, página web y «Cómo encontrarlo» cuando existen', () => {
+      seedPlaces([rich])
+      render(<PlaceCard />)
+      open('centro')
+      expect(screen.getByRole('heading', { name: 'Cómo encontrarlo' })).toBeInTheDocument()
+      expect(screen.getByText('Entrando por la Puerta 3, a la derecha.')).toBeInTheDocument()
+      expect(screen.getByText('Correo: cec@unmsm.edu.pe')).toBeInTheDocument()
+      const link = screen.getByRole('link', { name: 'https://cec.unmsm.edu.pe/inicio' })
+      expect(link).toHaveAttribute('href', 'https://cec.unmsm.edu.pe/inicio')
+      expect(link).toHaveAttribute('rel', expect.stringContaining('noopener'))
+    })
+
+    it('RF-28.10: sin esos datos no hay secciones vacías', () => {
+      render(<PlaceCard />)
+      open('puerta-3')
+      expect(screen.queryByRole('heading', { name: 'Cómo encontrarlo' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('link')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Correo:|Web:/)).not.toBeInTheDocument()
+    })
+
+    it('RF-28.10: una web que no es http(s) no se vuelve enlace', () => {
+      seedPlaces([{ ...rich, website: 'javascript:alert(1)' }])
+      render(<PlaceCard />)
+      open('centro')
+      expect(screen.queryByRole('link')).not.toBeInTheDocument()
+      expect(screen.getByText('javascript:alert(1)')).toBeInTheDocument()
+    })
+
+    it('RF-28.10: solo el correo también muestra la sección de contacto', () => {
+      seedPlaces([{ ...rich, website: undefined, accessHint: undefined }])
+      render(<PlaceCard />)
+      open('centro')
+      expect(screen.getByRole('heading', { name: 'Contacto' })).toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Cómo encontrarlo' })).not.toBeInTheDocument()
+    })
   })
 
   it('RF-12.10: los auditorios muestran su uso', () => {
     render(<PlaceCard />)
-    open('37')
+    open('auditorio-rosa-alarco-larraburre')
     expect(screen.getByRole('heading', { name: 'Uso' })).toBeInTheDocument()
   })
 
   it('RF-12.12: las cafeterías muestran sus servicios en lista', () => {
     render(<PlaceCard />)
-    open('34')
+    open('cafeteria-de-la-facultad-de-odontologia')
     const section = screen.getByRole('heading', { name: 'Servicios' }).parentElement!
     expect(within(section).getAllByRole('listitem').length).toBeGreaterThan(0)
   })
@@ -78,10 +131,10 @@ describe('PlaceCard', () => {
         <RouteDialog />
       </>,
     )
-    open('8')
+    open('fisi')
     await userEvent.click(screen.getByRole('button', { name: 'Cómo llegar' }))
     const dialog = screen.getByRole('dialog', { name: 'Planificar ruta' })
-    expect(within(dialog).getByRole('combobox', { name: 'Destino' })).toHaveValue(PLACES.find((p) => p.id === '8')!.name)
+    expect(within(dialog).getByRole('combobox', { name: 'Destino' })).toHaveValue(PLACES.find((p) => p.id === 'fisi')!.name)
     expect(within(dialog).getByRole('combobox', { name: 'Punto de partida' })).toHaveFocus()
   })
 
@@ -93,26 +146,26 @@ describe('PlaceCard', () => {
         <RouteDialog />
       </>,
     )
-    open('8')
+    open('fisi')
     await userEvent.click(screen.getByRole('button', { name: 'Cómo llegar' }))
     await userEvent.keyboard('{Escape}') // cierra la lista de «Mi ubicación»
     await userEvent.keyboard('{Escape}')
     expect(screen.queryByRole('dialog', { name: 'Planificar ruta' })).not.toBeInTheDocument()
-    expect(useMapStore.getState().selectedPlaceId).toBe('8')
-    expect(screen.getByRole('dialog', { name: PLACES.find((p) => p.id === '8')!.name })).toBeInTheDocument()
+    expect(useMapStore.getState().selectedPlaceId).toBe('fisi')
+    expect(screen.getByRole('dialog', { name: PLACES.find((p) => p.id === 'fisi')!.name })).toBeInTheDocument()
   })
 
   it('RF-12.5: al elegir otro lugar la ficha cambia', () => {
     render(<PlaceCard />)
-    open('8')
-    open('3')
+    open('fisi')
+    open('puerta-3')
     expect(screen.getByRole('dialog', { name: 'Puerta 3' })).toBeInTheDocument()
     expect(screen.getAllByRole('dialog')).toHaveLength(1)
   })
 
   it('RF-12.6: el botón «Cerrar» cierra la ficha y limpia la selección', async () => {
     render(<PlaceCard />)
-    open('3')
+    open('puerta-3')
     await userEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(useMapStore.getState().selectedPlaceId).toBeNull()
@@ -120,14 +173,14 @@ describe('PlaceCard', () => {
 
   it('RF-12.6: Esc cierra la ficha', async () => {
     render(<PlaceCard />)
-    open('3')
+    open('puerta-3')
     await userEvent.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('RF-12.16: es un diálogo no modal con el nombre del lugar', () => {
     render(<PlaceCard />)
-    open('3')
+    open('puerta-3')
     const dialog = screen.getByRole('dialog', { name: 'Puerta 3' })
     expect(dialog).not.toHaveAttribute('aria-modal', 'true')
   })
@@ -141,7 +194,7 @@ describe('PlaceCard', () => {
     )
     const before = screen.getByRole('button', { name: 'Antes' })
     before.focus()
-    open('3')
+    open('puerta-3')
     expect(screen.getByRole('button', { name: 'Cerrar' })).toHaveFocus()
     await userEvent.keyboard('{Escape}')
     expect(before).toHaveFocus()

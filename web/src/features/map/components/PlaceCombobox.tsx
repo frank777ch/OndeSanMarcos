@@ -11,13 +11,11 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { LoaderCircle, Search, X } from 'lucide-react'
-import { PLACE_CATEGORIES, PLACES, type Place } from '../data/places'
-import { MIN_QUERY_LENGTH, normalizeText, searchPlaces } from '../utils/search'
+import { usePlacesStore } from '../store/usePlacesStore'
+import type { Place } from '../types'
+import { usePlaceSearch } from '../hooks/usePlaceSearch'
+import { MIN_QUERY_LENGTH, normalizeText } from '../utils/search'
 import { cn } from '@/lib/cn'
-
-const CATEGORY_LABEL = Object.fromEntries(
-  PLACE_CATEGORIES.map((c) => [c.id, c.label]),
-) as Record<string, string>
 
 /** Opción fija que se ofrece con el campo vacío (por ejemplo «Mi ubicación»). */
 export interface ExtraOption {
@@ -73,14 +71,17 @@ export function PlaceCombobox({
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [anchor, setAnchor] = useState<CSSProperties>({})
 
-  const results = useMemo(() => searchPlaces(PLACES, value), [value])
+  const categories = usePlacesStore((s) => s.categories)
+  const categoryLabel = useMemo(() => new Map(categories.map((c) => [c.id, c.label])), [categories])
+  const { results, pending } = usePlaceSearch(value)
   const searching = normalizeText(value).length >= MIN_QUERY_LENGTH
   const empty = value.trim() === ''
   const options: Option[] = empty
     ? extraOptions.map((extra) => ({ key: extra.id, extra }))
     : results.map((place) => ({ key: place.id, place }))
   const showList = open && options.length > 0
-  const showEmpty = open && searching && results.length === 0
+  // Mientras el servidor aún responde no se anuncia «sin resultados»: puede traer coincidencias aproximadas.
+  const showEmpty = open && searching && results.length === 0 && !pending
   const listVisible = showList || showEmpty
   const optionId = (i: number) => `${baseId}-opt-${i}`
 
@@ -216,7 +217,7 @@ export function PlaceCombobox({
                   onMouseEnter={() => setActiveIndex(i)}
                 >
                   <span className="font-medium">{option.place?.name ?? option.extra?.label}</span>
-                  {option.place && <span className="text-xs text-muted">{CATEGORY_LABEL[option.place.category]}</span>}
+                  {option.place && <span className="text-xs text-muted">{categoryLabel.get(option.place.category)}</span>}
                 </li>
               ))}
           </ul>

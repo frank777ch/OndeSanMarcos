@@ -4,6 +4,7 @@ import {
   NO_LOCATION_NOTICE,
   useRouteStore,
 } from './useRouteStore'
+import { seedPlaces } from '@/test/fixtures/places'
 
 const place = (placeId: string) => ({ kind: 'place' as const, placeId })
 const reset = () =>
@@ -20,6 +21,7 @@ const flush = () => vi.advanceTimersByTimeAsync(1)
 
 describe('useRouteStore', () => {
   beforeEach(() => {
+    seedPlaces()
     vi.useFakeTimers()
     reset()
     useLocationStore.setState({ permission: 'granted', position: null, locating: false })
@@ -32,7 +34,7 @@ describe('useRouteStore', () => {
     await flush()
     expect(useRouteStore.getState().result).toBeNull()
     expect(useRouteStore.getState().status).toBe('idle')
-    s.setDestination(place('8'))
+    s.setDestination(place('fisi'))
     expect(useRouteStore.getState().status).toBe('calculating')
     await flush()
     const { status, result } = useRouteStore.getState()
@@ -42,7 +44,7 @@ describe('useRouteStore', () => {
 
   it('RF-13.27: la ruta calculada queda guardada con path y distancia', async () => {
     useRouteStore.getState().setOrigin(place('biblioteca-central'))
-    useRouteStore.getState().setDestination(place('8'))
+    useRouteStore.getState().setDestination(place('fisi'))
     await flush()
     const { result } = useRouteStore.getState()
     expect(result?.ok && result.route.path.length).toBeGreaterThan(1)
@@ -50,8 +52,8 @@ describe('useRouteStore', () => {
   })
 
   it('RF-13.13: el mismo lugar da error', async () => {
-    useRouteStore.getState().setOrigin(place('3'))
-    useRouteStore.getState().setDestination(place('3'))
+    useRouteStore.getState().setOrigin(place('puerta-3'))
+    useRouteStore.getState().setDestination(place('puerta-3'))
     await flush()
     expect(useRouteStore.getState().result).toEqual({ ok: false, error: 'same-place' })
   })
@@ -59,17 +61,17 @@ describe('useRouteStore', () => {
   it('RF-13.25: cambiar un punto descarta el resultado viejo', async () => {
     const s = useRouteStore.getState()
     s.setOrigin(place('biblioteca-central'))
-    s.setDestination(place('8'))
-    s.setDestination(place('3')) // antes de que termine el primer cálculo
+    s.setDestination(place('fisi'))
+    s.setDestination(place('puerta-3')) // antes de que termine el primer cálculo
     await flush()
     const { result } = useRouteStore.getState()
-    expect(result?.ok && result.route.destination).toEqual(place('3'))
+    expect(result?.ok && result.route.destination).toEqual(place('puerta-3'))
   })
 
   it('RF-13.25 y RF-13.30: vaciar un campo quita el resultado', async () => {
     const s = useRouteStore.getState()
     s.setOrigin(place('biblioteca-central'))
-    s.setDestination(place('8'))
+    s.setDestination(place('fisi'))
     await flush()
     s.setDestination(null)
     expect(useRouteStore.getState().result).toBeNull()
@@ -85,13 +87,13 @@ describe('useRouteStore', () => {
     s.swap()
     expect(useRouteStore.getState().origin).toBeNull()
     expect(useRouteStore.getState().destination).toEqual(place('biblioteca-central'))
-    s.setOrigin(place('8'))
+    s.setOrigin(place('fisi'))
     await flush()
     s.swap()
     await flush()
     const st = useRouteStore.getState()
     expect(st.origin).toEqual(place('biblioteca-central'))
-    expect(st.destination).toEqual(place('8'))
+    expect(st.destination).toEqual(place('fisi'))
     expect(st.result?.ok).toBe(true)
   })
 
@@ -99,7 +101,7 @@ describe('useRouteStore', () => {
     const s = useRouteStore.getState()
     s.openDialog()
     s.setOrigin(place('biblioteca-central'))
-    s.setDestination(place('8'))
+    s.setDestination(place('fisi'))
     await flush()
     s.closeDialog()
     expect(useRouteStore.getState().open).toBe(false)
@@ -111,18 +113,18 @@ describe('useRouteStore', () => {
   })
 
   it('RF-13.32: openDialog con un destino lo fija y conserva el origen', () => {
-    useRouteStore.getState().setOrigin(place('8'))
-    useRouteStore.getState().openDialog('3')
+    useRouteStore.getState().setOrigin(place('fisi'))
+    useRouteStore.getState().openDialog('puerta-3')
     const st = useRouteStore.getState()
-    expect(st.destination).toEqual(place('3'))
-    expect(st.origin).toEqual(place('8'))
+    expect(st.destination).toEqual(place('puerta-3'))
+    expect(st.origin).toEqual(place('fisi'))
   })
 
   it('RF-13.38: startRoute guarda la ruta activa y cierra el diálogo', async () => {
     const s = useRouteStore.getState()
     s.openDialog()
     s.setOrigin(place('biblioteca-central'))
-    s.setDestination(place('8'))
+    s.setDestination(place('fisi'))
     await flush()
     s.startRoute()
     const st = useRouteStore.getState()
@@ -134,8 +136,8 @@ describe('useRouteStore', () => {
   it('RF-13.37: startRoute sin ruta válida no hace nada', async () => {
     const s = useRouteStore.getState()
     s.openDialog()
-    s.setOrigin(place('3'))
-    s.setDestination(place('3'))
+    s.setOrigin(place('puerta-3'))
+    s.setDestination(place('puerta-3'))
     await flush()
     s.startRoute()
     expect(useRouteStore.getState().activeRoute).toBeNull()
@@ -145,17 +147,17 @@ describe('useRouteStore', () => {
   it('RF-13.40 y RF-13.41: editar el diálogo no altera la ruta activa; clearActiveRoute la quita y conserva los campos', async () => {
     const s = useRouteStore.getState()
     s.setOrigin(place('biblioteca-central'))
-    s.setDestination(place('8'))
+    s.setDestination(place('fisi'))
     await flush()
     s.startRoute()
     const active = useRouteStore.getState().activeRoute
-    s.setDestination(place('3'))
+    s.setDestination(place('puerta-3'))
     await flush()
     expect(useRouteStore.getState().activeRoute).toBe(active)
     s.clearActiveRoute()
     expect(useRouteStore.getState().activeRoute).toBeNull()
     expect(useRouteStore.getState().origin).toEqual(place('biblioteca-central'))
-    expect(useRouteStore.getState().destination).toEqual(place('3'))
+    expect(useRouteStore.getState().destination).toEqual(place('puerta-3'))
   })
 
   describe('mi ubicación', () => {
@@ -174,7 +176,7 @@ describe('useRouteStore', () => {
     })
 
     it('RF-13.16: mientras lee ubicación el estado es «locating» y no hay cálculo', async () => {
-      useRouteStore.getState().setDestination(place('8'))
+      useRouteStore.getState().setDestination(place('fisi'))
       let resolve!: (p: typeof position) => void
       locate.mockReturnValue(new Promise((r) => (resolve = r)))
       const pending = useRouteStore.getState().chooseMyLocation()

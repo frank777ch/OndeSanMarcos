@@ -2,13 +2,19 @@ import { useEffect, useId, useRef } from 'react'
 import { Route, X } from 'lucide-react'
 import { Button } from '@/components/Button/Button'
 import { IconButton } from '@/components/IconButton/IconButton'
-import { PLACE_CATEGORIES, PLACES } from '../data/places'
 import { useRouteStore } from '@/features/routing/store/useRouteStore'
 import { useMapStore } from '../store/useMapStore'
+import { usePlacesStore } from '../store/usePlacesStore'
 
-const CATEGORY_LABEL = Object.fromEntries(
-  PLACE_CATEGORIES.map((c) => [c.id, c.label]),
-) as Record<string, string>
+/** Solo se enlazan direcciones http(s): el dato lo escribe un administrador y no debe llegar un `javascript:` a un `href`. */
+function isHttpUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value)
+    return protocol === 'http:' || protocol === 'https:'
+  } catch {
+    return false
+  }
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -35,7 +41,8 @@ export function PlaceCard() {
   const closeRef = useRef<HTMLButtonElement>(null)
   const selectedPlaceId = useMapStore((s) => s.selectedPlaceId)
   const clearSelection = useMapStore((s) => s.clearSelection)
-  const place = PLACES.find((p) => p.id === selectedPlaceId) ?? null
+  const place = usePlacesStore((s) => (selectedPlaceId ? s.byId[selectedPlaceId] : undefined)) ?? null
+  const categoryLabel = usePlacesStore((s) => s.categories.find((c) => c.id === place?.category)?.label)
   const isOpen = place !== null
 
   // Foco: al abrir va a «Cerrar»; al cerrar vuelve a donde estaba.
@@ -64,7 +71,9 @@ export function PlaceCard() {
   const contact = [
     place.phone && `Teléfono: ${place.phone}`,
     place.annex && `Anexo: ${place.annex}`,
+    place.email && `Correo: ${place.email}`,
   ].filter(Boolean) as string[]
+  const website = place.website ?? null
 
   return (
     <aside role="dialog" aria-labelledby={titleId} className="mt-auto min-h-0 w-[min(24rem,100%)] flex-[0_1_auto] overflow-y-auto rounded-lg border border-border bg-bg px-6 py-4 shadow-lg">
@@ -73,7 +82,7 @@ export function PlaceCard() {
           <h2 id={titleId} className="text-lg">
             {place.name}
           </h2>
-          <p className="text-sm text-muted">{CATEGORY_LABEL[place.category]}</p>
+          <p className="text-sm text-muted">{categoryLabel}</p>
         </div>
         <IconButton ref={closeRef} label="Cerrar" onClick={clearSelection}>
           <X size={18} />
@@ -110,11 +119,28 @@ export function PlaceCard() {
           <p>{place.usage}</p>
         </Section>
       )}
-      {contact.length > 0 && (
+      {place.accessHint && (
+        <Section title="Cómo encontrarlo">
+          <p>{place.accessHint}</p>
+        </Section>
+      )}
+      {(contact.length > 0 || website) && (
         <Section title="Contacto">
           {contact.map((line) => (
             <p key={line}>{line}</p>
           ))}
+          {website && (
+            <p>
+              Web:{' '}
+              {isHttpUrl(website) ? (
+                <a href={website} target="_blank" rel="noopener noreferrer" className="text-primary underline [overflow-wrap:anywhere]">
+                  {website}
+                </a>
+              ) : (
+                <span className="[overflow-wrap:anywhere]">{website}</span>
+              )}
+            </p>
+          )}
         </Section>
       )}
       {place.careers && (

@@ -1,4 +1,5 @@
-import { PLACES, type Place } from '../data/places'
+import { PLACES } from '@/test/fixtures/places'
+import type { Place } from '../types'
 import { normalizeText, searchPlaces } from './search'
 
 const names = (r: Place[]) => r.map((p) => p.name)
@@ -34,6 +35,14 @@ describe('searchPlaces', () => {
     const r = searchPlaces(PLACES, 'biblioteca')
     expect(r[0].id).toBe('biblioteca-central')
     expect(r[0].category).toBe('servicios')
+  })
+
+  it('RF-28.9: encuentra por el nombre corto, con el mismo orden que una palabra clave', () => {
+    const places: Place[] = [
+      { id: 'x', name: 'Centro de cómputo', shortName: 'CEC', category: 'servicios', coordinates: [0, 0], keywords: [] },
+      { id: 'y', name: 'Cecina de la esquina', category: 'servicios', coordinates: [0, 0], keywords: [] },
+    ]
+    expect(searchPlaces(places, 'cec').map((p) => p.id)).toEqual(['x', 'y'])
   })
 
   it('RF-11.8: con menos de 2 caracteres no devuelve nada', () => {

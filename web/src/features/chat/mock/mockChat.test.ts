@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { PLACES } from '@/features/map/data/places'
+import { PLACES } from '@/test/fixtures/places'
 import { buildMockResponse } from './mockChat'
+import { seedPlaces } from '@/test/fixtures/places'
 
 describe('buildMockResponse', () => {
+  beforeEach(() => seedPlaces())
   it('RF-04.20: devuelve el lugar nombrado con id, nombre y horario', () => {
     const res = buildMockResponse('quiero ir a la biblioteca')
     const library = res.locations.find((l) => l.id === 'biblioteca-central')
@@ -14,19 +16,19 @@ describe('buildMockResponse', () => {
   it('RF-04.20: no distingue mayúsculas ni tildes', () => {
     const ids = (q: string) => buildMockResponse(q).locations.map((l) => l.id)
     expect(ids('INGENIERÍA DE SISTEMAS')).toEqual(ids('ingenieria de sistemas'))
-    expect(ids('ingenieria de sistemas')).toContain('8')
+    expect(ids('ingenieria de sistemas')).toContain('fisi')
   })
 
   it('RF-04.20: devuelve todos los lugares nombrados', () => {
     const res = buildMockResponse('la fisi y la biblioteca')
     const ids = res.locations.map((l) => l.id)
-    expect(ids).toContain('8')
+    expect(ids).toContain('fisi')
     expect(ids).toContain('biblioteca-central')
     expect(res.answer).toContain(`${res.locations.length} lugares`)
   })
 
   it('RF-04.20: solo coincide con palabras completas', () => {
-    expect(buildMockResponse('un aperitivo').locations.map((l) => l.id)).not.toContain('8')
+    expect(buildMockResponse('un aperitivo').locations.map((l) => l.id)).not.toContain('fisi')
   })
 
   it('RF-04.21: sin lugar responde que es una demostración y sin lugares', () => {

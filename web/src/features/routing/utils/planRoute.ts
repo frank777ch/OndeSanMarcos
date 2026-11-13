@@ -1,4 +1,4 @@
-import { PLACES } from '../../map/data/places'
+import { usePlacesStore } from '../../map/store/usePlacesStore'
 import type { LngLat } from '../../map/constants/campus'
 import { haversine, type Coord } from './distance'
 import { getCampusGraph, nearestNode, shortestPath, type Graph } from './pathfinder'
@@ -24,12 +24,12 @@ export type RouteResult = { ok: true; route: PlannedRoute } | { ok: false; error
 
 export function pointCoordinates(point: RoutePoint): LngLat | null {
   if (point.kind === 'my-location') return point.coordinates
-  return PLACES.find((p) => p.id === point.placeId)?.coordinates ?? null
+  return usePlacesStore.getState().byId[point.placeId]?.coordinates ?? null
 }
 
 export function pointLabel(point: RoutePoint): string {
   if (point.kind === 'my-location') return 'Mi ubicación'
-  return PLACES.find((p) => p.id === point.placeId)?.name ?? ''
+  return usePlacesStore.getState().byId[point.placeId]?.name ?? ''
 }
 
 export function planRoute(

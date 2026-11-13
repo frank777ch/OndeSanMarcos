@@ -5,6 +5,7 @@ import { useMapStore } from '../../map/store/useMapStore'
 import { useRouteStore } from '../store/useRouteStore'
 import { RouteButton } from './RouteButton'
 import { RouteDialog } from './RouteDialog'
+import { seedPlaces } from '@/test/fixtures/places'
 
 const from = () => screen.getByRole('combobox', { name: 'Punto de partida' })
 const to = () => screen.getByRole('combobox', { name: 'Destino' })
@@ -25,6 +26,7 @@ function setup() {
 
 describe('RouteDialog', () => {
   beforeEach(() => {
+    seedPlaces()
     useRouteStore.setState({ open: false, origin: null, destination: null, status: 'idle', result: null, activeRoute: null, notice: null })
     useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null })
     useLocationStore.setState({ permission: 'granted', position: null, locating: false })

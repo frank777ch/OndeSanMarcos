@@ -1,9 +1,5 @@
 import type { Feature, FeatureCollection, Point } from 'geojson'
-import {
-  PLACE_CATEGORIES,
-  type Place,
-  type PlaceCategoryId,
-} from '../data/places'
+import type { Place, PlaceCategory, PlaceCategoryId } from '../types'
 
 export type PlaceProperties = {
   id: string
@@ -12,9 +8,8 @@ export type PlaceProperties = {
   color: string
 }
 
-const COLOR_BY_CATEGORY = Object.fromEntries(
-  PLACE_CATEGORIES.map((c) => [c.id, c.color]),
-) as Record<PlaceCategoryId, string>
+/** Color de un punto cuya categoría no se conoce (no debería ocurrir: la base lo impide). */
+const FALLBACK_COLOR = '#757575'
 
 /** Todos los lugares, o solo los de la categoría indicada. */
 export function filterPlaces(
@@ -27,7 +22,9 @@ export function filterPlaces(
 /** Convierte lugares a GeoJSON para una fuente de Mapbox. */
 export function placesToGeoJSON(
   places: Place[],
+  categories: PlaceCategory[],
 ): FeatureCollection<Point, PlaceProperties> {
+  const colorByCategory = new Map(categories.map((c) => [c.id, c.color]))
   const features: Feature<Point, PlaceProperties>[] = places.map((p) => ({
     type: 'Feature',
     geometry: { type: 'Point', coordinates: p.coordinates },
@@ -35,7 +32,7 @@ export function placesToGeoJSON(
       id: p.id,
       name: p.name,
       category: p.category,
-      color: COLOR_BY_CATEGORY[p.category],
+      color: colorByCategory.get(p.category) ?? FALLBACK_COLOR,
     },
   }))
   return { type: 'FeatureCollection', features }

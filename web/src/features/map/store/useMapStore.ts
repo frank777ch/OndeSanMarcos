@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { PLACES, type PlaceCategoryId } from '../data/places'
+import type { PlaceCategoryId } from '../types'
+import { usePlacesStore } from './usePlacesStore'
 
 /** Quién eligió el lugar: un toque en el mapa u otra fuente (buscador, chat…). */
 export type SelectionOrigin = 'map' | 'other'
@@ -31,7 +32,7 @@ export const useMapStore = create<MapState>((set) => ({
   toggleCategory: (id) =>
     set((s) => {
       const next = s.activeCategory === id ? null : id
-      const selected = PLACES.find((p) => p.id === s.selectedPlaceId)
+      const selected = s.selectedPlaceId ? usePlacesStore.getState().byId[s.selectedPlaceId] : undefined
       const hidden = next !== null && selected !== undefined && selected.category !== next
       return hidden
         ? { activeCategory: next, selectedPlaceId: null, selectionOrigin: null }
@@ -39,7 +40,7 @@ export const useMapStore = create<MapState>((set) => ({
     }),
   selectPlace: (id, origin = 'other') =>
     set((s) => {
-      const place = PLACES.find((p) => p.id === id)
+      const place = usePlacesStore.getState().byId[id]
       if (!place) return s
       const hidden = s.activeCategory !== null && s.activeCategory !== place.category
       return {

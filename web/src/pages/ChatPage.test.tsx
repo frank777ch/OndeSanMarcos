@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { useChatStore } from '@/features/chat/store/useChatStore'
 import { ChatPage } from './ChatPage'
+import { seedPlaces } from '@/test/fixtures/places'
 
 const sendChatQuery = vi.fn()
 vi.mock('@/services/api/chatApi', () => ({ sendChatQuery: (q: string) => sendChatQuery(q) }))
@@ -15,6 +16,7 @@ const page = () => (
 
 describe('ChatPage', () => {
   beforeEach(() => {
+    seedPlaces()
     sendChatQuery.mockReset()
     useChatStore.setState({ messages: [], status: 'idle', error: null, lastQuery: null })
   })

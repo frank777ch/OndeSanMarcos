@@ -2,11 +2,14 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useMapStore } from '../store/useMapStore'
 import { CategoryChips } from './CategoryChips'
+import { resetPlaces, seedPlaces } from '@/test/fixtures/places'
+import { usePlacesStore } from '../store/usePlacesStore'
 
 describe('CategoryChips', () => {
+  beforeEach(() => seedPlaces())
   beforeEach(() => useMapStore.setState({ activeCategory: null }))
 
-  it('RF-11.5: muestra un botón por categoría en el orden definido, sin ninguno activo', () => {
+  it('RF-11.5 y RF-28.8: un botón por categoría con lugares, en el orden de la API, sin ninguno activo', () => {
     render(<CategoryChips />)
     const buttons = screen.getAllByRole('button')
     expect(buttons.map((b) => b.textContent)).toEqual([
@@ -16,11 +19,38 @@ describe('CategoryChips', () => {
       'Campos deportivos',
       'Puertas',
       'Administración',
-      'Salud',
       'Servicios',
-      'Otros',
     ])
     for (const b of buttons) expect(b).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('RF-28.8: una categoría sin lugares publicados no tiene botón («Otros» no tiene lugares)', () => {
+    render(<CategoryChips />)
+    expect(screen.queryByRole('button', { name: 'Otros' })).not.toBeInTheDocument()
+  })
+
+  it('RF-28.8: las etiquetas y el orden salen de las categorías cargadas, también las nuevas', () => {
+    seedPlaces(
+      [
+        { id: 'a', name: 'A', category: 'nueva', coordinates: [-77, -12], keywords: [] },
+        { id: 'b', name: 'B', category: 'puertas', coordinates: [-77, -12], keywords: [] },
+      ],
+      [
+        { id: 'nueva', label: 'Mi categoría', color: '#123456' },
+        { id: 'puertas', label: 'Puertas', color: '#e74c3c' },
+      ],
+    )
+    render(<CategoryChips />)
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Mi categoría', 'Puertas'])
+  })
+
+  it('RF-28.3: sin lugares cargados (cargando o con error) no hay botones', () => {
+    resetPlaces()
+    const { container, rerender } = render(<CategoryChips />)
+    expect(container).toBeEmptyDOMElement()
+    usePlacesStore.setState({ status: 'error' })
+    rerender(<CategoryChips />)
+    expect(container).toBeEmptyDOMElement()
   })
 
   it('RF-10.6: pulsar un chip lo marca como activo', async () => {

@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { PLACES } from '@/features/map/data/places'
 import { ApiError } from '@/services/api/client'
 import { sendChatQuery } from '@/services/api/chatApi'
 import type { LocationResult } from '../types'
@@ -25,7 +24,6 @@ interface ChatState {
 }
 
 const GENERIC_ERROR = 'El asistente tuvo un problema. Inténtalo de nuevo.'
-const KNOWN_PLACE_IDS = new Set(PLACES.map((p) => p.id))
 
 let nextId = 0
 const newId = () => `m${++nextId}`
@@ -42,8 +40,8 @@ export const useChatStore = create<ChatState>((set, get) => {
         id: newId(),
         role: 'assistant',
         text: response.answer,
-        // Un lugar que el mapa no conoce no tiene a dónde llevar (RF-05.18).
-        places: response.locations.filter((l) => KNOWN_PLACE_IDS.has(l.id)),
+        // Se guardan todos; `AssistantMessage` omite al mostrar los que el mapa no conoce (RF-05.18, RF-28.14).
+        places: response.locations,
       }
       set((s) => ({ messages: [...s.messages, message], status: 'idle', error: null }))
     } catch (error) {

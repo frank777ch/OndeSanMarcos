@@ -1,4 +1,4 @@
-import type { Place } from '../data/places'
+import type { Place } from '../types'
 
 export const MIN_QUERY_LENGTH = 2
 export const MAX_RESULTS = 8
@@ -28,7 +28,8 @@ export function searchPlaces(
   const ranked: { place: Place; rank: number }[] = []
   for (const place of places) {
     const name = normalizeText(place.name)
-    const keywords = place.keywords.map(normalizeText)
+    // El nombre corto (la sigla) cuenta como una palabra clave más.
+    const keywords = (place.shortName ? [...place.keywords, place.shortName] : place.keywords).map(normalizeText)
     let rank: number | null = null
     if (keywords.includes(q)) rank = 0
     else if (name.startsWith(q)) rank = 1

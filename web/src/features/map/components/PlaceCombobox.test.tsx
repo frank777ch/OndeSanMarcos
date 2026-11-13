@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { Place } from '../data/places'
+import type { Place } from '../types'
 import { PlaceCombobox } from './PlaceCombobox'
+import { seedPlaces } from '@/test/fixtures/places'
 
 const onChoose = vi.fn<(p: Place) => void>()
 const onChooseExtra = vi.fn<(id: string) => void>()
@@ -32,7 +33,10 @@ function Harness({ extra = true }: { extra?: boolean }) {
 const box = () => screen.getByRole('combobox', { name: 'Punto de partida' })
 
 describe('PlaceCombobox', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    seedPlaces()
+    vi.clearAllMocks()
+  })
 
   it('RF-13.7: busca sin tildes ni mayúsculas y muestra la categoría', async () => {
     render(<Harness />)
@@ -46,14 +50,15 @@ describe('PlaceCombobox', () => {
     await userEvent.type(box(), 'f')
     expect(screen.queryByRole('option')).not.toBeInTheDocument()
     await userEvent.type(box(), 'xyzw')
-    expect(screen.getByRole('status')).toHaveTextContent('No encontramos ese lugar')
+    // El aviso espera la respuesta del servidor (aquí falla, como sin conexión): HU-36, RF-36.16.
+    expect(await screen.findByRole('status')).toHaveTextContent('No encontramos ese lugar')
   })
 
   it('RF-13.7: se elige con flechas y Enter', async () => {
     render(<Harness />)
     await userEvent.type(box(), 'puerta 3')
     await userEvent.keyboard('{ArrowDown}{Enter}')
-    expect(onChoose).toHaveBeenCalledWith(expect.objectContaining({ id: '3' }))
+    expect(onChoose).toHaveBeenCalledWith(expect.objectContaining({ id: 'puerta-3' }))
     expect(box()).toHaveValue('Puerta 3')
   })
 

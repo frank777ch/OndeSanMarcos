@@ -1,4 +1,4 @@
-import { PLACES } from '@/features/map/data/places'
+import { usePlacesStore } from '@/features/map/store/usePlacesStore'
 import { normalizeText } from '@/features/map/utils/search'
 import type { ChatResponse, LocationResult } from '../types'
 
@@ -13,7 +13,7 @@ function words(text: string): string {
 /** Respuesta de demostración: busca por nombre o palabra clave (palabras completas). */
 export function buildMockResponse(query: string): ChatResponse {
   const haystack = ` ${words(query)} `
-  const matches = PLACES.filter((place) =>
+  const matches = usePlacesStore.getState().places.filter((place) =>
     [place.name, ...place.keywords].some((term) => {
       const t = words(term)
       return t !== '' && haystack.includes(` ${t} `)

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { useChatStore, type ChatMessage } from '../store/useChatStore'
 import { MessageList } from './MessageList'
+import { seedPlaces } from '@/test/fixtures/places'
 
 const retry = vi.fn()
 const setChat = (over: Partial<ReturnType<typeof useChatStore.getState>>) =>
@@ -28,6 +29,7 @@ const bot = (id: string, text: string): ChatMessage => ({ id, role: 'assistant',
 
 describe('MessageList', () => {
   beforeEach(() => {
+    seedPlaces()
     retry.mockReset()
     setChat({})
   })

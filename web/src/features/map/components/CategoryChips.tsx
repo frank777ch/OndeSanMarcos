@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
   Building2,
   Coffee,
@@ -10,11 +11,12 @@ import {
   Mic,
   type LucideIcon,
 } from 'lucide-react'
-import { PLACE_CATEGORIES, type PlaceCategoryId } from '../data/places'
 import { useMapStore } from '../store/useMapStore'
+import { selectVisibleCategories, usePlacesStore } from '../store/usePlacesStore'
 import { cn } from '@/lib/cn'
 
-const ICONS: Record<PlaceCategoryId, LucideIcon> = {
+/** Icono por categoría; una categoría nueva (creada por el administrador) usa `MapPin`. */
+const ICONS: Record<string, LucideIcon> = {
   facultades: Building2,
   cafeterias: Coffee,
   auditorios: Mic,
@@ -29,11 +31,18 @@ const ICONS: Record<PlaceCategoryId, LucideIcon> = {
 export function CategoryChips() {
   const activeCategory = useMapStore((s) => s.activeCategory)
   const toggleCategory = useMapStore((s) => s.toggleCategory)
+  const status = usePlacesStore((s) => s.status)
+  const places = usePlacesStore((s) => s.places)
+  const categories = usePlacesStore((s) => s.categories)
+  const visible = useMemo(() => selectVisibleCategories({ places, categories }), [places, categories])
+
+  // Sin datos no hay botones (RF-28.3); las categorías sin lugares tampoco (RF-28.8).
+  if (status !== 'ready') return null
 
   return (
     <div className="flex w-full min-w-0 gap-2 overflow-x-auto [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar lugares por categoría">
-      {PLACE_CATEGORIES.map(({ id, label }) => {
-        const Icon = ICONS[id]
+      {visible.map(({ id, label }) => {
+        const Icon = ICONS[id] ?? MapPin
         const active = activeCategory === id
         return (
           <button

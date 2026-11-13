@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { useMapStore } from '@/features/map/store/useMapStore'
 import { PlaceLinkCard } from './PlaceLinkCard'
+import { seedPlaces } from '@/test/fixtures/places'
 
 const library = {
   id: 'biblioteca-central',
@@ -23,9 +24,10 @@ function renderCard() {
 }
 
 describe('PlaceLinkCard', () => {
-  beforeEach(() =>
-    useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null }),
-  )
+  beforeEach(() => {
+    seedPlaces()
+    useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null })
+  })
 
   it('RF-05.16: muestra el nombre y el horario', () => {
     renderCard()
@@ -35,7 +37,7 @@ describe('PlaceLinkCard', () => {
 
   it('RF-05.16: sin horario no muestra esa línea', () => {
     const router = createMemoryRouter([
-      { path: '/', element: <PlaceLinkCard place={{ id: '8', name: 'FISI' }} /> },
+      { path: '/', element: <PlaceLinkCard place={{ id: 'fisi', name: 'FISI' }} /> },
     ])
     render(<RouterProvider router={router} />)
     expect(screen.getByText('FISI')).toBeInTheDocument()

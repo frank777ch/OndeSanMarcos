@@ -1,7 +1,7 @@
-import { PLACES } from '../../map/data/places'
+import { seedPlaces } from '@/test/fixtures/places'
 import { haversine } from './distance'
 import { buildGraph, getCampusGraph, nearestNode, shortestPath } from './pathfinder'
-import { MAX_ACCESS_DISTANCE, planRoute, type RoutePoint } from './planRoute'
+import { MAX_ACCESS_DISTANCE, planRoute, pointCoordinates, pointLabel, type RoutePoint } from './planRoute'
 
 const place = (placeId: string): RoutePoint => ({ kind: 'place', placeId })
 const at = (coordinates: [number, number]): RoutePoint => ({ kind: 'my-location', coordinates })
@@ -13,10 +13,22 @@ const C: [number, number] = [-76.99, -11.9]
 const D: [number, number] = [-76.99, -11.899]
 
 describe('planRoute', () => {
+  beforeEach(() => seedPlaces())
   const graph = buildGraph({ features: [line(A, B), line(C, D)] })
 
+  it('RF-28.12: nombre y coordenadas de un lugar salen de los lugares cargados', () => {
+    expect(pointLabel(place('fisi'))).toBe('Facultad de Ingeniería de Sistemas e Informática (FISI)')
+    expect(pointCoordinates(place('fisi'))).toEqual([-77.0857217, -12.0535548])
+    expect(pointLabel(place('no-existe'))).toBe('')
+    expect(pointCoordinates(place('no-existe'))).toBeNull()
+  })
+
+  it('RF-28.12: un lugar que no está cargado no se puede enrutar', () => {
+    expect(planRoute(place('no-existe'), place('fisi'))).toEqual({ ok: false, error: 'no-path' })
+  })
+
   it('RF-13.13: el mismo lugar como origen y destino no se calcula', () => {
-    expect(planRoute(place('3'), place('3'))).toEqual({ ok: false, error: 'same-place' })
+    expect(planRoute(place('puerta-3'), place('puerta-3'))).toEqual({ ok: false, error: 'same-place' })
   })
 
   it('RF-13.22: la distancia suma el tramo de acceso, el camino y el tramo final', () => {
@@ -53,7 +65,7 @@ describe('planRoute', () => {
   })
 
   it('RF-13.20: entre dos lugares reales la ruta tiene distancia y sigue los nodos del grafo', () => {
-    const r = planRoute(place('biblioteca-central'), place('8'))
+    const r = planRoute(place('biblioteca-central'), place('fisi'))
     expect(r.ok).toBe(true)
     if (!r.ok) return
     expect(r.route.distance).toBeGreaterThan(0)
@@ -63,17 +75,31 @@ describe('planRoute', () => {
   })
 })
 
-describe('datos reales del campus', () => {
+// Los lugares ya no viven en el código de la web: la comprobación usa la semilla de la base de
+// datos (`backend/db/seed/places.json`), que es la fuente. Si el repositorio no está completo
+// (p. ej. dentro del contenedor de la web, que solo monta `web/`) el glob no encuentra nada y se omite.
+type SeedFile = { places: { name: string; lat: number; lng: number }[] }
+const seedFiles = import.meta.glob<SeedFile>('../../../../../backend/db/seed/places.json', {
+  eager: true,
+  import: 'default',
+})
+const seed = Object.values(seedFiles)[0]
+const seedPlacesData = seed
+  ? seed.places.map((p) => ({ name: p.name, coordinates: [p.lng, p.lat] as [number, number] }))
+  : null
+
+describe.skipIf(seedPlacesData === null)('datos reales del campus (semilla de la base)', () => {
   const g = getCampusGraph()
+  const places = seedPlacesData ?? []
 
   it('RF-13.23: todos los lugares están a 150 m o menos de un camino', () => {
-    const lejos = PLACES.filter((p) => nearestNode(g, p.coordinates)!.distance > MAX_ACCESS_DISTANCE)
+    const lejos = places.filter((p) => nearestNode(g, p.coordinates)!.distance > MAX_ACCESS_DISTANCE)
     expect(lejos.map((p) => p.name)).toEqual([])
   })
 
   it('RF-13.24: todos los lugares quedan conectados entre sí', () => {
-    const root = nearestNode(g, PLACES[0].coordinates)!.id
-    const aisladas = PLACES.filter((p) => !shortestPath(g, root, nearestNode(g, p.coordinates)!.id))
+    const root = nearestNode(g, places[0].coordinates)!.id
+    const aisladas = places.filter((p) => !shortestPath(g, root, nearestNode(g, p.coordinates)!.id))
     expect(aisladas.map((p) => p.name)).toEqual([])
   })
 })

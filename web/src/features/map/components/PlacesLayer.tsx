@@ -1,16 +1,22 @@
 import { useMemo } from 'react'
 import { Layer, Source } from 'react-map-gl/mapbox'
-import { PLACES } from '../data/places'
 import { useMapStore } from '../store/useMapStore'
+import { usePlacesStore } from '../store/usePlacesStore'
 import { filterPlaces, placesToGeoJSON } from '../utils/places'
 
 /** Puntos de los lugares del campus, filtrados por la categoría activa. */
 export function PlacesLayer() {
   const activeCategory = useMapStore((s) => s.activeCategory)
+  const status = usePlacesStore((s) => s.status)
+  const places = usePlacesStore((s) => s.places)
+  const categories = usePlacesStore((s) => s.categories)
   const data = useMemo(
-    () => placesToGeoJSON(filterPlaces(PLACES, activeCategory)),
-    [activeCategory],
+    () => placesToGeoJSON(filterPlaces(places, activeCategory), categories),
+    [places, categories, activeCategory],
   )
+
+  // Sin datos (cargando o con error) no se dibuja nada (RF-28.3).
+  if (status !== 'ready') return null
 
   return (
     <Source id="places" type="geojson" data={data}>

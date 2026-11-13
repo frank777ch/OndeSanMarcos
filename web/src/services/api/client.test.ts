@@ -197,3 +197,53 @@ describe('apiClient (HU-26)', () => {
     expect(written).not.toContain('tok-secreto')
   })
 })
+
+describe('apiClient · administración (HU-31)', () => {
+  const fetchMock = vi.fn()
+  beforeEach(() => vi.stubGlobal('fetch', fetchMock))
+  afterEach(() => {
+    fetchMock.mockReset()
+    vi.unstubAllGlobals()
+  })
+
+  it('RF-31.34: PUT envía el cuerpo como JSON', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ ok: true }))
+    await apiClient.put('/api/admin/places/fisi', { name: 'X' })
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('http://api.test/api/admin/places/fisi')
+    expect(init.method).toBe('PUT')
+    expect(init.headers).toMatchObject({ 'Content-Type': 'application/json' })
+    expect(init.body).toBe(JSON.stringify({ name: 'X' }))
+  })
+
+  it('RF-31.34: DELETE no lleva cuerpo y una respuesta 204 devuelve undefined', async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }))
+    await expect(apiClient.delete('/api/admin/place-categories/x')).resolves.toBeUndefined()
+    const init = fetchMock.mock.calls[0][1]
+    expect(init.method).toBe('DELETE')
+    expect(init.body).toBeUndefined()
+  })
+
+  it('RF-31.17: el error HTTP conserva el cuerpo JSON (el detail de un 422)', async () => {
+    const detail = [{ loc: ['body', 'email'], msg: 'Debe ser un correo válido.' }]
+    fetchMock.mockResolvedValue(jsonResponse({ detail }, { status: 422 }))
+    const error = await failure(apiClient.put('/x', {}))
+    expect(error.status).toBe(422)
+    expect(error.body).toEqual({ detail })
+  })
+
+  it('un error sin cuerpo JSON no rompe: body queda vacío', async () => {
+    fetchMock.mockResolvedValue(new Response('boom', { status: 500 }))
+    const error = await failure(apiClient.get('/x'))
+    expect(error.status).toBe(500)
+    expect(error.body).toBeUndefined()
+  })
+
+  it('RF-31.33: fresh pide revalidar (cache: no-cache); sin fresh no cambia nada', async () => {
+    fetchMock.mockImplementation(() => Promise.resolve(jsonResponse([])))
+    await apiClient.get('/api/places', undefined, { fresh: true })
+    await apiClient.get('/api/places')
+    expect(fetchMock.mock.calls[0][1].cache).toBe('no-cache')
+    expect(fetchMock.mock.calls[1][1].cache).toBeUndefined()
+  })
+})

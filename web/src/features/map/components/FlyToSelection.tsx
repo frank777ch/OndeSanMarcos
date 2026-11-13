@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useMap } from 'react-map-gl/mapbox'
-import { PLACES } from '../data/places'
 import { useMapStore } from '../store/useMapStore'
+import { usePlacesStore } from '../store/usePlacesStore'
 
 const SELECTED_ZOOM = 18
 
@@ -14,7 +14,7 @@ export function FlyToSelection() {
     if (!map || !selectedPlaceId) return
     // Un toque en el mapa no mueve la cámara: el lugar ya está a la vista.
     if (useMapStore.getState().selectionOrigin === 'map') return
-    const place = PLACES.find((p) => p.id === selectedPlaceId)
+    const place = usePlacesStore.getState().byId[selectedPlaceId]
     if (!place) return
     map.flyTo({ center: place.coordinates, zoom: SELECTED_ZOOM, duration: 1500 })
   }, [map, selectedPlaceId])

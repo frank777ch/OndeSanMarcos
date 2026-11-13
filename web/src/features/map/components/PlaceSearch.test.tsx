@@ -4,16 +4,44 @@ import { useMapStore } from '../store/useMapStore'
 import { act } from 'react'
 import { PlaceCard } from './PlaceCard'
 import { PlaceSearch } from './PlaceSearch'
+import { resetPlaces, seedPlaces } from '@/test/fixtures/places'
+import { usePlacesStore } from '../store/usePlacesStore'
 
 const box = () => screen.getByRole('combobox', { name: 'Buscar un lugar' })
 
 describe('PlaceSearch', () => {
+  beforeEach(() => seedPlaces())
   beforeEach(() => useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null }))
 
   it('RF-12.18 y RF-05.19: si el mapa se abre con un lugar ya elegido (desde el chat), el campo muestra su nombre', () => {
     useMapStore.getState().selectPlace('biblioteca-central', 'other')
     render(<PlaceSearch />)
     expect(box()).toHaveValue('Biblioteca Central Pedro Zulen')
+  })
+
+  it('RF-28.3: mientras no hay lugares cargados el campo está deshabilitado y no ofrece resultados', () => {
+    resetPlaces()
+    render(<PlaceSearch />)
+    expect(box()).toBeDisabled()
+    usePlacesStore.setState({ status: 'error' })
+    expect(box()).toBeDisabled()
+  })
+
+  it('RF-28.3: al terminar de cargar el campo se habilita', () => {
+    resetPlaces()
+    render(<PlaceSearch />)
+    expect(box()).toBeDisabled()
+    act(() => seedPlaces())
+    expect(box()).toBeEnabled()
+  })
+
+  it('RF-28.9: buscar no llama a la red al teclear', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    render(<PlaceSearch />)
+    await userEvent.type(box(), 'psicolog')
+    expect(screen.getByRole('option', { name: /Facultad de Psicología/ })).toBeInTheDocument()
+    expect(fetchSpy).not.toHaveBeenCalled()
+    fetchSpy.mockRestore()
   })
 
   it('RF-11.6: muestra el campo «Buscar un lugar»', () => {
@@ -38,7 +66,7 @@ describe('PlaceSearch', () => {
   it('RF-11.9: sin coincidencias muestra «No encontramos ese lugar»', async () => {
     render(<PlaceSearch />)
     await userEvent.type(box(), 'xyz')
-    expect(screen.getByRole('status')).toHaveTextContent('No encontramos ese lugar')
+    expect(await screen.findByRole('status')).toHaveTextContent('No encontramos ese lugar')
   })
 
   it('RF-11.10: muestra como máximo 8 resultados', async () => {
@@ -51,7 +79,7 @@ describe('PlaceSearch', () => {
     render(<PlaceSearch />)
     await userEvent.type(box(), 'puerta 3')
     await userEvent.click(screen.getByRole('option', { name: /Puerta 3/ }))
-    expect(useMapStore.getState().selectedPlaceId).toBe('3')
+    expect(useMapStore.getState().selectedPlaceId).toBe('puerta-3')
     expect(screen.queryByRole('option')).not.toBeInTheDocument()
     expect(box()).toHaveValue('Puerta 3')
   })
@@ -122,7 +150,7 @@ describe('PlaceSearch', () => {
         <PlaceCard />
       </>,
     )
-    act(() => useMapStore.getState().selectPlace('3', 'map'))
+    act(() => useMapStore.getState().selectPlace('puerta-3', 'map'))
     expect(box()).toHaveValue('Puerta 3')
     expect(screen.queryByRole('option')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
@@ -136,7 +164,7 @@ describe('PlaceSearch', () => {
         <PlaceCard />
       </>,
     )
-    act(() => useMapStore.getState().selectPlace('3', 'map'))
+    act(() => useMapStore.getState().selectPlace('puerta-3', 'map'))
     await userEvent.clear(box())
     await userEvent.type(box(), 'facultad')
     expect(screen.getAllByRole('option').length).toBeGreaterThan(0)

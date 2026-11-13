@@ -2,6 +2,7 @@ import { act } from '@testing-library/react'
 import { ApiError } from '@/services/api/client'
 import type { ChatResponse } from '../types'
 import { useChatStore } from './useChatStore'
+import { seedPlaces } from '@/test/fixtures/places'
 
 const sendChatQuery = vi.fn()
 vi.mock('@/services/api/chatApi', () => ({ sendChatQuery: (q: string) => sendChatQuery(q) }))
@@ -26,6 +27,7 @@ function deferred<T>() {
 
 describe('useChatStore', () => {
   beforeEach(() => {
+    seedPlaces()
     sendChatQuery.mockReset()
     useChatStore.setState({ messages: [], status: 'idle', error: null, lastQuery: null })
   })
@@ -122,19 +124,19 @@ describe('useChatStore', () => {
     expect(useChatStore.getState().messages.map((m) => m.role)).toEqual(['user', 'user', 'assistant'])
   })
 
-  it('RF-05.18: descarta los lugares que el mapa no conoce y conserva el orden', async () => {
+  it('RF-28.14: guarda todas las ubicaciones de la respuesta, también las que el mapa aún no conoce, y conserva el orden', async () => {
     sendChatQuery.mockResolvedValue(
       reply({
         locations: [
           { id: 'biblioteca-central', name: 'Biblioteca Central Pedro Zulen' },
           { id: 'no-existe', name: 'Fantasma' },
-          { id: '8', name: 'FISI' },
+          { id: 'fisi', name: 'FISI' },
         ],
       }),
     )
     await act(() => useChatStore.getState().send('lugares'))
     const last = useChatStore.getState().messages.at(-1)
-    expect(last?.role === 'assistant' && last.places.map((p) => p.id)).toEqual(['biblioteca-central', '8'])
+    expect(last?.role === 'assistant' && last.places.map((p) => p.id)).toEqual(['biblioteca-central', 'no-existe', 'fisi'])
   })
 
   it('RF-05.23: la conversación vive en el store y no depende de la pantalla', async () => {
