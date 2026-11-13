@@ -17,8 +17,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app import __version__
+from app.api.admin_places import categories_router as admin_categories_router
+from app.api.admin_places import places_router as admin_places_router
 from app.api.auth import router as auth_router
 from app.api.chat import router as chat_router
+from app.api.places import router as places_router
 from app.auth.admin import ensure_initial_admin
 from app.auth.tokens import require_jwt_secret
 from app.config import Settings, get_settings
@@ -73,6 +76,14 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    @app.middleware("http")
+    async def _no_store_for_admin(request: Request, call_next):  # type: ignore[no-untyped-def]
+        """La administración nunca se cachea (HU-30, RF-30.2)."""
+        response = await call_next(request)
+        if request.url.path.startswith("/api/admin"):
+            response.headers["Cache-Control"] = "no-store"
+        return response
+
     @app.exception_handler(RagProviderError)
     async def _handle_provider_error(
         request: Request, exc: RagProviderError
@@ -87,6 +98,9 @@ def create_app() -> FastAPI:
 
     app.include_router(chat_router)
     app.include_router(auth_router)
+    app.include_router(places_router)
+    app.include_router(admin_places_router)
+    app.include_router(admin_categories_router)
     return app
 
 

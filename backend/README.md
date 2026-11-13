@@ -174,6 +174,88 @@ otra, además de la que redacta la respuesta. Por eso:
 
 ---
 
+## 📍 Lugares del campus (tablas `places` y `place_categories`)
+
+Los lugares viven en Postgres (migración `V3__places.sql`): nombre, categoría,
+coordenadas (`lat`, `lng`), palabras clave y los campos de la ficha (horario,
+teléfono, anexo, descripción, carreras, servicios, cómo llegar…). El `id` es un
+slug estable (`fisi`, `puerta-8`). `verified_at` vacío = dato sin confirmar con la
+universidad (hoy todos). `is_published` permite ocultar un lugar sin borrarlo.
+
+```bash
+./scripts/dev.sh seed-places    # carga db/seed/places.json; no pisa lo que ya existe
+```
+
+- La carga es **idempotente**: una segunda corrida no inserta nada y las ediciones
+  hechas después se conservan. Si la semilla tiene un lugar inválido, no escribe
+  nada y el error nombra el lugar.
+- Tras `db-reset` hay que volver a correr `seed-places` (las migraciones crean las
+  tablas vacías). Para rehacer un lugar, bórralo con `psql` y vuelve a cargar.
+- `db/seed/places.json` es la semilla versionada; `db/seed/place_id_map.json` traduce
+  los ids antiguos de la web (`"8"`) a los slugs (`fisi`). La semilla **no** depende de
+  `places.ts`, `places.py` ni del corpus.
+- La semilla se generó una sola vez a partir de los datos que la web tenía en el código
+  (ya retirados, HU-28); desde entonces la fuente de verdad es la base de datos y este JSON
+  es solo el punto de partida para un entorno nuevo. `app.tools.places.export_seed` queda
+  como registro de cómo se unieron esas fuentes (fusión de duplicados, slugs y mapa de ids).
+
+### API pública de lugares (solo lectura, sin autenticación)
+
+| Endpoint | Devuelve |
+|---|---|
+| `GET /api/place-categories` | Categorías (`id`, `label`, `color`), ordenadas por `sort_order`. |
+| `GET /api/places` | Lugares **publicados**, ordenados por nombre. Filtro opcional `?category=<id>` (una categoría inexistente da `[]`). |
+| `GET /api/places/{id}` | Un lugar publicado. Si no existe, está oculto o el id no es un slug: el mismo `404`. |
+
+Cada lugar trae `id`, `name`, `short_name`, `category_id`, `lat`, `lng`, `keywords`,
+`description`, `schedule`, `detailed_schedule`, `phone`, `annex`, `email`, `website`,
+`access_hint`, `careers`, `services`, `usage`, `image_url`, `parent_place_id`,
+`is_published`, `verified_at` (vacío = dato sin confirmar) y `updated_at`. Las listas
+sin datos son `[]` y los textos sin dato, `null`. No se exponen `created_at` ni
+`updated_by`. Con la base apagada responden `503`.
+
+**Caché:** las respuestas `200` llevan `Cache-Control: public, max-age=60` y un `ETag`
+(hash del contenido). Con `If-None-Match` vigente responden `304` sin cuerpo; un cambio
+en la base cambia el `ETag`. Tras editar un lugar, un visitante puede ver el dato
+anterior hasta 60 s.
+
+```bash
+curl -i http://localhost:8000/api/places/fisi
+curl -i http://localhost:8000/api/places/fisi -H 'If-None-Match: "<etag>"'   # 304
+curl 'http://localhost:8000/api/places?category=puertas'
+```
+
+#### Búsqueda de lugares (`GET /api/places/search?q=`)
+
+Pública, solo lugares publicados. Busca en `places` con Postgres (`unaccent` + `pg_trgm`, migración V5; **no usa pgvector ni embeddings**): ignora tildes y mayúsculas y tolera errores de escritura (`bibliotca` → Biblioteca). Orden por niveles: sigla o palabra clave exacta, el nombre empieza con el texto, el nombre lo contiene, una palabra clave lo contiene y, por último, coincidencia aproximada (solo con 3+ caracteres). `q` de 2 a 100 caracteres (con menos de 2, lista vacía); `limit` de 1 a 20 (por defecto 8). Misma caché (`ETag`, 60 s) que el resto de la API pública. Sin índices: con decenas de lugares un escaneo es más barato; si el catálogo crece, agregar un índice GIN `gin_trgm_ops` sobre `immutable_unaccent(lower(name))`.
+
+### API de administración de lugares (requiere sesión de administrador)
+
+Todas las rutas llevan `Authorization: Bearer <token>` (se obtiene en `POST /api/auth/login`; en `/docs`, botón «Authorize») y responden con `Cache-Control: no-store`. Sin token válido: 401.
+
+| Método y ruta | Qué hace |
+|---|---|
+| `GET /api/admin/places` | Todos los lugares, también los ocultos, con `created_at` y `updated_by`. Filtros: `category`, `published`, `verified`, `q` (sin tildes ni mayúsculas; nombre, sigla, palabras clave e id). |
+| `GET /api/admin/places/{id}` | Ficha completa, publicada o no. |
+| `POST /api/admin/places` | Crea un lugar (201 + `Location`). El `id` lo asigna el sistema (número incremental desde 1000); no se acepta en el cuerpo. |
+| `PUT /api/admin/places/{id}` | **Reemplazo completo**: lo que no se envía queda vacío. Para despublicar: `is_published: false`. |
+| `POST /api/admin/places/{id}/reindex` | Repite la sincronización con el asistente. |
+| `GET/POST /api/admin/place-categories`, `PUT/DELETE /api/admin/place-categories/{id}` | Categorías con su `places_count`. Solo se borra una categoría sin lugares (409 si tiene). |
+
+Los lugares **no se borran** (`DELETE` responde 405): se despublican.
+
+Campos obligatorios: `name`, `category_id`, `lat`, `lng` (dentro del área del campus: lat -12.070…-12.043, lng -77.096…-77.069). `verified: true` fija `verified_at` (si ya estaba, conserva la fecha); `false` la borra. Un campo desconocido, un `id`, una categoría o un lugar contenedor inexistente, un correo mal escrito o una URL que no sea `http(s)` dan **422** con `detail: [{loc: ["body", "<campo>"], msg}]`.
+
+Las respuestas de crear, editar y reindexar traen `rag_sync`: `ok`, `skipped` (el asistente aún no se conecta a los lugares, HU-29) o `failed` (el cambio **sí** se guardó; se repite con `/reindex`). La conexión con el asistente vive en `app/places/sync.py`.
+
+```bash
+TOKEN=$(curl -s localhost:8000/api/auth/login -H 'content-type: application/json' \
+  -d '{"username":"admin","password":"..."}' | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
+curl -s localhost:8000/api/admin/places -H "Authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' \
+  -d '{"name":"Laboratorio de Redes","category_id":"facultades","lat":-12.0535,"lng":-77.0857}'
+```
+
 ## 🔐 Login de administrador
 
 - `POST /api/auth/login` con `{ "username", "password" }` → `{ "access_token", "token_type": "bearer", "expires_in" }`. Credenciales incorrectas: 401 (mismo mensaje exista o no el usuario). Tras 5 intentos fallidos seguidos de un usuario: 429 con `Retry-After` durante 15 minutos (contador en memoria: pensado para una sola instancia).
