@@ -41,6 +41,8 @@
 | HU-35 | Administrar eventos (web) | ⬜ Pendiente |
 | HU-36 | Buscador de lugares en el servidor | ⬜ Pendiente |
 | HU-37 | Perfil del administrador y cambio de contraseña | ⬜ Pendiente |
+| HU-38 | Id numérico de los lugares y `slug` aparte | ⬜ Pendiente |
+| HU-39 | Id numérico de las categorías y `slug` aparte | ⬜ Pendiente |
 
 **Avance: 18 de 35 historias hechas.** HU-22 a HU-35 tienen ID alto para no renumerar. Orden propuesto para los datos: HU-22 → 27 → 28 → 29 → 30 → 31 (lugares) y luego HU-32 → 33 → 34 → 35 (eventos); conviene terminarlos antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
@@ -288,6 +290,22 @@ Estados: ⬜ pendiente · ✅ hecha
 - Fuera de alcance: recuperar una contraseña olvidada; crear o borrar otros administradores; cambiar el nombre de usuario; móvil (HU-21).
 - Depende de: HU-25 y HU-26.
 - **Aceptación:** con la contraseña actual correcta se cambia y se puede entrar con la nueva; con la actual incorrecta no se cambia y el diálogo lo dice junto al campo.
+
+### HU-38 · Id numérico de los lugares y `slug` aparte ⬜
+**Como** administrador, **quiero** que cada lugar tenga un id numérico normal y que el nombre estandarizado con guiones sea un dato aparte **para** no ver ni depender de identificadores con guiones.
+- La columna `places.id` pasa de texto a un entero autoincremental; el slug que hoy hace de id (`biblioteca-central`) pasa a una columna nueva `slug` (única). Los lugares nuevos reciben el slug generado del nombre.
+- La API y la web usan el id numérico; el asistente sigue nombrando los lugares por slug hasta HU-29 y la web los resuelve.
+- Fuera de alcance: cambiar el corpus del asistente (HU-29).
+- Depende de: HU-22, HU-27, HU-30 y HU-31.
+- **Aceptación:** `GET /api/places/3` devuelve el lugar con `id: 3` y `slug`; crear dos lugares con el mismo nombre da slugs distintos; en el panel no aparecen ids con guiones.
+
+### HU-39 · Id numérico de las categorías y `slug` aparte ⬜
+**Como** administrador, **quiero** que las categorías tengan un id numérico y un `slug` generado del nombre **para** no escribir ni ver identificadores con guiones, igual que en los lugares (HU-38).
+- `place_categories.id` pasa a entero autoincremental y el texto actual a `slug` (único); `places.category_id` apunta al id numérico.
+- El formulario de categorías ya no pide el id: solo nombre, color y orden; el slug se genera del nombre y se muestra de solo lectura al editar.
+- La API y la web usan el id numérico (`?category=5`).
+- Depende de: HU-38.
+- **Aceptación:** crear dos categorías con el mismo nombre da slugs distintos; filtrar `/api/places?category=<id>` devuelve sus lugares; el formulario no muestra campo de id.
 
 ## Extras y cierre
 
