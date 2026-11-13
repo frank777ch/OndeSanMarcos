@@ -7,9 +7,9 @@
 - [x] T5 · Web: tipos, API, stores, componentes y resolución del slug del asistente
 - [x] T6 · Pruebas de web
 - [x] T7 · README del backend
-- [ ] T8 · Prueba manual en el navegador (lista, edición, mapa, chat «Ver en el mapa»)
+- [x] T8 · Prueba manual en el navegador (lista, edición, mapa, chat «Ver en el mapa»)
 
 ## Verificación final
 - [x] Backend y web en verde (pytest; web 69 archivos / 570 pruebas, tsc, lint, build)
-- [ ] `spec.md` en «Implementada» y ✅ en `histories.md` (tras T8)
-- [ ] Commit
+- [x] `spec.md` en «Implementada» y ✅ en `histories.md`
+- [x] Commit

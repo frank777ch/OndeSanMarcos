@@ -1,6 +1,6 @@
 # HU-39 · Id numérico de las categorías y `slug` aparte
 
-- **Estado:** Aprobada
+- **Estado:** Implementada
 - **Depende de:** HU-38 (mismo patrón en los lugares), HU-30 (API de administración), HU-31 (panel).
 - **Archivos hermanos:** [plan.md](plan.md) · [task.md](task.md)
 
@@ -33,4 +33,4 @@
 
 ## 5. Historial
 - 2026-11-12 · Spec aprobada (decisión del usuario: «haz lo mismo con las categorías, ahí que se llame slug»).
-- 2026-11-12 · Implementada y probada; pendiente la verificación manual en el navegador.
+- 2026-11-12 · Implementada y probada; verificada manualmente en el navegador por el usuario.

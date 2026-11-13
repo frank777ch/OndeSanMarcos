@@ -1,6 +1,6 @@
 # HU-38 · Id numérico de los lugares y `slug` aparte
 
-- **Estado:** Aprobada
+- **Estado:** Implementada
 - **Depende de:** HU-22 (tablas), HU-27 (API pública), HU-30 (API de administración), HU-31 (panel).
 - **Archivos hermanos:** [plan.md](plan.md) · [task.md](task.md)
 
@@ -39,4 +39,4 @@ Resueltas el 2026-11-12: el `id` es un número entero en la API y la web (no un 
 
 ## 6. Historial
 - 2026-11-12 · Spec aprobada.
-- 2026-11-12 · Implementada y probada. Pendiente la verificación manual en el navegador. Un lugar de prueba creado antes desde el panel («Kiosko FISI», id 1001) conservó su número y su slug se corrigió a mano a `kiosko-fisi` en la base de desarrollo.
+- 2026-11-12 · Implementada y probada. Verificada manualmente en el navegador por el usuario. Un lugar de prueba creado antes desde el panel («Kiosko FISI», id 1001) conservó su número y su slug se corrigió a mano a `kiosko-fisi` en la base de desarrollo.
