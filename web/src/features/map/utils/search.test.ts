@@ -1,4 +1,4 @@
-import { PLACES } from '@/test/fixtures/places'
+import { PLACES, catId } from '@/test/fixtures/places'
 import type { Place } from '../types'
 import { normalizeText, searchPlaces } from './search'
 
@@ -33,16 +33,16 @@ describe('searchPlaces', () => {
 
   it('RF-11.7: encuentra lugares que antes no estaban (biblioteca)', () => {
     const r = searchPlaces(PLACES, 'biblioteca')
-    expect(r[0].id).toBe('biblioteca-central')
-    expect(r[0].category).toBe('servicios')
+    expect(r[0].slug).toBe('biblioteca-central')
+    expect(r[0].category).toBe(catId('servicios'))
   })
 
   it('RF-28.9: encuentra por el nombre corto, con el mismo orden que una palabra clave', () => {
     const places: Place[] = [
-      { id: 'x', name: 'Centro de cómputo', shortName: 'CEC', category: 'servicios', coordinates: [0, 0], keywords: [] },
-      { id: 'y', name: 'Cecina de la esquina', category: 'servicios', coordinates: [0, 0], keywords: [] },
+      { id: 24, slug: 'x', name: 'Centro de cómputo', shortName: 'CEC', category: catId('servicios'), coordinates: [0, 0], keywords: [] },
+      { id: 25, slug: 'y', name: 'Cecina de la esquina', category: catId('servicios'), coordinates: [0, 0], keywords: [] },
     ]
-    expect(searchPlaces(places, 'cec').map((p) => p.id)).toEqual(['x', 'y'])
+    expect(searchPlaces(places, 'cec').map((p) => p.slug)).toEqual(['x', 'y'])
   })
 
   it('RF-11.8: con menos de 2 caracteres no devuelve nada', () => {
@@ -58,12 +58,12 @@ describe('searchPlaces', () => {
 
   it('RF-11.10: palabra clave exacta, luego empieza con, luego contiene, al final palabra clave parcial', () => {
     const places: Place[] = [
-      { id: 'd', name: 'Otro lugar', category: 'salud', coordinates: [0, 0], keywords: ['salud'] },
-      { id: 'a', name: 'Centro de salud', category: 'salud', coordinates: [0, 0], keywords: [] },
-      { id: 'b', name: 'Salud Total', category: 'salud', coordinates: [0, 0], keywords: [] },
-      { id: 'c', name: 'Clínica', category: 'salud', coordinates: [0, 0], keywords: ['salud mental'] },
+      { id: 4, slug: 'd', name: 'Otro lugar', category: catId('salud'), coordinates: [0, 0], keywords: ['salud'] },
+      { id: 1, slug: 'a', name: 'Centro de salud', category: catId('salud'), coordinates: [0, 0], keywords: [] },
+      { id: 2, slug: 'b', name: 'Salud Total', category: catId('salud'), coordinates: [0, 0], keywords: [] },
+      { id: 3, slug: 'c', name: 'Clínica', category: catId('salud'), coordinates: [0, 0], keywords: ['salud mental'] },
     ]
-    expect(searchPlaces(places, 'salud').map((p) => p.id)).toEqual(['d', 'b', 'a', 'c'])
+    expect(searchPlaces(places, 'salud').map((p) => p.slug)).toEqual(['d', 'b', 'a', 'c'])
   })
 
   it('RF-11.10: devuelve como máximo 8 resultados', () => {

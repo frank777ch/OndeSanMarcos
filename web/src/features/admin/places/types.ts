@@ -3,10 +3,12 @@ export type RagSync = 'ok' | 'skipped' | 'failed'
 
 /** Lugar tal como lo ve el administrador: publicado o no, con datos internos. */
 export interface AdminPlace {
-  id: string
+  id: number
+  /** Nombre estandarizado (minúsculas y guiones). Lo genera el sistema y no cambia al renombrar. */
+  slug: string
   name: string
   shortName: string | null
-  categoryId: string
+  categoryId: number
   lat: number
   lng: number
   keywords: string[]
@@ -22,7 +24,7 @@ export interface AdminPlace {
   services: string[]
   usage: string | null
   imageUrl: string | null
-  parentPlaceId: string | null
+  parentPlaceId: number | null
   isPublished: boolean
   verifiedAt: string | null
   createdAt: string
@@ -33,7 +35,7 @@ export interface AdminPlace {
 /** Lo que se envía al guardar un lugar: reemplazo completo, sin `id` ni datos internos. */
 export interface AdminPlaceInput {
   name: string
-  categoryId: string
+  categoryId: number
   lat: number
   lng: number
   shortName: string | null
@@ -50,13 +52,15 @@ export interface AdminPlaceInput {
   services: string[]
   usage: string | null
   imageUrl: string | null
-  parentPlaceId: string | null
+  parentPlaceId: number | null
   isPublished: boolean
   verified: boolean
 }
 
 export interface AdminCategory {
-  id: string
+  id: number
+  /** Nombre estandarizado, generado del nombre al crear; solo lectura. */
+  slug: string
   label: string
   color: string
   sortOrder: number
@@ -64,8 +68,6 @@ export interface AdminCategory {
 }
 
 export interface AdminCategoryInput {
-  /** Solo al crear. */
-  id?: string
   label: string
   color: string
   /** `null`: al crear queda al final; al editar se conserva. */

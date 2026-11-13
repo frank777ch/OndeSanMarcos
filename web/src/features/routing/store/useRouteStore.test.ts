@@ -4,9 +4,9 @@ import {
   NO_LOCATION_NOTICE,
   useRouteStore,
 } from './useRouteStore'
-import { seedPlaces } from '@/test/fixtures/places'
+import { idOf, seedPlaces } from '@/test/fixtures/places'
 
-const place = (placeId: string) => ({ kind: 'place' as const, placeId })
+const place = (slug: string) => ({ kind: 'place' as const, placeId: idOf(slug) })
 const reset = () =>
   useRouteStore.setState({
     open: false,
@@ -114,7 +114,7 @@ describe('useRouteStore', () => {
 
   it('RF-13.32: openDialog con un destino lo fija y conserva el origen', () => {
     useRouteStore.getState().setOrigin(place('fisi'))
-    useRouteStore.getState().openDialog('puerta-3')
+    useRouteStore.getState().openDialog(idOf('puerta-3'))
     const st = useRouteStore.getState()
     expect(st.destination).toEqual(place('puerta-3'))
     expect(st.origin).toEqual(place('fisi'))

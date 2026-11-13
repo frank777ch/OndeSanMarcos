@@ -60,7 +60,7 @@ export function CategoriesTable() {
               <tr>
                 <th scope="col" className="px-4 py-3">Color</th>
                 <th scope="col" className="px-4 py-3">Nombre</th>
-                <th scope="col" className="px-4 py-3">Id</th>
+                <th scope="col" className="px-4 py-3">Slug</th>
                 <th scope="col" className="px-4 py-3">Orden</th>
                 <th scope="col" className="px-4 py-3">Lugares</th>
                 <th scope="col" className="px-4 py-3 text-right">Acciones</th>
@@ -78,7 +78,7 @@ export function CategoriesTable() {
                     />
                   </td>
                   <th scope="row" className="px-4 py-3 font-medium">{c.label}</th>
-                  <td className="px-4 py-3"><code>{c.id}</code></td>
+                  <td className="px-4 py-3"><code>{c.slug}</code></td>
                   <td className="px-4 py-3">{c.sortOrder}</td>
                   <td className="px-4 py-3">{placesText(c.placesCount)}</td>
                   <td className="px-4 py-3">

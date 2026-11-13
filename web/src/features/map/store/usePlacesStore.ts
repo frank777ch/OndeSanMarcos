@@ -13,7 +13,9 @@ interface PlacesState {
   /** Lugares publicados, en el orden de la API. Vacío hasta `ready`. */
   places: Place[]
   /** Los mismos lugares por id, para resolverlos rápido (RF-28.11). */
-  byId: Record<string, Place>
+  byId: Record<number, Place>
+  /** Mismos lugares por slug: el asistente los nombra así (su corpus aún no usa los ids numéricos). */
+  bySlug: Record<string, Place>
   /** Categorías de la API, en su orden. */
   categories: PlaceCategory[]
   /**
@@ -37,6 +39,7 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
   status: 'idle',
   places: [],
   byId: {},
+  bySlug: {},
   categories: [],
   load: async () => {
     const { status } = get()
@@ -49,10 +52,11 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
         places,
         categories,
         byId: Object.fromEntries(places.map((p) => [p.id, p])),
+        bySlug: Object.fromEntries(places.map((p) => [p.slug, p])),
       })
     } catch {
       // El detalle técnico ya lo registró el cliente de red; el usuario ve un mensaje fijo.
-      set({ status: 'error', places: [], byId: {}, categories: [] })
+      set({ status: 'error', places: [], byId: {}, bySlug: {}, categories: [] })
     }
   },
   addMissing: (incoming) => {
@@ -62,6 +66,7 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
     set((s) => ({
       places: [...s.places, ...fresh],
       byId: { ...s.byId, ...Object.fromEntries(fresh.map((p) => [p.id, p])) },
+      bySlug: { ...s.bySlug, ...Object.fromEntries(fresh.map((p) => [p.slug, p])) },
     }))
   },
   refresh: async () => {
@@ -72,6 +77,7 @@ export const usePlacesStore = create<PlacesState>((set, get) => ({
         places,
         categories,
         byId: Object.fromEntries(places.map((p) => [p.id, p])),
+        bySlug: Object.fromEntries(places.map((p) => [p.slug, p])),
       })
     } catch {
       // Se queda con los datos anteriores: un refresco fallido no debe vaciar el mapa.

@@ -4,7 +4,7 @@ import { useMapStore } from '../store/useMapStore'
 import { act } from 'react'
 import { PlaceCard } from './PlaceCard'
 import { PlaceSearch } from './PlaceSearch'
-import { resetPlaces, seedPlaces } from '@/test/fixtures/places'
+import { resetPlaces, seedPlaces, idOf, catId } from '@/test/fixtures/places'
 import { usePlacesStore } from '../store/usePlacesStore'
 
 const box = () => screen.getByRole('combobox', { name: 'Buscar un lugar' })
@@ -14,7 +14,7 @@ describe('PlaceSearch', () => {
   beforeEach(() => useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null }))
 
   it('RF-12.18 y RF-05.19: si el mapa se abre con un lugar ya elegido (desde el chat), el campo muestra su nombre', () => {
-    useMapStore.getState().selectPlace('biblioteca-central', 'other')
+    useMapStore.getState().selectPlace(idOf('biblioteca-central'), 'other')
     render(<PlaceSearch />)
     expect(box()).toHaveValue('Biblioteca Central Pedro Zulen')
   })
@@ -79,13 +79,13 @@ describe('PlaceSearch', () => {
     render(<PlaceSearch />)
     await userEvent.type(box(), 'puerta 3')
     await userEvent.click(screen.getByRole('option', { name: /Puerta 3/ }))
-    expect(useMapStore.getState().selectedPlaceId).toBe('puerta-3')
+    expect(useMapStore.getState().selectedPlaceId).toBe(idOf('puerta-3'))
     expect(screen.queryByRole('option')).not.toBeInTheDocument()
     expect(box()).toHaveValue('Puerta 3')
   })
 
   it('RF-11.15: elegir un lugar oculto por el filtro lo quita', async () => {
-    useMapStore.setState({ activeCategory: 'cafeterias' })
+    useMapStore.setState({ activeCategory: catId('cafeterias') })
     render(<PlaceSearch />)
     await userEvent.type(box(), 'puerta 3')
     await userEvent.click(screen.getByRole('option', { name: /Puerta 3/ }))
@@ -150,7 +150,7 @@ describe('PlaceSearch', () => {
         <PlaceCard />
       </>,
     )
-    act(() => useMapStore.getState().selectPlace('puerta-3', 'map'))
+    act(() => useMapStore.getState().selectPlace(idOf('puerta-3'), 'map'))
     expect(box()).toHaveValue('Puerta 3')
     expect(screen.queryByRole('option')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
@@ -164,7 +164,7 @@ describe('PlaceSearch', () => {
         <PlaceCard />
       </>,
     )
-    act(() => useMapStore.getState().selectPlace('puerta-3', 'map'))
+    act(() => useMapStore.getState().selectPlace(idOf('puerta-3'), 'map'))
     await userEvent.clear(box())
     await userEvent.type(box(), 'facultad')
     expect(screen.getAllByRole('option').length).toBeGreaterThan(0)

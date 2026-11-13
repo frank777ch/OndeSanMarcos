@@ -10,7 +10,7 @@ describe('buildMockResponse', () => {
     const library = res.locations.find((l) => l.id === 'biblioteca-central')
     expect(library).toBeDefined()
     expect(library?.name).toBe('Biblioteca Central Pedro Zulen')
-    expect(library?.schedule).toBe(PLACES.find((p) => p.id === 'biblioteca-central')?.schedule)
+    expect(library?.schedule).toBe(PLACES.find((p) => p.slug === 'biblioteca-central')?.schedule)
   })
 
   it('RF-04.20: no distingue mayúsculas ni tildes', () => {
@@ -38,7 +38,7 @@ describe('buildMockResponse', () => {
   })
 
   it('RF-04.22: todos los id que devuelve existen en el mapa', () => {
-    const ids = new Set(PLACES.map((p) => p.id))
+    const ids = new Set(PLACES.map((p) => p.slug))
     for (const query of ['biblioteca', 'fisi', 'comedor', 'gimnasio', 'rectorado', 'facultad']) {
       for (const l of buildMockResponse(query).locations) expect(ids.has(l.id)).toBe(true)
     }

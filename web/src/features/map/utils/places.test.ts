@@ -1,4 +1,4 @@
-import { CATEGORIES, PLACES } from '@/test/fixtures/places'
+import { CATEGORIES, PLACES, catId } from '@/test/fixtures/places'
 import { filterPlaces, placeIdFromFeatures, placesToGeoJSON } from './places'
 
 describe('filterPlaces', () => {
@@ -7,9 +7,9 @@ describe('filterPlaces', () => {
   })
 
   it('RF-11.4: con categoría devuelve solo esa', () => {
-    const result = filterPlaces(PLACES, 'cafeterias')
+    const result = filterPlaces(PLACES, catId('cafeterias'))
     expect(result).toHaveLength(1)
-    expect(result.every((p) => p.category === 'cafeterias')).toBe(true)
+    expect(result.every((p) => p.category === catId('cafeterias'))).toBe(true)
   })
 })
 
@@ -24,10 +24,10 @@ describe('placesToGeoJSON', () => {
 
   it('RF-28.7: un punto por lugar con el color de su categoría, y gris si no se conoce', () => {
     const geo = placesToGeoJSON(
-      [{ id: 'a', name: 'A', category: 'nueva', coordinates: [-77, -12], keywords: [] }, PLACES[0]],
+      [{ id: 1, slug: 'a', name: 'A', category: catId('nueva'), coordinates: [-77, -12], keywords: [] }, PLACES[0]],
       CATEGORIES,
     )
-    expect(geo.features.map((f) => f.properties.id)).toEqual(['a', PLACES[0].id])
+    expect(geo.features.map((f) => f.properties.id)).toEqual([1, PLACES[0].id])
     expect(geo.features[0].properties.color).toBe('#757575')
     expect(geo.features[1].properties.color).toBe(CATEGORIES.find((c) => c.id === PLACES[0].category)?.color)
   })
@@ -44,14 +44,14 @@ describe('placesToGeoJSON', () => {
 describe('placeIdFromFeatures', () => {
   it('RF-12.3: devuelve el id del primer punto tocado', () => {
     expect(
-      placeIdFromFeatures([{ properties: { id: 'puerta-3' } }, { properties: { id: 'fisi' } }]),
-    ).toBe('puerta-3')
+      placeIdFromFeatures([{ properties: { id: 3 } }, { properties: { id: 8 } }]),
+    ).toBe(3)
   })
 
   it('RF-12.7: sin puntos tocados devuelve null', () => {
     expect(placeIdFromFeatures(undefined)).toBeNull()
     expect(placeIdFromFeatures([])).toBeNull()
     expect(placeIdFromFeatures([{ properties: null }])).toBeNull()
-    expect(placeIdFromFeatures([{ properties: { id: 3 } }])).toBeNull()
+    expect(placeIdFromFeatures([{ properties: { id: 'puerta-3' } }])).toBeNull()
   })
 })

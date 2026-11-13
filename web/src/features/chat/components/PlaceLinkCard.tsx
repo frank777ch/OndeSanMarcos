@@ -2,15 +2,19 @@ import { MapPin } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/Button/Button'
 import { useMapStore } from '@/features/map/store/useMapStore'
+import { usePlacesStore } from '@/features/map/store/usePlacesStore'
 import type { LocationResult } from '../types'
 
 /** Lugar nombrado por el asistente, con un botón que lleva al mapa. */
+/** `place.id` es el slug con el que el asistente nombra el lugar. */
 export function PlaceLinkCard({ place }: { place: LocationResult }) {
   const navigate = useNavigate()
 
   const openOnMap = () => {
     // El mapa se monta al entrar a /mapa y vuela solo hasta el lugar elegido.
-    useMapStore.getState().selectPlace(place.id, 'other')
+    // El asistente nombra el lugar por su slug; el mapa lo elige por su id.
+    const target = usePlacesStore.getState().bySlug[place.id]
+    if (target) useMapStore.getState().selectPlace(target.id, 'other')
     navigate('/mapa')
   }
 

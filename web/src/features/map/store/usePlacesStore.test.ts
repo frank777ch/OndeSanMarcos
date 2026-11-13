@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import { ApiError } from '@/services/api/client'
 import type { Place, PlaceCategory } from '../types'
-import { resetPlaces } from '@/test/fixtures/places'
+import { catId, resetPlaces } from '@/test/fixtures/places'
 import { PLACES_ERROR_MESSAGE, selectVisibleCategories, usePlacesStore } from './usePlacesStore'
 
 const fetchPlacesAndCategories = vi.fn()
@@ -9,11 +9,13 @@ vi.mock('@/services/api/placesApi', () => ({
   fetchPlacesAndCategories: (...args: unknown[]) => fetchPlacesAndCategories(...args),
 }))
 
-const place = (id: string, category = 'facultades'): Place => ({ id, name: id, category, coordinates: [-77, -12], keywords: [] })
+const ids: Record<string, number> = {}
+const pid = (slug: string) => (ids[slug] ??= Object.keys(ids).length + 1)
+const place = (slug: string, category = 'facultades'): Place => ({ id: pid(slug), slug, name: slug, category: catId(category), coordinates: [-77, -12], keywords: [] })
 const categories: PlaceCategory[] = [
-  { id: 'facultades', label: 'Facultades', color: '#3056ac' },
-  { id: 'puertas', label: 'Puertas', color: '#e74c3c' },
-  { id: 'vacia', label: 'Vacía', color: '#757575' },
+  { id: catId('facultades'), slug: 'facultades', label: 'Facultades', color: '#3056ac' },
+  { id: catId('puertas'), slug: 'puertas', label: 'Puertas', color: '#e74c3c' },
+  { id: catId('vacia'), slug: 'vacia', label: 'Vacía', color: '#757575' },
 ]
 
 function deferred<T>() {
@@ -49,8 +51,9 @@ describe('usePlacesStore', () => {
     })
     const state = usePlacesStore.getState()
     expect(state.status).toBe('ready')
-    expect(state.places.map((p) => p.id)).toEqual(['fisi', 'puerta-1'])
-    expect(state.byId['fisi']).toBe(state.places[0])
+    expect(state.places.map((p) => p.slug)).toEqual(['fisi', 'puerta-1'])
+    expect(state.byId[pid('fisi')]).toBe(state.places[0])
+    expect(state.bySlug['fisi']).toBe(state.places[0])
   })
 
   it('RF-28.1: no duplica la petición si ya está cargando o ya está listo', async () => {
@@ -99,7 +102,7 @@ describe('usePlacesStore', () => {
 
   it('RF-28.8: selectVisibleCategories omite las categorías sin lugares y respeta el orden', () => {
     const visible = selectVisibleCategories({ places: [place('p', 'puertas'), place('f')], categories })
-    expect(visible.map((c) => c.id)).toEqual(['facultades', 'puertas'])
+    expect(visible.map((c) => c.id)).toEqual([catId('facultades'), catId('puertas')])
   })
   it('RF-31.33: refresh vuelve a pedir con fresh, sin pasar por loading, y reemplaza los datos', async () => {
     fetchPlacesAndCategories.mockResolvedValueOnce({ places: [place('fisi')], categories })
@@ -111,8 +114,9 @@ describe('usePlacesStore', () => {
     unsubscribe()
     expect(fetchPlacesAndCategories).toHaveBeenLastCalledWith({ fresh: true })
     expect(statuses).not.toContain('loading')
-    expect(usePlacesStore.getState().places.map((p) => p.id)).toEqual(['fisi', 'nuevo'])
-    expect(usePlacesStore.getState().byId['nuevo']).toBeDefined()
+    expect(usePlacesStore.getState().places.map((p) => p.slug)).toEqual(['fisi', 'nuevo'])
+    expect(usePlacesStore.getState().byId[pid('nuevo')]).toBeDefined()
+    expect(usePlacesStore.getState().bySlug['nuevo']).toBeDefined()
   })
 
   it('RF-31.33: si refresh falla conserva los datos que ya tenía', async () => {
@@ -121,6 +125,6 @@ describe('usePlacesStore', () => {
     fetchPlacesAndCategories.mockRejectedValueOnce(new ApiError('network', 'sin red'))
     await act(async () => usePlacesStore.getState().refresh())
     expect(usePlacesStore.getState()).toMatchObject({ status: 'ready' })
-    expect(usePlacesStore.getState().places.map((p) => p.id)).toEqual(['fisi'])
+    expect(usePlacesStore.getState().places.map((p) => p.slug)).toEqual(['fisi'])
   })
 })

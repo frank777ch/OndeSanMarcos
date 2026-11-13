@@ -66,7 +66,7 @@ export function PlacesTable() {
   const [unpublishing, setUnpublishing] = useState<AdminPlace | null>(null)
 
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
-  const categoryOptions = useMemo(() => categories.map((c) => ({ value: c.id, label: c.label })), [categories])
+  const categoryOptions = useMemo(() => categories.map((c) => ({ value: String(c.id), label: c.label })), [categories])
   const filtered = useMemo(() => filterPlaces(places, filters), [places, filters])
   const current = clampPage(page, filtered.length)
   const rows = useMemo(() => paginate(filtered, current), [filtered, current])
@@ -101,8 +101,8 @@ export function PlacesTable() {
           clearable
           placeholder="Todas"
           options={categoryOptions}
-          value={filters.categoryId}
-          onChange={(categoryId) => setFilters({ categoryId })}
+          value={filters.categoryId === null ? null : String(filters.categoryId)}
+          onChange={(categoryId) => setFilters({ categoryId: categoryId === null ? null : Number(categoryId) })}
         />
         <TriStateSelect
           label="Estado"
@@ -157,9 +157,9 @@ export function PlacesTable() {
                   <tr key={place.id} className="border-t border-border align-middle">
                     <th scope="row" className="px-4 py-3 font-medium">
                       {place.name}
-                      <span className="block text-sm font-normal text-muted">
-                        {[place.shortName, `id ${place.id}`].filter(Boolean).join(' · ')}
-                      </span>
+                      {place.shortName && (
+                        <span className="block text-sm font-normal text-muted">{place.shortName}</span>
+                      )}
                     </th>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center gap-2">

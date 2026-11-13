@@ -18,22 +18,22 @@ interface AdminPlacesState {
   /** Página actual (desde 1); la tabla la corrige si se pasa del final. */
   page: number
   /** Lugares con una acción de fila en curso (RF-31.10). */
-  busy: Record<string, true>
+  busy: Record<number, true>
   /** Lugar guardado cuyo asistente no se actualizó (RF-31.20). */
-  ragWarning: { placeId: string; name: string } | null
+  ragWarning: { placeId: number; name: string } | null
   load: (options?: { quiet?: boolean }) => Promise<void>
   setFilters: (changes: Partial<PlaceFilters>) => void
   resetFilters: () => void
   setPage: (page: number) => void
   /** `id` nulo crea; con `id` reemplaza. Lanza el error del servidor para que el diálogo lo muestre. */
-  save: (id: string | null, input: AdminPlaceInput) => Promise<SavedPlace>
+  save: (id: number | null, input: AdminPlaceInput) => Promise<SavedPlace>
   togglePublished: (place: AdminPlace) => Promise<boolean>
   toggleVerified: (place: AdminPlace) => Promise<boolean>
   retryReindex: () => Promise<void>
   dismissRagWarning: () => void
 }
 
-const byName = (a: AdminPlace, b: AdminPlace) => a.name.localeCompare(b.name, 'es') || a.id.localeCompare(b.id)
+const byName = (a: AdminPlace, b: AdminPlace) => a.name.localeCompare(b.name, 'es') || a.id - b.id
 const toast = (message: string, kind: 'success' | 'error' = 'success') =>
   useToastStore.getState().show(message, kind)
 

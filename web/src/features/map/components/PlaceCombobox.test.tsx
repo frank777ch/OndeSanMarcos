@@ -58,7 +58,7 @@ describe('PlaceCombobox', () => {
     render(<Harness />)
     await userEvent.type(box(), 'puerta 3')
     await userEvent.keyboard('{ArrowDown}{Enter}')
-    expect(onChoose).toHaveBeenCalledWith(expect.objectContaining({ id: 'puerta-3' }))
+    expect(onChoose).toHaveBeenCalledWith(expect.objectContaining({ slug: 'puerta-3' }))
     expect(box()).toHaveValue('Puerta 3')
   })
 

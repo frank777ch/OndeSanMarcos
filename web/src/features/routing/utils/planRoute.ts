@@ -7,7 +7,7 @@ import { getCampusGraph, nearestNode, shortestPath, type Graph } from './pathfin
 export const MAX_ACCESS_DISTANCE = 150
 
 export type RoutePoint =
-  | { kind: 'place'; placeId: string }
+  | { kind: 'place'; placeId: number }
   | { kind: 'my-location'; coordinates: LngLat }
 
 export interface PlannedRoute {

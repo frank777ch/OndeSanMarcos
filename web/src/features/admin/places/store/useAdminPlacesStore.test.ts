@@ -2,7 +2,7 @@ import { act } from '@testing-library/react'
 import { useToastStore } from '@/components/Toast/toastStore'
 import { ApiError } from '@/services/api/client'
 import { usePlacesStore } from '@/features/map/store/usePlacesStore'
-import { ADMIN_PLACES, adminPlace } from '@/test/fixtures/adminPlaces'
+import { ADMIN_PLACES, adminId, adminPlace } from '@/test/fixtures/adminPlaces'
 import { useAdminCategoriesStore } from '../../categories/store/useAdminCategoriesStore'
 import { EMPTY_FILTERS } from '../utils/filters'
 import { toInput } from '@/services/api/adminPlacesApi'
@@ -42,7 +42,7 @@ describe('load · RF-31.2, RF-31.3', () => {
     expect(store().status).toBe('loading')
     await act(async () => pending)
     expect(store().status).toBe('ready')
-    expect(store().places.map((p) => p.id)).toEqual(['a', 'b'])
+    expect(store().places.map((p) => p.slug)).toEqual(['a', 'b'])
   })
 
   it('un fallo deja el estado en error', async () => {
@@ -73,18 +73,18 @@ describe('filtros y página · RF-31.6', () => {
     store().setFilters({ verified: 'no' })
     store().setPage(2)
     api.saveAdminPlace.mockResolvedValue({ place: adminPlace('fisi', { name: 'FISI nueva' }), ragSync: 'ok' })
-    await act(async () => void (await store().save('fisi', toInput(ADMIN_PLACES[0]))))
+    await act(async () => void (await store().save(adminId('fisi'), toInput(ADMIN_PLACES[0]))))
     expect(store()).toMatchObject({ page: 2, filters: { verified: 'no' } })
   })
 })
 
 describe('save · RF-31.16, RF-31.33', () => {
   it('crea: agrega el lugar devuelto, avisa, y refresca el mapa público y las categorías', async () => {
-    const created = adminPlace('1000', { name: 'Zeta nuevo' })
+    const created = adminPlace('zeta-nuevo', { name: 'Zeta nuevo' })
     api.saveAdminPlace.mockResolvedValue({ place: created, ragSync: 'ok' })
     await act(async () => void (await store().save(null, toInput(created))))
     expect(api.saveAdminPlace).toHaveBeenCalledWith(null, expect.objectContaining({ name: 'Zeta nuevo' }))
-    expect(store().places.map((p) => p.id)).toContain('1000')
+    expect(store().places.map((p) => p.id)).toContain(adminId('zeta-nuevo'))
     expect(toasts()).toContain('Lugar guardado')
     expect(refresh).toHaveBeenCalledTimes(1)
     expect(api.listAdminCategories).toHaveBeenCalledTimes(1)
@@ -95,15 +95,15 @@ describe('save · RF-31.16, RF-31.33', () => {
       place: adminPlace('fisi', { name: 'FISI', verifiedAt: '2026-11-12T00:00:00Z', updatedBy: 'maria' }),
       ragSync: 'ok',
     })
-    await act(async () => void (await store().save('fisi', toInput(ADMIN_PLACES[0]))))
-    const fisi = store().places.find((p) => p.id === 'fisi')!
+    await act(async () => void (await store().save(adminId('fisi'), toInput(ADMIN_PLACES[0]))))
+    const fisi = store().places.find((p) => p.slug === 'fisi')!
     expect(store().places).toHaveLength(3)
     expect(fisi.updatedBy).toBe('maria')
   })
 
   it('un error se propaga y no cambia nada ni refresca', async () => {
     api.saveAdminPlace.mockRejectedValue(new ApiError('http', 'x', 422, undefined, { detail: [] }))
-    await expect(store().save('fisi', toInput(ADMIN_PLACES[0]))).rejects.toMatchObject({ status: 422 })
+    await expect(store().save(adminId('fisi'), toInput(ADMIN_PLACES[0]))).rejects.toMatchObject({ status: 422 })
     expect(store().places).toEqual(ADMIN_PLACES)
     expect(refresh).not.toHaveBeenCalled()
     expect(toasts()).toEqual([])
@@ -115,8 +115,8 @@ describe('acciones de fila · RF-31.8 a RF-31.10', () => {
     const fisi = ADMIN_PLACES[0]
     api.saveAdminPlace.mockResolvedValue({ place: { ...fisi, isPublished: false }, ragSync: 'ok' })
     expect(await store().togglePublished(fisi)).toBe(true)
-    expect(api.saveAdminPlace).toHaveBeenCalledWith('fisi', { ...toInput(fisi), isPublished: false })
-    expect(store().places.find((p) => p.id === 'fisi')!.isPublished).toBe(false)
+    expect(api.saveAdminPlace).toHaveBeenCalledWith(adminId('fisi'), { ...toInput(fisi), isPublished: false })
+    expect(store().places.find((p) => p.slug === 'fisi')!.isPublished).toBe(false)
     expect(toasts()).toContain('Lugar despublicado')
   })
 
@@ -124,7 +124,7 @@ describe('acciones de fila · RF-31.8 a RF-31.10', () => {
     const oculto = ADMIN_PLACES[2]
     api.saveAdminPlace.mockResolvedValue({ place: { ...oculto, isPublished: true }, ragSync: 'ok' })
     await store().togglePublished(oculto)
-    expect(api.saveAdminPlace).toHaveBeenCalledWith('puerta-3', expect.objectContaining({ isPublished: true }))
+    expect(api.saveAdminPlace).toHaveBeenCalledWith(adminId('puerta-3'), expect.objectContaining({ isPublished: true }))
     expect(toasts()).toContain('Lugar publicado')
   })
 
@@ -132,11 +132,11 @@ describe('acciones de fila · RF-31.8 a RF-31.10', () => {
     const psico = ADMIN_PLACES[1]
     api.saveAdminPlace.mockResolvedValue({ place: { ...psico, verifiedAt: '2026-11-12T00:00:00Z' }, ragSync: 'ok' })
     await store().toggleVerified(psico)
-    expect(api.saveAdminPlace).toHaveBeenLastCalledWith('psicologia', expect.objectContaining({ verified: true }))
+    expect(api.saveAdminPlace).toHaveBeenLastCalledWith(adminId('psicologia'), expect.objectContaining({ verified: true }))
     const fisi = ADMIN_PLACES[0] // ya verificado
     api.saveAdminPlace.mockResolvedValue({ place: { ...fisi, verifiedAt: null }, ragSync: 'ok' })
     await store().toggleVerified(fisi)
-    expect(api.saveAdminPlace).toHaveBeenLastCalledWith('fisi', expect.objectContaining({ verified: false }))
+    expect(api.saveAdminPlace).toHaveBeenLastCalledWith(adminId('fisi'), expect.objectContaining({ verified: false }))
     expect(toasts()).toEqual(expect.arrayContaining(['Lugar verificado', 'Verificación quitada']))
   })
 
@@ -144,7 +144,7 @@ describe('acciones de fila · RF-31.8 a RF-31.10', () => {
     let resolve!: (v: unknown) => void
     api.saveAdminPlace.mockReturnValue(new Promise((r) => (resolve = r)))
     const pending = store().toggleVerified(ADMIN_PLACES[1])
-    expect(store().busy).toEqual({ psicologia: true })
+    expect(store().busy).toEqual({ [adminId('psicologia')]: true })
     expect(await store().toggleVerified(ADMIN_PLACES[1])).toBe(false) // no acepta un segundo envío
     await act(async () => {
       resolve({ place: ADMIN_PLACES[1], ragSync: 'ok' })
@@ -156,7 +156,7 @@ describe('acciones de fila · RF-31.8 a RF-31.10', () => {
   it('si falla, la fila vuelve a su estado, se avisa y no se refresca el mapa', async () => {
     api.saveAdminPlace.mockRejectedValue(new ApiError('network', 'x'))
     expect(await store().togglePublished(ADMIN_PLACES[0])).toBe(false)
-    expect(store().places.find((p) => p.id === 'fisi')!.isPublished).toBe(true)
+    expect(store().places.find((p) => p.slug === 'fisi')!.isPublished).toBe(true)
     expect(store().busy).toEqual({})
     expect(toasts()).toContain('No se pudo guardar el cambio. Inténtalo de nuevo.')
     expect(refresh).not.toHaveBeenCalled()
@@ -168,23 +168,23 @@ describe('aviso del asistente · RF-31.20', () => {
 
   it('failed activa el aviso; ok y skipped no', async () => {
     api.saveAdminPlace.mockResolvedValue(failed)
-    await store().save('fisi', toInput(ADMIN_PLACES[0]))
-    expect(store().ragWarning).toEqual({ placeId: 'fisi', name: 'FISI' })
+    await store().save(adminId('fisi'), toInput(ADMIN_PLACES[0]))
+    expect(store().ragWarning).toEqual({ placeId: adminId('fisi'), name: 'FISI' })
     api.saveAdminPlace.mockResolvedValue({ ...failed, ragSync: 'skipped' })
-    await store().save('fisi', toInput(ADMIN_PLACES[0]))
+    await store().save(adminId('fisi'), toInput(ADMIN_PLACES[0]))
     expect(store().ragWarning).toBeNull()
   })
 
   it('«Reintentar» llama a reindex y cierra el aviso si responde ok', async () => {
-    useAdminPlacesStore.setState({ ragWarning: { placeId: 'fisi', name: 'FISI' } })
+    useAdminPlacesStore.setState({ ragWarning: { placeId: adminId('fisi'), name: 'FISI' } })
     api.reindexAdminPlace.mockResolvedValue({ place: ADMIN_PLACES[0], ragSync: 'ok' })
     await store().retryReindex()
-    expect(api.reindexAdminPlace).toHaveBeenCalledWith('fisi')
+    expect(api.reindexAdminPlace).toHaveBeenCalledWith(adminId('fisi'))
     expect(store().ragWarning).toBeNull()
   })
 
   it('si sigue fallando, el aviso permanece', async () => {
-    useAdminPlacesStore.setState({ ragWarning: { placeId: 'fisi', name: 'FISI' } })
+    useAdminPlacesStore.setState({ ragWarning: { placeId: adminId('fisi'), name: 'FISI' } })
     api.reindexAdminPlace.mockResolvedValue({ place: ADMIN_PLACES[0], ragSync: 'failed' })
     await store().retryReindex()
     expect(store().ragWarning).not.toBeNull()

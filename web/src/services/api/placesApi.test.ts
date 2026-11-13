@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from './client'
 import { fetchPlacesAndCategories, toPlace } from './placesApi'
+import { catId } from '@/test/fixtures/places'
 
 vi.mock('@/config', () => ({
   Config: {
@@ -12,10 +13,11 @@ vi.mock('@/config', () => ({
 const fetchMock = vi.fn()
 
 const apiPlace = (over: Record<string, unknown> = {}) => ({
-  id: 'fisi',
+  id: 8,
+  slug: 'fisi',
   name: 'FISI',
   short_name: null,
-  category_id: 'facultades',
+  category_id: 1,
   lat: -12.05,
   lng: -77.08,
   keywords: ['fisi'],
@@ -37,7 +39,7 @@ const apiPlace = (over: Record<string, unknown> = {}) => ({
   updated_at: '2026-11-12T00:00:00Z',
   ...over,
 })
-const apiCategory = { id: 'facultades', label: 'Facultades', color: '#3056ac' }
+const apiCategory = { id: 1, slug: 'facultades', label: 'Facultades', color: '#3056ac' }
 
 function backend(places: unknown, categories: unknown = [apiCategory]) {
   fetchMock.mockImplementation(async (url: string) => {
@@ -73,17 +75,17 @@ describe('placesApi', () => {
         detailed_schedule: ['Lun'],
         access_hint: 'Puerta 3',
         image_url: 'https://x/y.png',
-        parent_place_id: 'campus',
+        parent_place_id: 3,
         verified_at: '2026-01-01T00:00:00Z',
       }),
     )
     expect(place).toMatchObject({
-      category: 'facultades',
+      category: catId('facultades'),
       shortName: 'FISI',
       detailedSchedule: ['Lun'],
       accessHint: 'Puerta 3',
       imageUrl: 'https://x/y.png',
-      parentPlaceId: 'campus',
+      parentPlaceId: 3,
       verifiedAt: '2026-01-01T00:00:00Z',
     })
   })
@@ -98,9 +100,9 @@ describe('placesApi', () => {
     expect(place.keywords).toEqual(['fisi'])
   })
 
-  it('RF-28.13: el id es el slug de la API', async () => {
-    backend([apiPlace({ id: 'puerta-8' })])
-    expect((await fetchPlacesAndCategories()).places[0].id).toBe('puerta-8')
+  it('RF-28.13: el id es el número de la API y el slug se conserva aparte', async () => {
+    backend([apiPlace({ id: 12, slug: 'puerta-8' })])
+    expect((await fetchPlacesAndCategories()).places[0]).toMatchObject({ id: 12, slug: 'puerta-8' })
   })
 
   it('devuelve las categorías con id, etiqueta y color', async () => {
@@ -116,7 +118,7 @@ describe('placesApi', () => {
   })
 
   it('RF-28.4: un lugar sin coordenadas o sin nombre es un error «invalid», no se descarta', async () => {
-    backend([apiPlace(), apiPlace({ id: 'roto', lat: null })])
+    backend([apiPlace(), apiPlace({ id: 99, slug: 'roto', lat: null })])
     await expect(fetchPlacesAndCategories()).rejects.toBeInstanceOf(ApiError)
     expect(() => toPlace(apiPlace({ name: '' }))).toThrow(ApiError)
   })
@@ -136,12 +138,12 @@ describe('searchPlacesApi · HU-36', () => {
     const { searchPlacesApi } = await import('./placesApi')
     fetchMock.mockImplementation(() =>
       Promise.resolve(
-        new Response(JSON.stringify([{ id: 'biblioteca', name: 'Biblioteca', category_id: 'servicios', lat: -12.05, lng: -77.08 }]), { status: 200 }),
+        new Response(JSON.stringify([{ id: 5, slug: 'biblioteca', name: 'Biblioteca', category_id: 8, lat: -12.05, lng: -77.08 }]), { status: 200 }),
       ),
     )
     const found = await searchPlacesApi('biblio & más')
     expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/places\/search\?q=biblio%20%26%20m%C3%A1s$/)
-    expect(found).toEqual([expect.objectContaining({ id: 'biblioteca', name: 'Biblioteca', category: 'servicios', coordinates: [-77.08, -12.05] })])
+    expect(found).toEqual([expect.objectContaining({ id: 5, slug: 'biblioteca', name: 'Biblioteca', category: catId('servicios'), coordinates: [-77.08, -12.05] })])
   })
 
   it('RF-36.15: una petición cancelada falla sin contarse como «tiempo agotado»', async () => {

@@ -11,7 +11,7 @@ const PICK_ZOOM = 18
 const OUT_OF_AREA = 'Ese punto está fuera del área del campus'
 
 export interface ContextPlace {
-  id: string
+  id: number
   lat: number
   lng: number
 }
@@ -24,7 +24,7 @@ interface LocationPickerProps {
   /** Los demás lugares, como puntos grises de referencia (RF-31.26). */
   contextPlaces: ContextPlace[]
   /** El lugar que se edita: no se repite como punto gris. */
-  editingId?: string | null
+  editingId?: number | null
 }
 
 /**

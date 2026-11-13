@@ -15,7 +15,7 @@ interface RouteState {
   activeRoute: PlannedRoute | null
   /** Mensaje cuando «Mi ubicación» no se pudo usar. */
   notice: string | null
-  openDialog: (destinationId?: string) => void
+  openDialog: (destinationId?: number) => void
   closeDialog: () => void
   setOrigin: (point: RoutePoint | null) => void
   setDestination: (point: RoutePoint | null) => void

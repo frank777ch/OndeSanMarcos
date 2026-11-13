@@ -32,7 +32,7 @@ export function buildMockResponse(query: string): ChatResponse {
   }
 
   const locations: LocationResult[] = matches.map((place) => ({
-    id: place.id,
+    id: place.slug,
     name: place.name,
     schedule: place.schedule,
   }))

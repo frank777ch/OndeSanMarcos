@@ -1,6 +1,6 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { PLACES } from '@/test/fixtures/places'
+import { PLACES, idOf, catId } from '@/test/fixtures/places'
 import { useMapStore } from '../store/useMapStore'
 import { RouteDialog } from '@/features/routing/components/RouteDialog'
 import { useRouteStore } from '@/features/routing/store/useRouteStore'
@@ -9,7 +9,8 @@ import { seedPlaces } from '@/test/fixtures/places'
 
 const reset = () =>
   useMapStore.setState({ activeCategory: null, selectedPlaceId: null, selectionOrigin: null })
-const open = (id: string) => act(() => useMapStore.getState().selectPlace(id, 'map'))
+const open = (slug: string | number) =>
+  act(() => useMapStore.getState().selectPlace(typeof slug === 'number' ? slug : idOf(slug), 'map'))
 
 describe('PlaceCard', () => {
   beforeEach(() => {
@@ -40,7 +41,7 @@ describe('PlaceCard', () => {
   it('RF-12.10 y RF-12.12: la FISI muestra horario, descripción, contacto y carreras en lista', () => {
     render(<PlaceCard />)
     open('fisi')
-    const fisi = PLACES.find((p) => p.id === 'fisi')!
+    const fisi = PLACES.find((p) => p.slug === 'fisi')!
     expect(screen.getByRole('heading', { name: 'Horario' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Acerca de este lugar' })).toBeInTheDocument()
     expect(screen.getByText(`Teléfono: ${fisi.phone}`)).toBeInTheDocument()
@@ -56,9 +57,10 @@ describe('PlaceCard', () => {
 
   describe('campos nuevos de la base (HU-28)', () => {
     const rich = {
-      id: 'centro',
+      id: 9001,
+      slug: 'centro',
       name: 'Centro de cómputo',
-      category: 'servicios',
+      category: catId('servicios'),
       coordinates: [-77.08, -12.05] as [number, number],
       keywords: [],
       email: 'cec@unmsm.edu.pe',
@@ -69,7 +71,7 @@ describe('PlaceCard', () => {
     it('RF-28.10: muestra correo, página web y «Cómo encontrarlo» cuando existen', () => {
       seedPlaces([rich])
       render(<PlaceCard />)
-      open('centro')
+      open(rich.id)
       expect(screen.getByRole('heading', { name: 'Cómo encontrarlo' })).toBeInTheDocument()
       expect(screen.getByText('Entrando por la Puerta 3, a la derecha.')).toBeInTheDocument()
       expect(screen.getByText('Correo: cec@unmsm.edu.pe')).toBeInTheDocument()
@@ -89,7 +91,7 @@ describe('PlaceCard', () => {
     it('RF-28.10: una web que no es http(s) no se vuelve enlace', () => {
       seedPlaces([{ ...rich, website: 'javascript:alert(1)' }])
       render(<PlaceCard />)
-      open('centro')
+      open(rich.id)
       expect(screen.queryByRole('link')).not.toBeInTheDocument()
       expect(screen.getByText('javascript:alert(1)')).toBeInTheDocument()
     })
@@ -97,7 +99,7 @@ describe('PlaceCard', () => {
     it('RF-28.10: solo el correo también muestra la sección de contacto', () => {
       seedPlaces([{ ...rich, website: undefined, accessHint: undefined }])
       render(<PlaceCard />)
-      open('centro')
+      open(rich.id)
       expect(screen.getByRole('heading', { name: 'Contacto' })).toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: 'Cómo encontrarlo' })).not.toBeInTheDocument()
     })
@@ -118,7 +120,7 @@ describe('PlaceCard', () => {
 
   it('RF-12.11: la Biblioteca Central muestra el horario detallado como lista', () => {
     render(<PlaceCard />)
-    act(() => useMapStore.getState().selectPlace('biblioteca-central'))
+    act(() => useMapStore.getState().selectPlace(idOf('biblioteca-central')))
     const section = screen.getByRole('heading', { name: 'Horario detallado' }).parentElement!
     expect(within(section).getAllByRole('listitem').length).toBeGreaterThan(0)
   })
@@ -134,7 +136,7 @@ describe('PlaceCard', () => {
     open('fisi')
     await userEvent.click(screen.getByRole('button', { name: 'Cómo llegar' }))
     const dialog = screen.getByRole('dialog', { name: 'Planificar ruta' })
-    expect(within(dialog).getByRole('combobox', { name: 'Destino' })).toHaveValue(PLACES.find((p) => p.id === 'fisi')!.name)
+    expect(within(dialog).getByRole('combobox', { name: 'Destino' })).toHaveValue(PLACES.find((p) => p.slug === 'fisi')!.name)
     expect(within(dialog).getByRole('combobox', { name: 'Punto de partida' })).toHaveFocus()
   })
 
@@ -151,8 +153,8 @@ describe('PlaceCard', () => {
     await userEvent.keyboard('{Escape}') // cierra la lista de «Mi ubicación»
     await userEvent.keyboard('{Escape}')
     expect(screen.queryByRole('dialog', { name: 'Planificar ruta' })).not.toBeInTheDocument()
-    expect(useMapStore.getState().selectedPlaceId).toBe('fisi')
-    expect(screen.getByRole('dialog', { name: PLACES.find((p) => p.id === 'fisi')!.name })).toBeInTheDocument()
+    expect(useMapStore.getState().selectedPlaceId).toBe(idOf('fisi'))
+    expect(screen.getByRole('dialog', { name: PLACES.find((p) => p.slug === 'fisi')!.name })).toBeInTheDocument()
   })
 
   it('RF-12.5: al elegir otro lugar la ficha cambia', () => {

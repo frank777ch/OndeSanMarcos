@@ -8,11 +8,12 @@ vi.mock('react-map-gl/mapbox', () => ({
 }))
 
 import { routeBounds } from '../utils/routeBounds'
+import { idOf } from '@/test/fixtures/places'
 import { FlyToRoute } from './FlyToRoute'
 
 const route = {
-  origin: { kind: 'place' as const, placeId: '3' },
-  destination: { kind: 'place' as const, placeId: '8' },
+  origin: { kind: 'place' as const, placeId: idOf('puerta-3') },
+  destination: { kind: 'place' as const, placeId: idOf('fisi') },
   path: [
     [-77.083, -12.05],
     [-77.08, -12.055],

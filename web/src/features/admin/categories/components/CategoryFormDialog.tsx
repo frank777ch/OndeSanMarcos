@@ -7,12 +7,10 @@ import { parseFieldErrors } from '@/services/api/adminPlacesApi'
 import type { AdminCategory } from '../../places/types'
 import { useAdminCategoriesStore } from '../store/useAdminCategoriesStore'
 
-const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/
 const HEX = /^#[0-9a-fA-F]{6}$/
 const NETWORK_MESSAGE = 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'
 
 interface FormState {
-  id: string
   label: string
   color: string
   sortOrder: string
@@ -28,7 +26,6 @@ interface CategoryFormDialogProps {
 export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProps) {
   const initial = useMemo<FormState>(
     () => ({
-      id: category?.id ?? '',
       label: category?.label ?? '',
       color: category?.color ?? '#3056ac',
       sortOrder: category ? String(category.sortOrder) : '',
@@ -45,7 +42,6 @@ export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProp
   const dirty = (Object.keys(initial) as (keyof FormState)[]).some((k) => initial[k].trim() !== form[k].trim())
   const sortValid = form.sortOrder.trim() === '' || /^\d+$/.test(form.sortOrder.trim())
   const valid =
-    (category !== null || SLUG.test(form.id.trim())) &&
     form.label.trim() !== '' &&
     HEX.test(form.color.trim()) &&
     sortValid
@@ -75,7 +71,6 @@ export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProp
     setGeneral(null)
     try {
       await save(category?.id ?? null, {
-        ...(category ? {} : { id: form.id.trim() }),
         label: form.label.trim(),
         color: form.color.trim(),
         sortOrder: form.sortOrder.trim() === '' ? null : Number(form.sortOrder),
@@ -88,7 +83,7 @@ export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProp
       if (validation && (hasFields || parsed.general)) {
         setErrors(parsed.fields)
         setGeneral(parsed.general ?? 'Revisa los campos marcados.')
-        const first = (['id', 'label', 'color', 'sortOrder'] as const).find((f) => parsed.fields[f])
+        const first = (['label', 'color', 'sortOrder'] as const).find((f) => parsed.fields[f])
         if (first) requestAnimationFrame(() => document.getElementById(`category-form-${first}`)?.focus())
       } else if (!(error instanceof ApiError && error.status === 401)) {
         setGeneral(NETWORK_MESSAGE)
@@ -107,19 +102,12 @@ export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProp
               {general}
             </p>
           )}
-          {category ? (
+          {category && (
             <p className="m-0 text-sm text-muted">
               Id: <code className="rounded-sm bg-surface px-1.5 py-0.5">{category.id}</code>
+              {' · '}
+              Slug: <code className="rounded-sm bg-surface px-1.5 py-0.5">{category.slug}</code>
             </p>
-          ) : (
-            <Input
-              label="Id"
-              required
-              maxLength={64}
-              placeholder="laboratorios"
-              {...field('id')}
-              error={errors.id || (form.id.trim() !== '' && !SLUG.test(form.id.trim()) ? 'Solo minúsculas, dígitos y guiones.' : undefined)}
-            />
           )}
           <Input label="Nombre" required maxLength={100} {...field('label')} />
           <div className="flex items-end gap-3">

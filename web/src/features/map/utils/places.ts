@@ -2,7 +2,7 @@ import type { Feature, FeatureCollection, Point } from 'geojson'
 import type { Place, PlaceCategory, PlaceCategoryId } from '../types'
 
 export type PlaceProperties = {
-  id: string
+  id: number
   name: string
   category: PlaceCategoryId
   color: string
@@ -41,7 +41,7 @@ export function placesToGeoJSON(
 /** Id del lugar del primer punto tocado en el mapa, o `null` si no hay ninguno. */
 export function placeIdFromFeatures(
   features: { properties?: Record<string, unknown> | null }[] | undefined,
-): string | null {
+): number | null {
   const id = features?.[0]?.properties?.id
-  return typeof id === 'string' ? id : null
+  return typeof id === 'number' ? id : null
 }

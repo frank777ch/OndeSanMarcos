@@ -11,11 +11,12 @@ vi.mock('react-map-gl/mapbox', () => ({
   Layer: ({ id, type }: { id: string; type: string }) => <div data-testid={id} data-type={type} />,
 }))
 
+import { idOf } from '@/test/fixtures/places'
 import { RouteLayer } from './RouteLayer'
 
 const route = {
-  origin: { kind: 'place' as const, placeId: '3' },
-  destination: { kind: 'place' as const, placeId: '8' },
+  origin: { kind: 'place' as const, placeId: idOf('puerta-3') },
+  destination: { kind: 'place' as const, placeId: idOf('fisi') },
   path: [
     [-77.08, -12.05],
     [-77.081, -12.051],

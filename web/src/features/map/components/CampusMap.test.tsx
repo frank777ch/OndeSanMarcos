@@ -37,7 +37,7 @@ const config = vi.hoisted(() => ({ mapbox: { token: '', hasToken: false } }))
 vi.mock('@/config', () => ({ Config: config }))
 
 import { CampusMap } from './CampusMap'
-import { seedPlaces } from '@/test/fixtures/places'
+import { seedPlaces, idOf } from '@/test/fixtures/places'
 
 describe('CampusMap', () => {
   it('avisa si falta el token de Mapbox', () => {
@@ -195,16 +195,16 @@ describe('CampusMap', () => {
     })
 
     it('RF-12.3: tocar un punto elige el lugar con origen «map»', () => {
-      click({ features: [{ properties: { id: 'puerta-3' } }] })
-      expect(useMapStore.getState().selectedPlaceId).toBe('puerta-3')
+      click({ features: [{ properties: { id: idOf('puerta-3') } }] })
+      expect(useMapStore.getState().selectedPlaceId).toBe(idOf('puerta-3'))
       expect(useMapStore.getState().selectionOrigin).toBe('map')
     })
 
     it('RF-12.7: tocar una zona sin puntos no cambia ni cierra la ficha', () => {
-      useMapStore.getState().selectPlace('fisi', 'map')
+      useMapStore.getState().selectPlace(idOf('fisi'), 'map')
       click({ features: [] })
       click({})
-      expect(useMapStore.getState().selectedPlaceId).toBe('fisi')
+      expect(useMapStore.getState().selectedPlaceId).toBe(idOf('fisi'))
     })
   })
 })

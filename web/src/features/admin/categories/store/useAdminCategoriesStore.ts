@@ -16,12 +16,12 @@ interface AdminCategoriesState {
   /** Pide las categorías. Con `quiet` no pasa por `loading` (la tabla no parpadea). */
   load: (options?: { quiet?: boolean }) => Promise<void>
   /** `id` nulo crea; con `id` edita. Lanza el error del servidor para que el diálogo lo muestre. */
-  save: (id: string | null, input: AdminCategoryInput) => Promise<AdminCategory>
+  save: (id: number | null, input: AdminCategoryInput) => Promise<AdminCategory>
   /** Borra una categoría vacía. Lanza el error del servidor (p. ej. 409). */
-  remove: (id: string) => Promise<void>
+  remove: (id: number) => Promise<void>
 }
 
-const bySort = (a: AdminCategory, b: AdminCategory) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id)
+const bySort = (a: AdminCategory, b: AdminCategory) => a.sortOrder - b.sortOrder || a.id - b.id
 
 export const useAdminCategoriesStore = create<AdminCategoriesState>((set, get) => ({
   status: 'idle',

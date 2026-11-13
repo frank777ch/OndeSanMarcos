@@ -15,6 +15,7 @@ const invalid = (endpoint: string, why: string) => new ApiError('invalid', `${en
 
 interface RawPlace {
   id?: unknown
+  slug?: unknown
   name?: unknown
   short_name?: string | null
   category_id?: unknown
@@ -33,7 +34,7 @@ interface RawPlace {
   services?: string[] | null
   usage?: string | null
   image_url?: string | null
-  parent_place_id?: string | null
+  parent_place_id?: number | null
   is_published?: unknown
   verified_at?: string | null
   created_at?: unknown
@@ -44,19 +45,21 @@ interface RawPlace {
 
 export function toAdminPlace(raw: RawPlace, endpoint = '/api/admin/places'): AdminPlace {
   if (
-    typeof raw?.id !== 'string' ||
+    !Number.isInteger(raw?.id) ||
+    typeof raw.slug !== 'string' ||
     typeof raw.name !== 'string' ||
-    typeof raw.category_id !== 'string' ||
+    !Number.isInteger(raw.category_id) ||
     typeof raw.lat !== 'number' ||
     typeof raw.lng !== 'number'
   ) {
     throw invalid(endpoint, 'un lugar no trae id, nombre, categoría o coordenadas')
   }
   return {
-    id: raw.id,
+    id: raw.id as number,
+    slug: raw.slug,
     name: raw.name,
     shortName: raw.short_name ?? null,
-    categoryId: raw.category_id,
+    categoryId: raw.category_id as number,
     lat: raw.lat,
     lng: raw.lng,
     keywords: raw.keywords ?? [],
@@ -93,6 +96,7 @@ export async function listAdminPlaces(): Promise<AdminPlace[]> {
 
 interface RawCategory {
   id?: unknown
+  slug?: unknown
   label?: unknown
   color?: unknown
   sort_order?: unknown
@@ -100,11 +104,12 @@ interface RawCategory {
 }
 
 function toAdminCategory(raw: RawCategory): AdminCategory {
-  if (typeof raw?.id !== 'string' || typeof raw.label !== 'string' || typeof raw.color !== 'string') {
+  if (!Number.isInteger(raw?.id) || typeof raw.slug !== 'string' || typeof raw.label !== 'string' || typeof raw.color !== 'string') {
     throw invalid('/api/admin/place-categories', 'una categoría no trae id, nombre o color')
   }
   return {
-    id: raw.id,
+    id: raw.id as number,
+    slug: raw.slug,
     label: raw.label,
     color: raw.color,
     sortOrder: typeof raw.sort_order === 'number' ? raw.sort_order : 0,
@@ -151,17 +156,17 @@ function toSaved(raw: RawPlace, endpoint: string): SavedPlace {
 }
 
 /** `id` nulo crea (`POST`); con `id` reemplaza el lugar (`PUT`). */
-export async function saveAdminPlace(id: string | null, input: AdminPlaceInput): Promise<SavedPlace> {
+export async function saveAdminPlace(id: number | null, input: AdminPlaceInput): Promise<SavedPlace> {
   const body = toBody(input)
   if (id === null) {
     return toSaved(await adminClient.post<RawPlace>('/api/admin/places', body), '/api/admin/places')
   }
-  const endpoint = `/api/admin/places/${encodeURIComponent(id)}`
+  const endpoint = `/api/admin/places/${id}`
   return toSaved(await adminClient.put<RawPlace>(endpoint, body), endpoint)
 }
 
-export async function reindexAdminPlace(id: string): Promise<SavedPlace> {
-  const endpoint = `/api/admin/places/${encodeURIComponent(id)}/reindex`
+export async function reindexAdminPlace(id: number): Promise<SavedPlace> {
+  const endpoint = `/api/admin/places/${id}/reindex`
   return toSaved(await adminClient.post<RawPlace>(endpoint, {}), endpoint)
 }
 
@@ -200,26 +205,23 @@ export function toInput(
 }
 
 export async function saveAdminCategory(
-  id: string | null,
+  id: number | null,
   input: AdminCategoryInput,
 ): Promise<AdminCategory> {
   const body = { label: input.label, color: input.color, sort_order: input.sortOrder }
   if (id === null) {
-    const created = await adminClient.post<RawCategory>('/api/admin/place-categories', {
-      id: input.id,
-      ...body,
-    })
+    const created = await adminClient.post<RawCategory>('/api/admin/place-categories', body)
     return toAdminCategory(created)
   }
   const updated = await adminClient.put<RawCategory>(
-    `/api/admin/place-categories/${encodeURIComponent(id)}`,
+    `/api/admin/place-categories/${id}`,
     body,
   )
   return toAdminCategory(updated)
 }
 
-export async function deleteAdminCategory(id: string): Promise<void> {
-  await adminClient.delete(`/api/admin/place-categories/${encodeURIComponent(id)}`)
+export async function deleteAdminCategory(id: number): Promise<void> {
+  await adminClient.delete(`/api/admin/place-categories/${id}`)
 }
 
 // --- errores -----------------------------------------------------------------

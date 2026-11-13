@@ -43,7 +43,7 @@ interface PlaceComboboxProps {
   className?: string
 }
 
-type Option = { key: string; place?: Place; extra?: ExtraOption }
+type Option = { key: string | number; place?: Place; extra?: ExtraOption }
 
 /** Por encima del diálogo (z-[1000]) cuando la lista sale de su contenedor. */
 const PORTAL_Z_INDEX = 1100

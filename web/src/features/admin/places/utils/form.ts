@@ -5,7 +5,7 @@ import type { AdminPlace, AdminPlaceInput } from '../types'
 export interface PlaceForm {
   name: string
   shortName: string
-  categoryId: string | null
+  categoryId: number | null
   lat: string
   lng: string
   keywords: string
@@ -21,7 +21,7 @@ export interface PlaceForm {
   services: string
   usage: string
   imageUrl: string
-  parentPlaceId: string | null
+  parentPlaceId: number | null
   isPublished: boolean
   verified: boolean
 }
@@ -83,7 +83,7 @@ const orNull = (text: string) => (text.trim() === '' ? null : text.trim())
 export function formToInput(form: PlaceForm): AdminPlaceInput {
   return {
     name: form.name.trim(),
-    categoryId: form.categoryId ?? '',
+    categoryId: form.categoryId ?? 0,
     lat: Number(form.lat),
     lng: Number(form.lng),
     shortName: orNull(form.shortName),
@@ -140,7 +140,7 @@ export function isDirty(initial: PlaceForm, form: PlaceForm): boolean {
 }
 
 /** El propio lugar y todos los que lo tienen (directa o indirectamente) como contenedor. */
-export function descendantIds(places: Pick<AdminPlace, 'id' | 'parentPlaceId'>[], id: string): Set<string> {
+export function descendantIds(places: Pick<AdminPlace, 'id' | 'parentPlaceId'>[], id: number): Set<number> {
   const excluded = new Set([id])
   let grew = true
   while (grew) {

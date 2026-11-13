@@ -9,7 +9,7 @@ interface MapState {
   /** Categoría filtrada, o `null` si se ven todos los lugares. */
   activeCategory: PlaceCategoryId | null
   /** Lugar elegido (su ficha está abierta), o `null`. */
-  selectedPlaceId: string | null
+  selectedPlaceId: number | null
   /** De dónde vino la selección. Un toque en el mapa no mueve la cámara. */
   selectionOrigin: SelectionOrigin | null
   /**
@@ -21,7 +21,7 @@ interface MapState {
    * Elige un lugar. Si un filtro de otra categoría lo ocultaría, quita el filtro.
    * Un id desconocido se ignora.
    */
-  selectPlace: (id: string, origin?: SelectionOrigin) => void
+  selectPlace: (id: number, origin?: SelectionOrigin) => void
   clearSelection: () => void
 }
 

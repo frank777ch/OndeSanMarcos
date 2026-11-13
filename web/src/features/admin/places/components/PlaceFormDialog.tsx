@@ -54,7 +54,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-type Action = { type: 'set'; field: keyof PlaceForm; value: string | boolean | null } | { type: 'coords'; lat: string; lng: string }
+type Action = { type: 'set'; field: keyof PlaceForm; value: string | number | boolean | null } | { type: 'coords'; lat: string; lng: string }
 
 function reducer(form: PlaceForm, action: Action): PlaceForm {
   if (action.type === 'coords') return { ...form, lat: action.lat, lng: action.lng }
@@ -76,16 +76,16 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
   const places = useAdminPlacesStore((s) => s.places)
   const save = useAdminPlacesStore((s) => s.save)
 
-  const categoryOptions = useMemo(() => categories.map((c) => ({ value: c.id, label: c.label })), [categories])
+  const categoryOptions = useMemo(() => categories.map((c) => ({ value: String(c.id), label: c.label })), [categories])
   const parentOptions = useMemo(() => {
-    const excluded = place ? descendantIds(places, place.id) : new Set<string>()
+    const excluded = place ? descendantIds(places, place.id) : new Set<number>()
     return places
       .filter((p) => !excluded.has(p.id))
-      .map((p) => ({ value: p.id, label: p.name, hint: p.shortName ?? undefined }))
+      .map((p) => ({ value: String(p.id), label: p.name, hint: p.shortName ?? undefined }))
   }, [places, place])
   const contextPlaces = useMemo(() => places.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng })), [places])
 
-  const set = (field: keyof PlaceForm) => (value: string | boolean | null) =>
+  const set = (field: keyof PlaceForm) => (value: string | number | boolean | null) =>
     dispatch({ type: 'set', field, value })
   const text = (field: keyof PlaceForm) => ({
     id: fieldId(field),
@@ -153,6 +153,8 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
               {place && (
                 <p className="m-0 text-sm text-muted">
                   Id: <code className="rounded-sm bg-surface px-1.5 py-0.5">{place.id}</code>
+                  {' · '}
+                  Slug: <code className="rounded-sm bg-surface px-1.5 py-0.5">{place.slug}</code>
                 </p>
               )}
               <Input label="Nombre" required maxLength={200} {...text('name')} />
@@ -162,9 +164,9 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
                 label="Categoría"
                 required
                 options={categoryOptions}
-                value={form.categoryId}
+                value={form.categoryId === null ? null : String(form.categoryId)}
                 error={errors.categoryId}
-                onChange={set('categoryId')}
+                onChange={(v) => set('categoryId')(v === null ? null : Number(v))}
               />
               <Switch checked={form.isPublished} onChange={set('isPublished')}>
                 Publicado (visible en el mapa y para el asistente)
@@ -232,9 +234,9 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
                 label="Lugar que lo contiene"
                 clearable
                 options={parentOptions}
-                value={form.parentPlaceId}
+                value={form.parentPlaceId === null ? null : String(form.parentPlaceId)}
                 error={errors.parentPlaceId}
-                onChange={set('parentPlaceId')}
+                onChange={(v) => set('parentPlaceId')(v === null ? null : Number(v))}
                 placeholder="Ninguno"
               />
             </Section>

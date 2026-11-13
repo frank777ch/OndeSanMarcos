@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { useMapStore } from '@/features/map/store/useMapStore'
 import { PlaceLinkCard } from './PlaceLinkCard'
-import { seedPlaces } from '@/test/fixtures/places'
+import { seedPlaces, idOf, catId } from '@/test/fixtures/places'
 
 const library = {
   id: 'biblioteca-central',
@@ -54,21 +54,21 @@ describe('PlaceLinkCard', () => {
   it('RF-05.19: elige el lugar con origen «other» y navega a /mapa', async () => {
     const router = renderCard()
     await userEvent.click(screen.getByRole('button', { name: /Ver en el mapa/ }))
-    expect(useMapStore.getState().selectedPlaceId).toBe('biblioteca-central')
+    expect(useMapStore.getState().selectedPlaceId).toBe(idOf('biblioteca-central'))
     expect(useMapStore.getState().selectionOrigin).toBe('other')
     expect(router.state.location.pathname).toBe('/mapa')
     expect(screen.getByText('pantalla del mapa')).toBeInTheDocument()
   })
 
   it('RF-05.22: quita el filtro de categoría que ocultaría el lugar', async () => {
-    useMapStore.setState({ activeCategory: 'puertas' })
+    useMapStore.setState({ activeCategory: catId('puertas') })
     renderCard()
     await userEvent.click(screen.getByRole('button', { name: /Ver en el mapa/ }))
     expect(useMapStore.getState().activeCategory).toBeNull()
   })
 
   it('RF-05.19: si el lugar ya estaba elegido desde el mapa, pasa a origen «other»', async () => {
-    useMapStore.getState().selectPlace('biblioteca-central', 'map')
+    useMapStore.getState().selectPlace(idOf('biblioteca-central'), 'map')
     renderCard()
     await userEvent.click(screen.getByRole('button', { name: /Ver en el mapa/ }))
     expect(useMapStore.getState().selectionOrigin).toBe('other')

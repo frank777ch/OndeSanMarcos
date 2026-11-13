@@ -6,7 +6,7 @@ import { useAdminPlacesStore } from '@/features/admin/places/store/useAdminPlace
 import { EMPTY_FILTERS } from '@/features/admin/places/utils/filters'
 import { usePlacesStore } from '@/features/map/store/usePlacesStore'
 import { ApiError } from '@/services/api/client'
-import { ADMIN_CATEGORIES, ADMIN_PLACES, adminPlace } from '@/test/fixtures/adminPlaces'
+import { ADMIN_CATEGORIES, ADMIN_PLACES, adminId, adminPlace } from '@/test/fixtures/adminPlaces'
 import { AdminPlacesPage } from './AdminPlacesPage'
 
 const api = vi.hoisted(() => ({
@@ -62,7 +62,7 @@ describe('AdminPlacesPage · lista (RF-31.2, RF-31.3)', () => {
     expect(within(fisi).getByText('Facultades')).toBeInTheDocument()
     expect(within(fisi).getByText('Publicado')).toBeInTheDocument()
     expect(within(fisi).getByText('Verificado')).toBeInTheDocument()
-    expect(within(fisi).getByText(/FISI · id fisi/)).toBeInTheDocument()
+    expect(within(fisi).getByText('FISI')).toBeInTheDocument()
     const puerta = rowOf('Puerta 3')
     expect(within(puerta).getByText('Oculto')).toBeInTheDocument()
     expect(within(puerta).getByText('Sin verificar')).toBeInTheDocument()
@@ -175,7 +175,7 @@ describe('AdminPlacesPage · acciones de fila (RF-31.7 a RF-31.10)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Despublicar Facultad de Psicología' }))
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Despublicar' }))
     await waitFor(() => expect(within(rowOf('Psicología')).getByText('Oculto')).toBeInTheDocument())
-    expect(api.saveAdminPlace).toHaveBeenCalledWith('psicologia', expect.objectContaining({ isPublished: false, name: 'Facultad de Psicología' }))
+    expect(api.saveAdminPlace).toHaveBeenCalledWith(adminId('psicologia'), expect.objectContaining({ isPublished: false, name: 'Facultad de Psicología' }))
     expect(toasts()).toContain('Lugar despublicado')
     expect(refresh).toHaveBeenCalled()
   })
@@ -194,7 +194,7 @@ describe('AdminPlacesPage · acciones de fila (RF-31.7 a RF-31.10)', () => {
     api.saveAdminPlace.mockResolvedValue({ place: { ...fisi, verifiedAt: null }, ragSync: 'ok' })
     await userEvent.click(screen.getByRole('button', { name: /^Quitar verificación de Facultad de Ingeniería/ }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(api.saveAdminPlace).toHaveBeenCalledWith('fisi', expect.objectContaining({
+    expect(api.saveAdminPlace).toHaveBeenCalledWith(adminId('fisi'), expect.objectContaining({
       verified: false, phone: '619-7000', careers: ['Ingeniería de Software'], keywords: ['informática', 'software'],
       shortName: 'FISI', lat: fisi.lat, isPublished: true,
     }))
@@ -273,7 +273,7 @@ describe('AdminPlacesPage · crear y editar (RF-31.11, RF-31.16, RF-31.20)', () 
     expect(alert).toHaveTextContent('El lugar «Facultad de Psicología» se guardó, pero el asistente aún no lo conoce.')
     api.reindexAdminPlace.mockResolvedValue({ place: ADMIN_PLACES[1], ragSync: 'ok' })
     await userEvent.click(within(alert).getByRole('button', { name: 'Reintentar' }))
-    expect(api.reindexAdminPlace).toHaveBeenCalledWith('psicologia')
+    expect(api.reindexAdminPlace).toHaveBeenCalledWith(adminId('psicologia'))
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
   })
 

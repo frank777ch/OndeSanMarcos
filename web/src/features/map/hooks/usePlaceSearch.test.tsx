@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { ApiError } from '@/services/api/client'
-import { resetPlaces, seedPlaces } from '@/test/fixtures/places'
+import { resetPlaces, seedPlaces, catId } from '@/test/fixtures/places'
 import { usePlacesStore } from '../store/usePlacesStore'
 import type { Place } from '../types'
 import { SEARCH_DEBOUNCE_MS, usePlaceSearch } from './usePlaceSearch'
@@ -11,9 +11,10 @@ vi.mock('@/services/api/placesApi', async (importOriginal) => ({
   searchPlacesApi: (...args: unknown[]) => searchPlacesApi(...args),
 }))
 
-const place = (id: string, name: string): Place => ({ id, name, category: 'facultades', coordinates: [-77.08, -12.05], keywords: [] })
+const idBySlug: Record<string, number> = {}
+const place = (slug: string, name: string): Place => ({ id: (idBySlug[slug] ??= 5000 + Object.keys(idBySlug).length), slug, name, category: catId('facultades'), coordinates: [-77.08, -12.05], keywords: [] })
 const wait = (ms = SEARCH_DEBOUNCE_MS + 10) => act(async () => void (await new Promise((r) => setTimeout(r, ms))))
-const ids = (list: Place[]) => list.map((p) => p.id)
+const ids = (list: Place[]) => list.map((p) => p.slug)
 
 beforeEach(() => {
   searchPlacesApi.mockReset()
@@ -80,12 +81,14 @@ describe('usePlaceSearch · RF-36.13 a RF-36.17', () => {
   })
 
   it('RF-36.17: un lugar del servidor que el mapa no conoce se agrega para poder elegirlo', async () => {
-    searchPlacesApi.mockResolvedValue([place('1000', 'Laboratorio nuevo')])
-    expect(usePlacesStore.getState().byId['1000']).toBeUndefined()
+    const nuevo = place('laboratorio-nuevo', 'Laboratorio nuevo')
+    searchPlacesApi.mockResolvedValue([nuevo])
+    expect(usePlacesStore.getState().byId[nuevo.id]).toBeUndefined()
     renderHook(() => usePlaceSearch('laboratorio'))
     await wait()
-    expect(usePlacesStore.getState().byId['1000']).toMatchObject({ name: 'Laboratorio nuevo' })
-    expect(usePlacesStore.getState().places.map((p) => p.id)).toContain('1000')
+    expect(usePlacesStore.getState().byId[nuevo.id]).toMatchObject({ name: 'Laboratorio nuevo' })
+    expect(usePlacesStore.getState().bySlug['laboratorio-nuevo']).toBeDefined()
+    expect(usePlacesStore.getState().places.map((p) => p.id)).toContain(nuevo.id)
   })
 
   it('al vaciar el campo vuelve a no haber resultados ni pendiente', async () => {

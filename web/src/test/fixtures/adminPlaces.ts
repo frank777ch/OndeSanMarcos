@@ -1,17 +1,26 @@
 import type { AdminCategory, AdminPlace } from '@/features/admin/places/types'
+import { catId } from './places'
 
 export const ADMIN_CATEGORIES: AdminCategory[] = [
-  { id: 'facultades', label: 'Facultades', color: '#3056ac', sortOrder: 0, placesCount: 2 },
-  { id: 'puertas', label: 'Puertas', color: '#e74c3c', sortOrder: 1, placesCount: 1 },
-  { id: 'vacia', label: 'Vacía', color: '#757575', sortOrder: 2, placesCount: 0 },
+  { id: catId('facultades'), slug: 'facultades', label: 'Facultades', color: '#3056ac', sortOrder: 0, placesCount: 2 },
+  { id: catId('puertas'), slug: 'puertas', label: 'Puertas', color: '#e74c3c', sortOrder: 1, placesCount: 1 },
+  { id: catId('vacia'), slug: 'vacia', label: 'Vacía', color: '#757575', sortOrder: 2, placesCount: 0 },
 ]
 
-export function adminPlace(id: string, overrides: Partial<AdminPlace> = {}): AdminPlace {
+const ADMIN_IDS: Record<string, number> = { fisi: 1, psicologia: 2, 'puerta-3': 3 }
+
+/** Id numérico de una fixture del administrador a partir de su slug. */
+export function adminId(slug: string): number {
+  return (ADMIN_IDS[slug] ??= Object.keys(ADMIN_IDS).length + 1)
+}
+
+export function adminPlace(slug: string, overrides: Partial<AdminPlace> = {}): AdminPlace {
   return {
-    id,
-    name: id,
+    id: adminId(slug),
+    slug,
+    name: slug,
     shortName: null,
-    categoryId: 'facultades',
+    categoryId: catId('facultades'),
     lat: -12.0535,
     lng: -77.0857,
     keywords: [],
@@ -47,13 +56,13 @@ export const ADMIN_PLACES: AdminPlace[] = [
     verifiedAt: '2026-11-05T09:00:00Z',
   }),
   adminPlace('psicologia', { name: 'Facultad de Psicología', shortName: 'Psicología' }),
-  adminPlace('puerta-3', { name: 'Puerta 3', categoryId: 'puertas', lat: -12.0571, lng: -77.08, isPublished: false }),
+  adminPlace('puerta-3', { name: 'Puerta 3', categoryId: catId('puertas'), lat: -12.0571, lng: -77.08, isPublished: false }),
 ]
 
 /** Respuesta cruda de la API para un lugar (snake_case), como la manda el servidor. */
 export function rawPlace(p: AdminPlace, ragSync?: string) {
   return {
-    id: p.id, name: p.name, short_name: p.shortName, category_id: p.categoryId, lat: p.lat, lng: p.lng,
+    id: p.id, slug: p.slug, name: p.name, short_name: p.shortName, category_id: p.categoryId, lat: p.lat, lng: p.lng,
     keywords: p.keywords, description: p.description, schedule: p.schedule,
     detailed_schedule: p.detailedSchedule, phone: p.phone, annex: p.annex, email: p.email,
     website: p.website, access_hint: p.accessHint, careers: p.careers, services: p.services,

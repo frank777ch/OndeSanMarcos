@@ -2,8 +2,9 @@ import { adminPlace } from '@/test/fixtures/adminPlaces'
 import { coordinateErrors } from './form'
 import { canSubmit, descendantIds, emptyForm, formToInput, isDirty, listFromText, placeToForm } from './form'
 import { PLACE_AREA, inPlaceArea } from './bounds'
+import { catId } from '@/test/fixtures/places'
 
-const valid = () => ({ ...emptyForm(), name: 'Lab', categoryId: 'facultades', lat: '-12.0535', lng: '-77.0857' })
+const valid = () => ({ ...emptyForm(), name: 'Lab', categoryId: catId('facultades'), lat: '-12.0535', lng: '-77.0857' })
 
 describe('listFromText · RF-31.14a', () => {
   it('un elemento por línea, sin vacíos ni repetidos (sin distinguir mayúsculas)', () => {
@@ -15,13 +16,13 @@ describe('listFromText · RF-31.14a', () => {
 describe('placeToForm / formToInput', () => {
   it('ida y vuelta de un lugar completo', () => {
     const place = adminPlace('fisi', {
-      shortName: 'FISI', keywords: ['a', 'b'], phone: '1', careers: ['X'], parentPlaceId: 'otro',
+      shortName: 'FISI', keywords: ['a', 'b'], phone: '1', careers: ['X'], parentPlaceId: 9,
       verifiedAt: '2026-01-01T00:00:00Z', isPublished: false,
     })
     const form = placeToForm(place)
     expect(form).toMatchObject({ keywords: 'a\nb', lat: '-12.0535', verified: true, isPublished: false })
     expect(formToInput(form)).toMatchObject({
-      shortName: 'FISI', keywords: ['a', 'b'], phone: '1', careers: ['X'], parentPlaceId: 'otro',
+      shortName: 'FISI', keywords: ['a', 'b'], phone: '1', careers: ['X'], parentPlaceId: 9,
       lat: -12.0535, verified: true, isPublished: false,
     })
   })
@@ -67,7 +68,7 @@ describe('isDirty · RF-31.19', () => {
   it('detecta cambios de texto, selección y casillas', () => {
     const initial = placeToForm(adminPlace('a'))
     expect(isDirty(initial, { ...initial, name: 'Otro' })).toBe(true)
-    expect(isDirty(initial, { ...initial, categoryId: 'puertas' })).toBe(true)
+    expect(isDirty(initial, { ...initial, categoryId: catId('puertas') })).toBe(true)
     expect(isDirty(initial, { ...initial, isPublished: false })).toBe(true)
   })
 })
@@ -75,13 +76,13 @@ describe('isDirty · RF-31.19', () => {
 describe('descendantIds · RF-31.14', () => {
   it('incluye el propio lugar y todos sus descendientes', () => {
     const places = [
-      { id: 'a', parentPlaceId: null },
-      { id: 'b', parentPlaceId: 'a' },
-      { id: 'c', parentPlaceId: 'b' },
-      { id: 'd', parentPlaceId: null },
+      { id: 1, parentPlaceId: null },
+      { id: 2, parentPlaceId: 1 },
+      { id: 3, parentPlaceId: 2 },
+      { id: 4, parentPlaceId: null },
     ]
-    expect([...descendantIds(places, 'a')].sort()).toEqual(['a', 'b', 'c'])
-    expect([...descendantIds(places, 'c')]).toEqual(['c'])
+    expect([...descendantIds(places, 1)].sort()).toEqual([1, 2, 3])
+    expect([...descendantIds(places, 3)]).toEqual([3])
   })
 })
 

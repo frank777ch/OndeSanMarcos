@@ -2,12 +2,13 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useToastStore } from '@/components/Toast/toastStore'
 import { ApiError } from '@/services/api/client'
-import { ADMIN_CATEGORIES, ADMIN_PLACES, adminPlace } from '@/test/fixtures/adminPlaces'
+import { ADMIN_CATEGORIES, ADMIN_PLACES, adminId, adminPlace } from '@/test/fixtures/adminPlaces'
 import { usePlacesStore } from '@/features/map/store/usePlacesStore'
 import { useAdminCategoriesStore } from '../../categories/store/useAdminCategoriesStore'
 import { useAdminPlacesStore } from '../store/useAdminPlacesStore'
 import { EMPTY_FILTERS } from '../utils/filters'
 import { PlaceFormDialog } from './PlaceFormDialog'
+import { catId } from '@/test/fixtures/places'
 
 const api = vi.hoisted(() => ({ saveAdminPlace: vi.fn(), listAdminCategories: vi.fn() }))
 vi.mock('@/services/api/adminPlacesApi', async (importOriginal) => ({
@@ -16,7 +17,7 @@ vi.mock('@/services/api/adminPlacesApi', async (importOriginal) => ({
 }))
 // El mapa real necesita WebGL: se sustituye por un botón que «hace clic» en un punto.
 vi.mock('./LocationPicker', () => ({
-  LocationPicker: (props: { lat: number | null; lng: number | null; editingId?: string | null; contextPlaces: unknown[]; onPick: (a: number, b: number) => void }) => (
+  LocationPicker: (props: { lat: number | null; lng: number | null; editingId?: number | null; contextPlaces: unknown[]; onPick: (a: number, b: number) => void }) => (
     <div data-testid="picker" data-lat={props.lat ?? ''} data-lng={props.lng ?? ''} data-editing={props.editingId ?? ''} data-context={props.contextPlaces.length}>
       <button type="button" onClick={() => props.onPick(-12.0565, -77.0827)}>
         Elegir punto
@@ -68,7 +69,8 @@ describe('PlaceFormDialog · diálogo (RF-31.11, RF-31.12)', () => {
     expect(screen.getByRole('combobox', { name: /Categoría/ })).toHaveValue('Facultades')
     expect(screen.getByLabelText('Palabras clave')).toHaveValue('informática\nsoftware')
     expect(screen.getByLabelText(/Verificado/)).toBeChecked()
-    expect(screen.getByText('fisi')).toBeInTheDocument()
+    expect(screen.getByText(String(adminId('fisi')))).toBeInTheDocument()
+    expect(screen.getByText('fisi')).toBeInTheDocument() // slug, solo lectura
     expect(screen.queryByLabelText(/^Id/)).not.toBeInTheDocument()
   })
 
@@ -146,7 +148,7 @@ describe('PlaceFormDialog · campos (RF-31.14, RF-31.15)', () => {
     await renderDialog(ADMIN_PLACES[0])
     const picker = screen.getByTestId('picker')
     expect(picker).toHaveAttribute('data-lat', String(ADMIN_PLACES[0].lat))
-    expect(picker).toHaveAttribute('data-editing', 'fisi')
+    expect(picker).toHaveAttribute('data-editing', String(adminId('fisi')))
     expect(picker).toHaveAttribute('data-context', '3')
   })
 
@@ -162,7 +164,7 @@ describe('PlaceFormDialog · campos (RF-31.14, RF-31.15)', () => {
 
   it('RF-31.14: el lugar contenedor excluye al propio lugar y a sus descendientes', async () => {
     useAdminPlacesStore.setState({
-      places: [...ADMIN_PLACES, adminPlace('hijo', { name: 'Hijo', parentPlaceId: 'fisi' })],
+      places: [...ADMIN_PLACES, adminPlace('hijo', { name: 'Hijo', parentPlaceId: adminId('fisi') })],
     })
     await renderDialog(ADMIN_PLACES[0])
     await userEvent.click(screen.getByRole('combobox', { name: /Lugar que lo contiene/ }))
@@ -175,7 +177,7 @@ describe('PlaceFormDialog · campos (RF-31.14, RF-31.15)', () => {
 
 describe('PlaceFormDialog · guardar (RF-31.16 a RF-31.18)', () => {
   it('RF-31.16: crea con los datos del formulario, cierra y avisa', async () => {
-    api.saveAdminPlace.mockResolvedValue({ place: adminPlace('1000', { name: 'Laboratorio' }), ragSync: 'ok' })
+    api.saveAdminPlace.mockResolvedValue({ place: adminPlace('laboratorio', { name: 'Laboratorio' }), ragSync: 'ok' })
     await renderDialog()
     await fillRequired()
     await type(/^Palabras clave/, 'Redes{Enter} redes {Enter}Wifi')
@@ -184,11 +186,11 @@ describe('PlaceFormDialog · guardar (RF-31.16 a RF-31.18)', () => {
     await userEvent.click(save())
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
     expect(api.saveAdminPlace).toHaveBeenCalledWith(null, expect.objectContaining({
-      name: 'Laboratorio', categoryId: 'facultades', lat: -12.0565, lng: -77.0827,
+      name: 'Laboratorio', categoryId: catId('facultades'), lat: -12.0565, lng: -77.0827,
       keywords: ['Redes', 'Wifi'], email: 'lab@unmsm.edu.pe', phone: null, isPublished: false, verified: false,
     }))
     expect(useToastStore.getState().toasts.map((t) => t.message)).toContain('Lugar guardado')
-    expect(useAdminPlacesStore.getState().places.map((p) => p.id)).toContain('1000')
+    expect(useAdminPlacesStore.getState().places.map((p) => p.id)).toContain(adminId('laboratorio'))
   })
 
   it('RF-31.16: editar reemplaza con PUT al id del lugar', async () => {
@@ -197,7 +199,7 @@ describe('PlaceFormDialog · guardar (RF-31.16 a RF-31.18)', () => {
     await type(/^Teléfono/, '123')
     await userEvent.click(save())
     await waitFor(() => expect(onClose).toHaveBeenCalled())
-    expect(api.saveAdminPlace).toHaveBeenCalledWith('psicologia', expect.objectContaining({ phone: '123', name: 'Facultad de Psicología' }))
+    expect(api.saveAdminPlace).toHaveBeenCalledWith(adminId('psicologia'), expect.objectContaining({ phone: '123', name: 'Facultad de Psicología' }))
   })
 
   it('RF-31.15: mientras guarda, Guardar queda deshabilitado y no admite un segundo envío', async () => {
@@ -210,7 +212,7 @@ describe('PlaceFormDialog · guardar (RF-31.16 a RF-31.18)', () => {
     expect(save()).toHaveTextContent('Guardando…')
     await userEvent.click(save())
     expect(api.saveAdminPlace).toHaveBeenCalledTimes(1)
-    await act(async () => resolve({ place: adminPlace('1000'), ragSync: 'ok' }))
+    await act(async () => resolve({ place: adminPlace('laboratorio'), ragSync: 'ok' }))
   })
 
   it('RF-31.17: un 422 muestra el mensaje junto al campo, lleva el foco y no cierra ni pierde lo escrito', async () => {
@@ -243,7 +245,7 @@ describe('PlaceFormDialog · guardar (RF-31.16 a RF-31.18)', () => {
 
   it('RF-31.18: sin conexión muestra un mensaje dentro del diálogo y permite reintentar', async () => {
     api.saveAdminPlace.mockRejectedValueOnce(new ApiError('network', 'x'))
-    api.saveAdminPlace.mockResolvedValueOnce({ place: adminPlace('1000'), ragSync: 'ok' })
+    api.saveAdminPlace.mockResolvedValueOnce({ place: adminPlace('laboratorio'), ragSync: 'ok' })
     await renderDialog()
     await fillRequired()
     await userEvent.click(save())

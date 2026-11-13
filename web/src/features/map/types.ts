@@ -1,10 +1,12 @@
 import type { LngLat } from './constants/campus'
 
-/** Identificador de una categoría de lugares (por ejemplo `facultades`). Lo define la base de datos. */
-export type PlaceCategoryId = string
+/** Identificador numérico de una categoría de lugares. Lo asigna la base de datos. */
+export type PlaceCategoryId = number
 
 export interface PlaceCategory {
   id: PlaceCategoryId
+  /** Nombre estandarizado, por ejemplo `campos-deportivos`; no se muestra. */
+  slug: string
   label: string
   /** Color del punto en el mapa, `#RRGGBB`. */
   color: string
@@ -15,8 +17,10 @@ export interface PlaceCategory {
  * `placesApi` convierte `lat`/`lng` a `coordinates` y deja sin definir lo que no tiene valor.
  */
 export interface Place {
-  /** Slug estable, por ejemplo `fisi`. */
-  id: string
+  /** Identificador numérico del lugar (estable). */
+  id: number
+  /** Nombre estandarizado, por ejemplo `biblioteca-central`; no se muestra, sirve de referencia estable. */
+  slug: string
   name: string
   shortName?: string
   category: PlaceCategoryId
@@ -43,7 +47,7 @@ export interface Place {
   detailedSchedule?: string[]
   imageUrl?: string
   /** Lugar que lo contiene (un auditorio dentro de una facultad). */
-  parentPlaceId?: string
+  parentPlaceId?: number
   /** Cuándo se confirmó el dato con la universidad; sin valor = sin verificar. */
   verifiedAt?: string
 }

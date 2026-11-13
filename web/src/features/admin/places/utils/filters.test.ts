@@ -1,7 +1,8 @@
 import { ADMIN_PLACES, adminPlace } from '@/test/fixtures/adminPlaces'
 import { EMPTY_FILTERS, clampPage, filterPlaces, hasActiveFilters, paginate, pageCount } from './filters'
+import { catId } from '@/test/fixtures/places'
 
-const ids = (list: { id: string }[]) => list.map((p) => p.id)
+const ids = (list: { slug: string }[]) => list.map((p) => p.slug)
 const f = (over: Partial<typeof EMPTY_FILTERS>) => ({ ...EMPTY_FILTERS, ...over })
 
 describe('filterPlaces · RF-31.4', () => {
@@ -18,7 +19,7 @@ describe('filterPlaces · RF-31.4', () => {
   })
 
   it('filtra por categoría, estado y verificación, y los combina', () => {
-    expect(ids(filterPlaces(ADMIN_PLACES, f({ categoryId: 'puertas' })))).toEqual(['puerta-3'])
+    expect(ids(filterPlaces(ADMIN_PLACES, f({ categoryId: catId('puertas') })))).toEqual(['puerta-3'])
     expect(ids(filterPlaces(ADMIN_PLACES, f({ published: 'no' })))).toEqual(['puerta-3'])
     expect(ids(filterPlaces(ADMIN_PLACES, f({ published: 'yes' })))).toEqual(['fisi', 'psicologia'])
     expect(ids(filterPlaces(ADMIN_PLACES, f({ verified: 'no' })))).toEqual(['psicologia', 'puerta-3'])

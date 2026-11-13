@@ -7,7 +7,7 @@ export type TriState = 'all' | 'yes' | 'no'
 
 export interface PlaceFilters {
   q: string
-  categoryId: string | null
+  categoryId: number | null
   published: TriState
   verified: TriState
 }
@@ -28,7 +28,7 @@ export function filterPlaces(places: AdminPlace[], filters: PlaceFilters): Admin
     if (!matchesTri(p.isPublished, filters.published)) return false
     if (!matchesTri(p.verifiedAt !== null, filters.verified)) return false
     if (!needle) return true
-    return [p.id, p.name, p.shortName ?? '', ...p.keywords].some((t) => normalizeText(t).includes(needle))
+    return [String(p.id), p.slug, p.name, p.shortName ?? '', ...p.keywords].some((t) => normalizeText(t).includes(needle))
   })
 }
 

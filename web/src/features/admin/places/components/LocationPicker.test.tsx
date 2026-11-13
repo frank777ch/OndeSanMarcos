@@ -43,8 +43,8 @@ vi.mock('@/config', () => ({ Config: config }))
 import { LocationPicker } from './LocationPicker'
 
 const CONTEXT = [
-  { id: 'a', lat: -12.05, lng: -77.08 },
-  { id: 'b', lat: -12.06, lng: -77.081 },
+  { id: 1, lat: -12.05, lng: -77.08 },
+  { id: 2, lat: -12.06, lng: -77.081 },
 ]
 const click = (lat: number, lng: number) => act(() => spy.state.map.onClick({ lngLat: { lat, lng } }))
 
@@ -131,8 +131,8 @@ describe('LocationPicker', () => {
   })
 
   it('RF-31.26: los demás lugares son puntos de contexto y el lugar editado no se repite', () => {
-    render(<LocationPicker lat={-12.05} lng={-77.08} onPick={() => {}} contextPlaces={CONTEXT} editingId="a" />)
-    expect(spy.state.source.features.map((f: any) => f.properties.id)).toEqual(['b'])
+    render(<LocationPicker lat={-12.05} lng={-77.08} onPick={() => {}} contextPlaces={CONTEXT} editingId={1} />)
+    expect(spy.state.source.features.map((f: any) => f.properties.id)).toEqual([2])
   })
 
   it('RF-31.27: sin token muestra un aviso en lugar del mapa', () => {

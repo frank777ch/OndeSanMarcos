@@ -4,6 +4,7 @@ import { ApiError, apiClient } from './client'
 /** Forma cruda de `GET /api/places` (snake_case, HU-27). */
 interface ApiPlace {
   id?: unknown
+  slug?: unknown
   name?: unknown
   short_name?: string | null
   category_id?: unknown
@@ -22,12 +23,13 @@ interface ApiPlace {
   services?: string[] | null
   usage?: string | null
   image_url?: string | null
-  parent_place_id?: string | null
+  parent_place_id?: number | null
   verified_at?: string | null
 }
 
 interface ApiCategory {
   id?: unknown
+  slug?: unknown
   label?: unknown
   color?: unknown
 }
@@ -42,6 +44,8 @@ const invalid = (endpoint: string, why: string) =>
 
 const isText = (value: unknown): value is string => typeof value === 'string' && value !== ''
 const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
+/** Id de lugar: entero positivo. */
+const isId = (value: unknown): value is number => Number.isInteger(value) && (value as number) > 0
 
 /** Texto vacío o nulo → sin dato. */
 function text(value: string | null | undefined): string | undefined {
@@ -55,11 +59,12 @@ function list(value: string[] | null | undefined): string[] | undefined {
 
 /** Convierte un lugar de la API al formato de la web (RF-28.2). */
 export function toPlace(raw: ApiPlace): Place {
-  if (!isText(raw.id) || !isText(raw.name) || !isText(raw.category_id) || !isNumber(raw.lat) || !isNumber(raw.lng)) {
-    throw invalid('/api/places', `un lugar no trae id, nombre, categoría o coordenadas válidos (${JSON.stringify(raw.id)})`)
+  if (!isId(raw.id) || !isText(raw.slug) || !isText(raw.name) || !isId(raw.category_id) || !isNumber(raw.lat) || !isNumber(raw.lng)) {
+    throw invalid('/api/places', `un lugar no trae id, slug, nombre, categoría o coordenadas válidos (${JSON.stringify(raw.id)})`)
   }
   return {
     id: raw.id,
+    slug: raw.slug,
     name: raw.name,
     shortName: text(raw.short_name),
     category: raw.category_id,
@@ -77,16 +82,16 @@ export function toPlace(raw: ApiPlace): Place {
     usage: text(raw.usage),
     detailedSchedule: list(raw.detailed_schedule),
     imageUrl: text(raw.image_url),
-    parentPlaceId: text(raw.parent_place_id),
+    parentPlaceId: isId(raw.parent_place_id) ? raw.parent_place_id : undefined,
     verifiedAt: text(raw.verified_at),
   }
 }
 
 function toCategory(raw: ApiCategory): PlaceCategory {
-  if (!isText(raw.id) || !isText(raw.label) || !isText(raw.color)) {
+  if (!isId(raw.id) || !isText(raw.slug) || !isText(raw.label) || !isText(raw.color)) {
     throw invalid('/api/place-categories', `una categoría no trae id, etiqueta o color (${JSON.stringify(raw.id)})`)
   }
-  return { id: raw.id, label: raw.label, color: raw.color }
+  return { id: raw.id, slug: raw.slug, label: raw.label, color: raw.color }
 }
 
 /**

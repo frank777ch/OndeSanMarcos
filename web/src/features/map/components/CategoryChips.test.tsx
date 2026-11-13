@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useMapStore } from '../store/useMapStore'
 import { CategoryChips } from './CategoryChips'
-import { resetPlaces, seedPlaces } from '@/test/fixtures/places'
+import { resetPlaces, seedPlaces, catId } from '@/test/fixtures/places'
 import { usePlacesStore } from '../store/usePlacesStore'
 
 describe('CategoryChips', () => {
@@ -32,12 +32,12 @@ describe('CategoryChips', () => {
   it('RF-28.8: las etiquetas y el orden salen de las categorías cargadas, también las nuevas', () => {
     seedPlaces(
       [
-        { id: 'a', name: 'A', category: 'nueva', coordinates: [-77, -12], keywords: [] },
-        { id: 'b', name: 'B', category: 'puertas', coordinates: [-77, -12], keywords: [] },
+        { id: 1, slug: 'a', name: 'A', category: catId('nueva'), coordinates: [-77, -12], keywords: [] },
+        { id: 2, slug: 'b', name: 'B', category: catId('puertas'), coordinates: [-77, -12], keywords: [] },
       ],
       [
-        { id: 'nueva', label: 'Mi categoría', color: '#123456' },
-        { id: 'puertas', label: 'Puertas', color: '#e74c3c' },
+        { id: catId('nueva'), slug: 'nueva', label: 'Mi categoría', color: '#123456' },
+        { id: catId('puertas'), slug: 'puertas', label: 'Puertas', color: '#e74c3c' },
       ],
     )
     render(<CategoryChips />)
@@ -60,7 +60,7 @@ describe('CategoryChips', () => {
       'aria-pressed',
       'true',
     )
-    expect(useMapStore.getState().activeCategory).toBe('cafeterias')
+    expect(useMapStore.getState().activeCategory).toBe(catId('cafeterias'))
   })
 
   it('RF-10.7: pulsar el chip activo lo desactiva', async () => {
@@ -86,6 +86,6 @@ describe('CategoryChips', () => {
     await userEvent.tab()
     expect(screen.getByRole('button', { name: 'Facultades' })).toHaveFocus()
     await userEvent.keyboard('{Enter}')
-    expect(useMapStore.getState().activeCategory).toBe('facultades')
+    expect(useMapStore.getState().activeCategory).toBe(catId('facultades'))
   })
 })

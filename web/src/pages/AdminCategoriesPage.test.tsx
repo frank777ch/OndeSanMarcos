@@ -5,6 +5,7 @@ import { useAdminCategoriesStore } from '@/features/admin/categories/store/useAd
 import { usePlacesStore } from '@/features/map/store/usePlacesStore'
 import { ApiError } from '@/services/api/client'
 import { ADMIN_CATEGORIES } from '@/test/fixtures/adminPlaces'
+import { catId } from '@/test/fixtures/places'
 import { AdminCategoriesPage } from './AdminCategoriesPage'
 
 const api = vi.hoisted(() => ({
@@ -37,13 +38,14 @@ beforeEach(() => {
 })
 
 describe('AdminCategoriesPage · tabla (RF-31.28)', () => {
-  it('muestra color, nombre, id, orden y cantidad de lugares, por orden', async () => {
+  it('muestra color, nombre, slug, orden y cantidad de lugares, por orden', async () => {
     await renderPage()
     expect(screen.getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
-      'Color', 'Nombre', 'Id', 'Orden', 'Lugares', 'Acciones',
+      'Color', 'Nombre', 'Slug', 'Orden', 'Lugares', 'Acciones',
     ])
     const rows = screen.getAllByRole('row').slice(1)
     expect(rows.map((r) => within(r).getByRole('rowheader').textContent)).toEqual(['Facultades', 'Puertas', 'Vacía'])
+    expect(within(rowOf('Puertas')).getByText('puertas')).toBeInTheDocument()
     expect(within(rowOf('Facultades')).getByText('2 lugares')).toBeInTheDocument()
     expect(within(rowOf('Puertas')).getByText('1 lugar')).toBeInTheDocument()
     expect(within(rowOf('Vacía')).getByText('0 lugares')).toBeInTheDocument()
@@ -73,24 +75,20 @@ describe('AdminCategoriesPage · crear y editar (RF-31.29, RF-31.30)', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('crear: Guardar espera id válido, nombre y color; envía los datos y agrega la fila', async () => {
+  it('crear: Guardar espera nombre y color (sin campo de id); envía los datos y agrega la fila', async () => {
     await renderPage()
-    api.saveAdminCategory.mockResolvedValue({ id: 'labs', label: 'Laboratorios', color: '#112233', sortOrder: 3, placesCount: 0 })
+    api.saveAdminCategory.mockResolvedValue({ id: catId('labs'), slug: 'laboratorios', label: 'Laboratorios', color: '#112233', sortOrder: 3, placesCount: 0 })
     await userEvent.click(screen.getByRole('button', { name: 'Nueva categoría' }))
     const save = screen.getByRole('button', { name: 'Guardar' })
     expect(save).toBeDisabled()
-    await userEvent.type(screen.getByLabelText(/^Id/), 'Mal Id')
-    expect(screen.getByText('Solo minúsculas, dígitos y guiones.')).toBeInTheDocument()
-    expect(save).toBeDisabled()
-    await userEvent.clear(screen.getByLabelText(/^Id/))
-    await userEvent.type(screen.getByLabelText(/^Id/), 'labs')
+    expect(screen.queryByLabelText(/^Id/)).not.toBeInTheDocument()
     await userEvent.type(screen.getByLabelText(/^Nombre/), 'Laboratorios')
     await userEvent.clear(screen.getByLabelText(/^Color \*/))
     await userEvent.type(screen.getByLabelText(/^Color \*/), '#112233')
     expect(save).toBeEnabled()
     await userEvent.click(save)
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(api.saveAdminCategory).toHaveBeenCalledWith(null, { id: 'labs', label: 'Laboratorios', color: '#112233', sortOrder: null })
+    expect(api.saveAdminCategory).toHaveBeenCalledWith(null, { label: 'Laboratorios', color: '#112233', sortOrder: null })
     expect(rowOf('Laboratorios')).toBeInTheDocument()
     expect(toasts()).toContain('Categoría guardada')
     expect(refresh).toHaveBeenCalled()
@@ -108,29 +106,29 @@ describe('AdminCategoriesPage · crear y editar (RF-31.29, RF-31.30)', () => {
     expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled()
   })
 
-  it('editar: título «Editar categoría», id de solo lectura, y envía PUT sin id', async () => {
+  it('editar: título «Editar categoría», id y slug de solo lectura, y envía PUT sin ellos', async () => {
     await renderPage()
     api.saveAdminCategory.mockResolvedValue({ ...ADMIN_CATEGORIES[1], label: 'Accesos' })
     await userEvent.click(screen.getByRole('button', { name: 'Editar Puertas' }))
     expect(screen.getByRole('dialog', { name: 'Editar categoría' })).toBeInTheDocument()
     expect(screen.queryByLabelText(/^Id/)).not.toBeInTheDocument()
+    expect(within(screen.getByRole('dialog')).getByText('puertas')).toBeInTheDocument() // slug, solo lectura
     await userEvent.clear(screen.getByLabelText(/^Nombre/))
     await userEvent.type(screen.getByLabelText(/^Nombre/), 'Accesos')
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(api.saveAdminCategory).toHaveBeenCalledWith('puertas', { label: 'Accesos', color: '#e74c3c', sortOrder: 1 })
+    expect(api.saveAdminCategory).toHaveBeenCalledWith(catId('puertas'), { label: 'Accesos', color: '#e74c3c', sortOrder: 1 })
     expect(rowOf('Accesos')).toBeInTheDocument()
   })
 
-  it('RF-31.30: un id repetido (409) se muestra junto al campo sin cerrar ni perder lo escrito', async () => {
+  it('RF-31.30: un error del nombre se muestra junto al campo sin cerrar ni perder lo escrito', async () => {
     await renderPage()
-    api.saveAdminCategory.mockRejectedValue(apiError(409, [{ loc: ['body', 'id'], msg: 'Ya existe una categoría con ese id.' }]))
+    api.saveAdminCategory.mockRejectedValue(apiError(422, [{ loc: ['body', 'label'], msg: 'Nombre no válido.' }]))
     await userEvent.click(screen.getByRole('button', { name: 'Nueva categoría' }))
-    await userEvent.type(screen.getByLabelText(/^Id/), 'puertas')
     await userEvent.type(screen.getByLabelText(/^Nombre/), 'Otra')
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
-    expect(await screen.findByText('Ya existe una categoría con ese id.')).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByLabelText(/^Id/)).toHaveFocus())
+    expect(await screen.findByText('Nombre no válido.')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByLabelText(/^Nombre/)).toHaveFocus())
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByLabelText(/^Nombre/)).toHaveValue('Otra')
   })
@@ -139,7 +137,6 @@ describe('AdminCategoriesPage · crear y editar (RF-31.29, RF-31.30)', () => {
     await renderPage()
     api.saveAdminCategory.mockRejectedValueOnce(apiError(422, [{ loc: ['body', 'color'], msg: 'Value error, Debe tener el formato #RRGGBB.' }]))
     await userEvent.click(screen.getByRole('button', { name: 'Nueva categoría' }))
-    await userEvent.type(screen.getByLabelText(/^Id/), 'nueva')
     await userEvent.type(screen.getByLabelText(/^Nombre/), 'Nueva')
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
     expect(await screen.findByText('Debe tener el formato #RRGGBB.')).toBeInTheDocument()
@@ -181,7 +178,7 @@ describe('AdminCategoriesPage · borrar (RF-31.31)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Borrar Vacía' }))
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Borrar' }))
     await waitFor(() => expect(screen.queryByRole('row', { name: /Vacía/ })).not.toBeInTheDocument())
-    expect(api.deleteAdminCategory).toHaveBeenCalledWith('vacia')
+    expect(api.deleteAdminCategory).toHaveBeenCalledWith(catId('vacia'))
     expect(toasts()).toContain('Categoría borrada')
     expect(refresh).toHaveBeenCalled()
   })

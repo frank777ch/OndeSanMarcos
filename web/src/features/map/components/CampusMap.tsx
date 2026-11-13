@@ -123,7 +123,7 @@ export function CampusMap() {
         onClick={(e) => {
           // Tocar una zona sin lugares no cierra la ficha (RF-12.7).
           const id = placeIdFromFeatures(e.features)
-          if (id) selectPlace(id, 'map')
+          if (id !== null) selectPlace(id, 'map')
         }}
         style={{ width: '100%', height: '100%' }}
       >

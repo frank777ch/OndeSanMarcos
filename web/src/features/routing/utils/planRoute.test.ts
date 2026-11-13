@@ -1,9 +1,9 @@
-import { seedPlaces } from '@/test/fixtures/places'
+import { idOf, seedPlaces } from '@/test/fixtures/places'
 import { haversine } from './distance'
 import { buildGraph, getCampusGraph, nearestNode, shortestPath } from './pathfinder'
 import { MAX_ACCESS_DISTANCE, planRoute, pointCoordinates, pointLabel, type RoutePoint } from './planRoute'
 
-const place = (placeId: string): RoutePoint => ({ kind: 'place', placeId })
+const place = (slug: string): RoutePoint => ({ kind: 'place', placeId: slug === 'no-existe' ? 999999 : idOf(slug) })
 const at = (coordinates: [number, number]): RoutePoint => ({ kind: 'my-location', coordinates })
 
 const line = (...coordinates: [number, number][]) => ({ geometry: { type: 'LineString', coordinates } })
