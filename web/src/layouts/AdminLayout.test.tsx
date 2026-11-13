@@ -9,8 +9,8 @@ function renderLayout() {
   render(
     <RouterProvider
       router={createMemoryRouter(
-        [{ path: '/admin', element: <AdminLayout />, children: [{ index: true, element: <AdminProfilePage /> }] }],
-        { initialEntries: ['/admin'] },
+        [{ path: '/admin', element: <AdminLayout />, children: [{ path: 'perfil', element: <AdminProfilePage /> }] }],
+        { initialEntries: ['/admin/perfil'] },
       )}
     />,
   )
@@ -22,7 +22,7 @@ describe('AdminLayout', () => {
     useAuthStore.setState({ session: { token: 't', expiresAt: Date.now() + 60_000 }, expired: false })
   })
 
-  it('RF-26.15 y RF-31.1: pestañas Perfil (activa), Lugares y Categorías, sin Mapa ni Asistente', () => {
+  it('RF-26.15 y RF-31.1: pestañas Lugares, Categorías y Perfil (activa), sin Mapa ni Asistente', () => {
     renderLayout()
     const nav = screen.getByRole('navigation', { name: 'Administración' })
     expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Lugares', 'Categorías', 'Perfil'])

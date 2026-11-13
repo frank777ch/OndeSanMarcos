@@ -52,3 +52,4 @@ Resueltas el 2026-11-12:
 - 2026-11-12 · Preguntas resueltas; spec aprobada.
 - 2026-11-12 · Código implementado y probado. Pendiente la verificación manual en el navegador. Al probar con el servidor real se vio que el 422 repetía la contraseña nueva en `input`; se corrigió (RF-37.7).
 - 2026-11-12 · «Perfil» pasa al final del menú de administración. Aparte, se quita el campo «Imagen» del formulario de lugares (solo del formulario; la columna y la API no cambian).
+- 2026-11-12 · Perfil pasa a `/admin/perfil`; `/admin` redirige a Lugares, la primera pestaña del menú.

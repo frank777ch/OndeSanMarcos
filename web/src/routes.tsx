@@ -19,9 +19,11 @@ export const routes: RouteObject[] = [
       {
         element: <AdminLayout />,
         children: [
-          { index: true, element: <AdminProfilePage /> },
+          // Tras iniciar sesión se abre la primera pestaña del menú.
+          { index: true, element: <Navigate to="lugares" replace /> },
           { path: 'lugares', element: <AdminPlacesPage /> },
           { path: 'categorias', element: <AdminCategoriesPage /> },
+          { path: 'perfil', element: <AdminProfilePage /> },
         ],
       },
     ],

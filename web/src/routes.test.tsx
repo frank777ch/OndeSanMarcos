@@ -93,5 +93,16 @@ describe('rutas de administración · RF-31.1', () => {
     await renderAt('/admin/categorias')
     expect(await screen.findByRole('region', { name: 'Categorías' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Categorías' })).toHaveAttribute('aria-current', 'page')
+    cleanup()
+    await renderAt('/admin/perfil')
+    expect(await screen.findByRole('region', { name: 'Perfil' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('con sesión, /admin abre la primera pestaña del menú (Lugares)', async () => {
+    useAuthStore.setState({ session: { token: 't', expiresAt: Date.now() + 60_000 }, expired: false })
+    const router = await renderAt('/admin')
+    await waitFor(() => expect(router.state.location.pathname).toBe('/admin/lugares'))
+    expect(await screen.findByRole('region', { name: 'Lugares' })).toBeInTheDocument()
   })
 })

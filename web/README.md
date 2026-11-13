@@ -48,7 +48,7 @@ El mapa del formulario se descarga solo al abrir el diálogo (un chunk aparte). 
 
 ## Perfil del administrador
 
-La pestaña **Perfil** (`/admin`) muestra el usuario, la fecha de alta y cuándo vence la sesión. «Cambiar contraseña» abre un diálogo (actual, nueva y confirmación; la nueva: 8 o más caracteres con letras y números). Si la actual es incorrecta el error sale junto a ese campo; tras 5 errores seguidos hay que esperar unos minutos. La sesión sigue abierta tras el cambio.
+La pestaña **Perfil** (`/admin/perfil`, última del menú; al entrar a `/admin` se abre Lugares) muestra el usuario, la fecha de alta y cuándo vence la sesión. «Cambiar contraseña» abre un diálogo (actual, nueva y confirmación; la nueva: 8 o más caracteres con letras y números). Si la actual es incorrecta el error sale junto a ese campo; tras 5 errores seguidos hay que esperar unos minutos. La sesión sigue abierta tras el cambio.
 
 ## Estilos
 Tailwind CSS v4. Los tokens (colores, fuentes, radios, sombras) están en `@theme` dentro de `src/index.css`; el tema oscuro los redefine con `data-theme="dark"`.
