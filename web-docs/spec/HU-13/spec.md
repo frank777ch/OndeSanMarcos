@@ -87,7 +87,7 @@ Se agrega un botón debajo de «Mi ubicación» que abre un diálogo de planific
 |---|---|
 | RF-13.37 | El diálogo debe tener un botón «Iniciar ruta», deshabilitado mientras no haya una ruta calculada correctamente (sin origen o destino, calculando, o con aviso de error). |
 | RF-13.38 | Cuando el usuario pulsa «Iniciar ruta», el sistema debe cerrar el diálogo y dibujar en el mapa una línea que siga los puntos de la ruta, del origen al destino. No debe dibujar marcadores. |
-| RF-13.39 | La línea debe verse por encima del mapa y no impedir tocar los lugares que tenga debajo. |
+| RF-13.39 | La línea debe verse por encima del mapa y tener prioridad sobre los lugares que tenga debajo: al pasar el cursor o tocarla se engrosa y aparece una «X» para quitarla. |
 | RF-13.40 | Mientras hay una línea dibujada, cambiar o limpiar el origen o el destino en el diálogo no debe alterarla; solo cambia cuando el usuario vuelve a pulsar «Iniciar ruta» (reemplaza a la anterior). |
 | RF-13.41 | Mientras hay una línea dibujada, el diálogo debe mostrar un botón «Quitar ruta» que borre la línea sin vaciar el origen ni el destino. |
 | RF-13.42 | Cuando el usuario pulsa «Iniciar ruta», la cámara debe volar con animación hasta encuadrar la ruta completa, centrada en el área visible del mapa (sin quedar tapada por la barra lateral, el buscador ni el logo de Mapbox), conservando exactamente la inclinación y la orientación que tenga el mapa en ese momento (3D o plano). Quitar la ruta o volver a la vista del mapa con una ruta ya dibujada no mueve la cámara. |

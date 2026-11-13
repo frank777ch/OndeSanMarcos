@@ -38,7 +38,7 @@ Para eso hace falta el permiso de ubicación del dispositivo. Se le pide con un 
 | ID | Requisito |
 |---|---|
 | RF-15.7 | Cuando el usuario pulsa el botón y el permiso está concedido, el sistema debe obtener la ubicación del dispositivo y mover la cámara hasta ella, esté dentro o fuera del campus y sin mostrar avisos por estar fuera. |
-| RF-15.8 | Cuando el usuario pulsa el botón y el permiso no está concedido (no respondido, rechazado en el aviso, denegado o no disponible), el sistema debe llevar la cámara al centro de la universidad, igual que hoy, sin volver a pedir el permiso. |
+| RF-15.8 | Cuando el usuario pulsa el botón y el permiso está denegado o la geolocalización no está disponible, el sistema debe llevar la cámara al centro de la universidad, igual que hoy, sin volver a pedir el permiso. |
 | RF-15.9 | Cuando el permiso está concedido pero no se puede obtener la ubicación (señal, tiempo agotado), el sistema debe llevar la cámara al centro de la universidad y mostrar un mensaje breve que lo explique. |
 | RF-15.10 | El sistema no debe mover la cámara ni dibujar el punto por su cuenta: ni al entrar a la web, ni al aceptar el permiso. La vista inicial es siempre la actual. (El navegador solo muestra su petición al leer la ubicación; esa primera lectura se descarta.) |
 | RF-15.11 | Mientras se obtiene la ubicación, el botón debe indicar que está trabajando y no aceptar pulsaciones repetidas. |
@@ -56,7 +56,7 @@ Para eso hace falta el permiso de ubicación del dispositivo. Se le pide con un 
 ### Accesibilidad
 | ID | Requisito |
 |---|---|
-| RF-15.12 | El botón debe tener un nombre accesible que refleje lo que hace: «Mi ubicación» si el permiso está concedido y «Volver al campus» en los demás casos. |
+| RF-15.12 | El botón debe tener un nombre accesible que refleje lo que hace: «Mi ubicación» salvo cuando no hay forma de ubicar al usuario (permiso denegado o geolocalización no disponible), que es cuando es «Volver al campus». Con el permiso sin responder, pulsarlo lo solicita. |
 | RF-15.13 | El aviso y los mensajes deben anunciarse a lectores de pantalla y el aviso debe poder cerrarse con Esc (equivale a «Ahora no»). |
 
 ## 4. Escenarios de aceptación
