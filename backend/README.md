@@ -265,6 +265,10 @@ curl -s localhost:8000/api/admin/places -H "Authorization: Bearer $TOKEN" \
 
 ---
 
+### Perfil y cambio de contraseña (`GET /api/auth/me`, `POST /api/auth/change-password`)
+
+`/me` devuelve `username` y `created_at` (fecha de alta). `POST /api/auth/change-password` (con sesión) recibe `current_password` y `new_password` y responde **204**; la sesión actual sigue valiendo y los demás tokens hasta su vencimiento. Errores: 403 si la actual no es correcta (cuenta en el mismo límite de intentos que el login → 429 con `Retry-After`), 422 si la nueva no cumple la política (8 a 72 bytes, al menos una letra y un número, distinta de la actual). Los 422 de `/api/auth` no repiten el valor recibido para no devolver contraseñas.
+
 ## 🔌 Contrato del chat
 
 | Método | Ruta | Body | Respuesta |

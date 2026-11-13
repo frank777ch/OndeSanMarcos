@@ -13,6 +13,8 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -83,6 +85,14 @@ def create_app() -> FastAPI:
         if request.url.path.startswith("/api/admin"):
             response.headers["Cache-Control"] = "no-store"
         return response
+
+    @app.exception_handler(RequestValidationError)
+    async def _handle_validation_error(request: Request, exc: RequestValidationError):  # type: ignore[no-untyped-def]
+        """422 estándar, pero en `/api/auth` sin repetir el valor recibido (podría ser una contraseña)."""
+        if request.url.path.startswith("/api/auth"):
+            errors = [{k: v for k, v in e.items() if k not in ("input", "ctx")} for e in exc.errors()]
+            return JSONResponse(status_code=422, content={"detail": errors})
+        return await request_validation_exception_handler(request, exc)
 
     @app.exception_handler(RagProviderError)
     async def _handle_provider_error(

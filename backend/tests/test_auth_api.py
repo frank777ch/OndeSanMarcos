@@ -125,7 +125,7 @@ def test_rf_25_5_app_does_not_start_without_jwt_secret(monkeypatch):
 def test_rf_25_6_me_with_a_valid_token(client):
     token = login(client).json()["access_token"]
     r = client.get("/api/auth/me", headers=bearer(token))
-    assert r.status_code == 200 and r.json() == {"username": "admin"}
+    assert r.status_code == 200 and r.json() == {"username": "admin", "created_at": "2026-01-15T10:30:00Z"}
 
 
 def _assert_401(r):
@@ -205,3 +205,115 @@ def test_rf_25_12_no_password_or_hash_in_responses_or_logs(client, store, caplog
     assert "mala-clave-secreta" not in ok_client_body + caplog.text
     assert store.admins["admin"] not in caplog.text + ok_client_body
     assert "admin" in caplog.text  # sí se registra el usuario
+
+
+# --- HU-37: perfil y cambio de contraseña -------------------------------------
+
+NEW_PASSWORD = "nueva-clave-2026"
+
+
+def token_for(client):
+    return login(client).json()["access_token"]
+
+
+def change(client, current=PASSWORD, new=NEW_PASSWORD, token=None):
+    return client.post(
+        "/api/auth/change-password",
+        json={"current_password": current, "new_password": new},
+        headers=bearer(token or token_for(client)),
+    )
+
+
+def test_rf_37_1_me_includes_created_at(client):
+    r = client.get("/api/auth/me", headers=bearer(token_for(client)))
+    assert r.json()["created_at"] == "2026-01-15T10:30:00Z"
+
+
+def test_rf_37_2_change_password_requires_a_session(client):
+    r = client.post("/api/auth/change-password", json={"current_password": PASSWORD, "new_password": NEW_PASSWORD})
+    assert r.status_code == 401 and r.headers["www-authenticate"] == "Bearer"
+
+
+def test_rf_37_3_change_password_replaces_the_hash(client, store):
+    r = change(client)
+    assert r.status_code == 204 and r.content == b""
+    assert store.admins["admin"].startswith("$2")
+    assert login(client, password=NEW_PASSWORD).status_code == 200
+    assert login(client, password=PASSWORD).status_code == 401
+
+
+def test_rf_37_3_session_stays_valid_after_the_change(client):
+    token = token_for(client)
+    assert change(client, token=token).status_code == 204
+    assert client.get("/api/auth/me", headers=bearer(token)).status_code == 200
+
+
+def test_rf_37_4_wrong_current_password_gives_403_and_changes_nothing(client, store):
+    before = store.admins["admin"]
+    r = change(client, current="no-es-esta")
+    assert r.status_code == 403 and r.json()["detail"] == "La contraseña actual no es correcta."
+    assert store.admins["admin"] == before
+
+
+def test_rf_37_5_wrong_current_password_counts_toward_the_lockout(client):
+    token = token_for(client)
+    for _ in range(5):
+        assert change(client, current="mala", token=token).status_code == 403
+    r = change(client, token=token)  # aunque la actual sea correcta
+    assert r.status_code == 429 and int(r.headers["retry-after"]) > 0
+
+
+@pytest.mark.parametrize(
+    "new",
+    ["corta1", "sololetrasaqui", "123456789012", PASSWORD, "a1" * 40],
+    ids=["corta", "sin-numero", "sin-letra", "igual-a-la-actual", "mas-de-72-bytes"],
+)
+def test_rf_37_6_invalid_new_password_gives_422_on_the_field(client, store, new):
+    before = store.admins["admin"]
+    r = change(client, new=new)
+    assert r.status_code == 422
+    assert r.json()["detail"][0]["loc"] == ["body", "new_password"]
+    assert store.admins["admin"] == before
+
+
+def test_rf_37_6_accented_letters_count_as_letters(client):
+    assert change(client, new="contraseña2026").status_code == 204
+
+
+def test_rf_37_7_no_passwords_or_hashes_in_responses_or_logs(client, store, caplog):
+    with caplog.at_level(logging.DEBUG):
+        change(client, current="mala-clave-1")
+        change(client)
+    assert NEW_PASSWORD not in caplog.text and PASSWORD not in caplog.text and "mala-clave-1" not in caplog.text
+    assert store.admins["admin"] not in caplog.text
+    assert "Contraseña cambiada" in caplog.text
+
+
+def test_rf_37_8_database_down_gives_503(store, limiter):
+    class Down(FakeAdminStore):
+        def update_admin_password(self, username, password_hash):
+            raise RagProviderError("No se pudo conectar a la base de datos.")
+
+    down = Down()
+    down.admins.update(store.admins)
+    app = create_app()
+    app.dependency_overrides[get_store] = lambda: down
+    app.dependency_overrides[get_limiter] = lambda: limiter
+    c = TestClient(app)
+    assert change(c).status_code == 503
+
+
+def test_rf_37_9_documented_in_openapi(client):
+    op = client.get("/openapi.json").json()["paths"]["/api/auth/change-password"]["post"]
+    assert {"204", "401", "403", "422", "429"} <= set(op["responses"])
+    schema = client.get("/openapi.json").json()["components"]["schemas"]["ChangePasswordRequest"]
+    assert all(p.get("description") for p in schema["properties"].values())
+
+
+def test_rf_37_7_validation_errors_do_not_echo_the_password(client):
+    r = change(client, new="sololetrasaqui")
+    assert r.status_code == 422
+    assert "sololetrasaqui" not in r.text and "input" not in r.json()["detail"][0]
+    assert r.json()["detail"][0]["loc"] == ["body", "new_password"]
+    # Los 422 del resto de la API siguen siendo los estándar.
+    assert "input" in client.post("/api/chat", json={}).json()["detail"][0]

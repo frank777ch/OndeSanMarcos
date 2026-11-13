@@ -16,8 +16,8 @@ describe('adminClient', () => {
   })
 
   it('RF-26.18: añade Authorization: Bearer con el token de la sesión', async () => {
-    fetchMock.mockResolvedValue(new Response(JSON.stringify({ username: 'admin' }), { status: 200 }))
-    expect(await fetchMe()).toEqual({ username: 'admin' })
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ username: 'admin', created_at: '2026-01-15T10:30:00Z' }), { status: 200 }))
+    expect(await fetchMe()).toEqual({ username: 'admin', createdAt: new Date('2026-01-15T10:30:00Z') })
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toMatch(/\/api\/auth\/me$/)
     expect(init.method).toBe('GET')

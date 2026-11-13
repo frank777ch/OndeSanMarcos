@@ -181,12 +181,21 @@ class Database:
         return row is not None
 
     def get_admin(self, username: str) -> dict | None:
-        """Fila del administrador (`username`, `password_hash`) o `None`."""
+        """Fila del administrador (`username`, `password_hash`, `created_at`) o `None`."""
         with self.connection() as conn:
             return conn.execute(
-                "select username, password_hash from admin_users where username = %s",
+                "select username, password_hash, created_at from admin_users where username = %s",
                 (username,),
             ).fetchone()
+
+    def update_admin_password(self, username: str, password_hash: str) -> bool:
+        """Guarda el nuevo hash (HU-37); `False` si el administrador ya no existe."""
+        with self.connection() as conn:
+            row = conn.execute(
+                "update admin_users set password_hash = %s where username = %s returning id",
+                (password_hash, username),
+            ).fetchone()
+        return row is not None
 
     def insert_admin(self, username: str, password_hash: str) -> bool:
         """Inserta el administrador; `False` si ya existía (sin error ni cambios)."""

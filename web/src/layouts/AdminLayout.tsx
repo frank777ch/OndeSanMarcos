@@ -4,9 +4,9 @@ import { cn } from '@/lib/cn'
 import { SidebarShell, type SidebarLink } from './SidebarShell'
 
 const links: SidebarLink[] = [
-  { to: '/admin', label: 'Perfil', icon: UserRound, end: true },
   { to: '/admin/lugares', label: 'Lugares', icon: MapPin },
   { to: '/admin/categorias', label: 'Categorías', icon: Tags },
+  { to: '/admin', label: 'Perfil', icon: UserRound, end: true },
 ]
 
 /** Misma barra lateral que la web pública, con las pestañas de administración y «Cerrar sesión» al pie. */

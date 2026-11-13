@@ -27,5 +27,22 @@ export const adminClient = {
   delete: <T>(endpoint: string) => authenticated((headers) => apiClient.delete<T>(endpoint, headers)),
 }
 
-/** `GET /api/auth/me`: confirma que la sesión sigue siendo válida. */
-export const fetchMe = () => adminClient.get<{ username: string }>('/api/auth/me')
+/** Datos del administrador autenticado (`GET /api/auth/me`). */
+export interface AdminProfile {
+  username: string
+  /** Fecha de alta. */
+  createdAt: Date
+}
+
+/** `GET /api/auth/me`: datos de la cuenta; también confirma que la sesión sigue siendo válida. */
+export async function fetchMe(): Promise<AdminProfile> {
+  const raw = await adminClient.get<{ username: string; created_at?: string }>('/api/auth/me')
+  return { username: raw.username, createdAt: new Date(raw.created_at ?? '') }
+}
+
+/** `POST /api/auth/change-password` (HU-37). Responde 204; los errores llegan como `ApiError`. */
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  adminClient.post<void>('/api/auth/change-password', {
+    current_password: currentPassword,
+    new_password: newPassword,
+  })

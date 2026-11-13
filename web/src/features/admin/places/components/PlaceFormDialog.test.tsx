@@ -87,11 +87,11 @@ describe('PlaceFormDialog · diálogo (RF-31.11, RF-31.12)', () => {
   it('RF-31.13: tiene todas las secciones y campos de la ficha, y no pide el id al crear', async () => {
     await renderDialog()
     const legends = Array.from(document.querySelectorAll('legend')).map((l) => l.textContent)
-    expect(legends).toEqual(['Datos', 'Ubicación', 'Horario', 'Contacto', 'Descripción', 'Listas', 'Imagen', 'Lugar que lo contiene'])
+    expect(legends).toEqual(['Datos', 'Ubicación', 'Horario', 'Contacto', 'Descripción', 'Listas', 'Lugar que lo contiene'])
     for (const label of [
       /^Nombre \*/, 'Nombre corto o sigla', 'Latitud *', 'Longitud *', 'Horario (resumen)', 'Detalle del horario',
       'Teléfono', 'Anexo', 'Correo', 'Página web', 'Descripción', 'Cómo encontrarlo', 'Para qué se usa',
-      'Palabras clave', 'Carreras', 'Servicios', 'Dirección de la imagen',
+      'Palabras clave', 'Carreras', 'Servicios',
     ]) {
       expect(screen.getByLabelText(label)).toBeInTheDocument()
     }

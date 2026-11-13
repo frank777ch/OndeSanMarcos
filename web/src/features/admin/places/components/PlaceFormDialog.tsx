@@ -37,7 +37,7 @@ interface PlaceFormDialogProps {
 const FIELD_ORDER: (keyof PlaceForm)[] = [
   'name', 'shortName', 'categoryId', 'lat', 'lng', 'schedule', 'detailedSchedule', 'phone', 'annex',
   'email', 'website', 'description', 'accessHint', 'usage', 'keywords', 'careers', 'services',
-  'imageUrl', 'parentPlaceId',
+  'parentPlaceId',
 ]
 
 const fieldId = (name: string) => `place-form-${name}`
@@ -224,10 +224,6 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
               <Textarea label="Palabras clave" hint="Una por línea. Sirven para buscar el lugar." rows={3} {...text('keywords')} />
               <Textarea label="Carreras" hint="Una por línea." rows={3} {...text('careers')} />
               <Textarea label="Servicios" hint="Uno por línea." rows={3} {...text('services')} />
-            </Section>
-
-            <Section title="Imagen">
-              <Input label="Dirección de la imagen" inputMode="url" placeholder="https://" maxLength={300} {...text('imageUrl')} />
             </Section>
 
             <Section title="Lugar que lo contiene">

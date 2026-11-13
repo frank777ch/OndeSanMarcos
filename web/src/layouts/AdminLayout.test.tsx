@@ -25,15 +25,16 @@ describe('AdminLayout', () => {
   it('RF-26.15 y RF-31.1: pestañas Perfil (activa), Lugares y Categorías, sin Mapa ni Asistente', () => {
     renderLayout()
     const nav = screen.getByRole('navigation', { name: 'Administración' })
-    expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Perfil', 'Lugares', 'Categorías'])
+    expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Lugares', 'Categorías', 'Perfil'])
     expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Lugares' })).toHaveAttribute('href', '/admin/lugares')
     expect(screen.getByRole('link', { name: 'Categorías' })).toHaveAttribute('href', '/admin/categorias')
     expect(nav).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Mapa' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Asistente' })).not.toBeInTheDocument()
-    // «Perfil» sigue sin contenido visible: solo el encabezado oculto para lectores de pantalla.
-    expect(screen.getByRole('region', { name: 'Perfil' }).textContent).toBe('Perfil')
+    // «Perfil» muestra los datos de la cuenta y el botón de cambiar contraseña (HU-37).
+    expect(screen.getByRole('region', { name: 'Perfil' })).toHaveTextContent('Usuario')
+    expect(screen.getByRole('button', { name: 'Cambiar contraseña' })).toBeInTheDocument()
   })
 
   it('RF-26.21: la barra se contrae y se expande como la del mapa', async () => {

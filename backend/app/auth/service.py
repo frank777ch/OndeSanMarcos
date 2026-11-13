@@ -13,6 +13,7 @@ _DUMMY_HASH = hash_password("contraseña-de-relleno")
 
 class AdminLookup(Protocol):
     def get_admin(self, username: str) -> dict | None: ...
+    def update_admin_password(self, username: str, password_hash: str) -> bool: ...
 
 
 def authenticate(store: AdminLookup, username: str, password: str) -> bool:

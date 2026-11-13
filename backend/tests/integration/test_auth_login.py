@@ -33,7 +33,8 @@ def test_rf_25_1_login_and_me_against_postgres(client):
     r = c.post("/api/auth/login", json={"username": "admin", "password": "secreto"})
     assert r.status_code == 200
     me = c.get("/api/auth/me", headers={"Authorization": f"Bearer {r.json()['access_token']}"})
-    assert me.json() == {"username": "admin"}
+    assert me.json()["username"] == "admin"
+    assert me.json()["created_at"]  # HU-37, RF-37.1
     assert c.post("/api/auth/login", json={"username": "admin", "password": "otra"}).status_code == 401
 
 
@@ -43,3 +44,18 @@ def test_rf_25_8_deleted_admin_loses_access(client):
     with psycopg.connect(url, autocommit=True) as conn:
         conn.execute("delete from admin_users")
     assert c.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
+
+
+def test_rf_37_3_change_password_against_postgres(client):
+    c, url = client
+    token = c.post("/api/auth/login", json={"username": "admin", "password": "secreto"}).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    wrong = c.post("/api/auth/change-password", json={"current_password": "x", "new_password": "nueva-clave-1"}, headers=headers)
+    assert wrong.status_code == 403
+    ok = c.post("/api/auth/change-password", json={"current_password": "secreto", "new_password": "nueva-clave-1"}, headers=headers)
+    assert ok.status_code == 204
+    assert c.post("/api/auth/login", json={"username": "admin", "password": "nueva-clave-1"}).status_code == 200
+    assert c.post("/api/auth/login", json={"username": "admin", "password": "secreto"}).status_code == 401
+    with psycopg.connect(url) as conn:
+        stored = conn.execute("select password_hash from admin_users").fetchone()[0]
+    assert stored.startswith("$2") and "nueva-clave-1" not in stored
