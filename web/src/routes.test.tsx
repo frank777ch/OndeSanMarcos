@@ -66,3 +66,32 @@ describe('rutas', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/admin/login'))
   })
 })
+
+describe('rutas de administración · RF-31.1', () => {
+  beforeEach(() => {
+    sessionStorage.clear()
+    useAuthStore.setState({ session: null, expired: false })
+    // El guard confirma la sesión con el servidor: se simula la respuesta.
+    vi.stubGlobal('fetch', () => Promise.resolve(new Response(JSON.stringify({ username: 'admin' }), { status: 200 })))
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('sin sesión, /admin/lugares y /admin/categorias llevan al login', async () => {
+    for (const path of ['/admin/lugares', '/admin/categorias']) {
+      const router = await renderAt(path)
+      await waitFor(() => expect(router.state.location.pathname).toBe('/admin/login'))
+      cleanup()
+    }
+  })
+
+  it('con sesión, cada pestaña tiene su ruta dentro del layout de administración', async () => {
+    useAuthStore.setState({ session: { token: 't', expiresAt: Date.now() + 60_000 }, expired: false })
+    await renderAt('/admin/lugares')
+    expect(await screen.findByRole('region', { name: 'Lugares' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Lugares' })).toHaveAttribute('aria-current', 'page')
+    cleanup()
+    await renderAt('/admin/categorias')
+    expect(await screen.findByRole('region', { name: 'Categorías' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Categorías' })).toHaveAttribute('aria-current', 'page')
+  })
+})

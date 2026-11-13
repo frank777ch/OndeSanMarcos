@@ -22,15 +22,17 @@ describe('AdminLayout', () => {
     useAuthStore.setState({ session: { token: 't', expiresAt: Date.now() + 60_000 }, expired: false })
   })
 
-  it('RF-26.15: solo tiene la pestaña Perfil (activa), sin Mapa ni Asistente, y el contenido vacío', () => {
+  it('RF-26.15 y RF-31.1: pestañas Perfil (activa), Lugares y Categorías, sin Mapa ni Asistente', () => {
     renderLayout()
     const nav = screen.getByRole('navigation', { name: 'Administración' })
-    expect(screen.getAllByRole('link')).toHaveLength(1)
+    expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Perfil', 'Lugares', 'Categorías'])
     expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Lugares' })).toHaveAttribute('href', '/admin/lugares')
+    expect(screen.getByRole('link', { name: 'Categorías' })).toHaveAttribute('href', '/admin/categorias')
     expect(nav).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Mapa' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Asistente' })).not.toBeInTheDocument()
-    // Solo el encabezado oculto para lectores de pantalla: sin contenido visible.
+    // «Perfil» sigue sin contenido visible: solo el encabezado oculto para lectores de pantalla.
     expect(screen.getByRole('region', { name: 'Perfil' }).textContent).toBe('Perfil')
   })
 

@@ -134,3 +134,39 @@ describe('Modal · panel desde arriba', () => {
     expect(onClose).toHaveBeenCalledTimes(2)
   })
 })
+
+describe('Modal · difuminado y modo ancho (HU-31)', () => {
+  it('RF-31.11: blurBackdrop difumina el fondo y sin él no', () => {
+    const { rerender } = render(
+      <Modal open title="Hola" onClose={() => {}} blurBackdrop>
+        x
+      </Modal>,
+    )
+    expect(screen.getByRole('dialog').parentElement).toHaveClass('backdrop-blur-sm')
+    rerender(
+      <Modal open title="Hola" onClose={() => {}}>
+        x
+      </Modal>,
+    )
+    expect(screen.getByRole('dialog').parentElement).not.toHaveClass('backdrop-blur-sm')
+  })
+
+  it('RF-31.12: en modo ancho el diálogo no hace scroll y el cuerpo ocupa el resto', () => {
+    render(
+      <Modal open title="Hola" onClose={() => {}} wide>
+        x
+      </Modal>,
+    )
+    expect(screen.getByRole('dialog')).toHaveClass('overflow-hidden', 'flex-col')
+    expect(screen.getByRole('dialog').querySelector('[data-modal-body]')).toHaveClass('min-h-0', 'flex-1')
+  })
+
+  it('RF-31.11: la capa está por encima de todo (z-[1000])', () => {
+    render(
+      <Modal open title="Hola" onClose={() => {}} blurBackdrop>
+        x
+      </Modal>,
+    )
+    expect(screen.getByRole('dialog').parentElement).toHaveClass('fixed', 'inset-0', 'z-[1000]')
+  })
+})

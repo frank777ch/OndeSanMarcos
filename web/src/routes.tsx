@@ -2,7 +2,9 @@ import { Navigate, type RouteObject } from 'react-router-dom'
 import { AdminGuard } from '@/features/admin/components/AdminGuard'
 import { AdminLayout } from '@/layouts/AdminLayout'
 import { AppLayout } from '@/layouts/AppLayout'
+import { AdminCategoriesPage } from '@/pages/AdminCategoriesPage'
 import { AdminLoginPage } from '@/pages/AdminLoginPage'
+import { AdminPlacesPage } from '@/pages/AdminPlacesPage'
 import { AdminProfilePage } from '@/pages/AdminProfilePage'
 import { ChatPage } from '@/pages/ChatPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -13,7 +15,16 @@ export const routes: RouteObject[] = [
   {
     path: '/admin',
     element: <AdminGuard />,
-    children: [{ element: <AdminLayout />, children: [{ index: true, element: <AdminProfilePage /> }] }],
+    children: [
+      {
+        element: <AdminLayout />,
+        children: [
+          { index: true, element: <AdminProfilePage /> },
+          { path: 'lugares', element: <AdminPlacesPage /> },
+          { path: 'categorias', element: <AdminCategoriesPage /> },
+        ],
+      },
+    ],
   },
   {
     element: <AppLayout />,

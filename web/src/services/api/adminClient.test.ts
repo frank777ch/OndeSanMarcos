@@ -50,4 +50,15 @@ describe('adminClient', () => {
     await expect(adminClient.get('/x')).rejects.toMatchObject({ status: 401 })
     expect(fetchMock).not.toHaveBeenCalled()
   })
+
+  it('RF-31.34: PUT y DELETE llevan el token y un 401 cierra la sesión', async () => {
+    fetchMock.mockImplementation(() => Promise.resolve(new Response('{}', { status: 200 })))
+    await adminClient.put('/api/admin/places/fisi', { name: 'X' })
+    await adminClient.delete('/api/admin/place-categories/x')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'PUT', headers: { Authorization: 'Bearer tok-123' } })
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({ method: 'DELETE', headers: { Authorization: 'Bearer tok-123' } })
+    fetchMock.mockResolvedValue(new Response('{}', { status: 401 }))
+    await expect(adminClient.put('/x', {})).rejects.toMatchObject({ status: 401 })
+    expect(useAuthStore.getState()).toMatchObject({ session: null, expired: true })
+  })
 })

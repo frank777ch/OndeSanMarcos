@@ -1,11 +1,15 @@
-import { LogOut, UserRound } from 'lucide-react'
+import { LogOut, MapPin, Tags, UserRound } from 'lucide-react'
 import { useAuthStore } from '@/features/admin/store/useAuthStore'
 import { cn } from '@/lib/cn'
 import { SidebarShell, type SidebarLink } from './SidebarShell'
 
-const links: SidebarLink[] = [{ to: '/admin', label: 'Perfil', icon: UserRound, end: true }]
+const links: SidebarLink[] = [
+  { to: '/admin', label: 'Perfil', icon: UserRound, end: true },
+  { to: '/admin/lugares', label: 'Lugares', icon: MapPin },
+  { to: '/admin/categorias', label: 'Categorías', icon: Tags },
+]
 
-/** Misma barra lateral que la web pública, con una sola pestaña y «Cerrar sesión» al pie. */
+/** Misma barra lateral que la web pública, con las pestañas de administración y «Cerrar sesión» al pie. */
 export function AdminLayout() {
   const logout = useAuthStore((s) => s.logout)
   return (

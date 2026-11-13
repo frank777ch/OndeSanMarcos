@@ -17,12 +17,19 @@ interface ModalProps {
    * ancho, con un asa para arrastrarlo hacia arriba y cerrarlo. Desde `md` es el diálogo centrado de siempre.
    */
   mobileSheet?: boolean
+  /** Difumina lo que queda detrás del diálogo (formularios de administración). */
+  blurBackdrop?: boolean
+  /**
+   * Diálogo ancho para formularios largos: el título y la X quedan fijos y el contenido ocupa el resto
+   * del alto (sin relleno propio), para que quien lo usa decida qué hace scroll y qué queda fijo.
+   */
+  wide?: boolean
 }
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-export function Modal({ open, title, onClose, children, initialFocus, mobileSheet }: ModalProps) {
+export function Modal({ open, title, onClose, children, initialFocus, mobileSheet, blurBackdrop, wide }: ModalProps) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const initialFocusRef = useRef(initialFocus)
@@ -99,6 +106,7 @@ export function Modal({ open, title, onClose, children, initialFocus, mobileShee
     <div
       className={cn(
         'fixed inset-0 z-[1000] flex justify-center bg-overlay',
+        blurBackdrop && 'backdrop-blur-sm',
         mobileSheet ? 'items-start md:items-center' : 'items-center',
       )}
       onMouseDown={(e) => {
@@ -114,14 +122,15 @@ export function Modal({ open, title, onClose, children, initialFocus, mobileShee
         data-sheet={mobileSheet ? 'top' : undefined}
         style={mobileSheet && dragY !== 0 ? { transform: `translateY(${dragY}px)` } : undefined}
         className={cn(
-          'overflow-auto bg-bg shadow-lg',
-          mobileSheet
+          'bg-bg shadow-lg',
+          wide ? 'flex max-h-[90vh] w-[min(52rem,94vw)] flex-col overflow-hidden rounded-lg' : 'overflow-auto',
+          !wide && mobileSheet
             ? 'max-h-[85dvh] w-full rounded-b-2xl pt-[env(safe-area-inset-top)] motion-safe:animate-sheet-down md:max-h-[85vh] md:w-[min(32rem,90vw)] md:rounded-lg md:pt-0 md:animate-none'
-            : 'max-h-[85vh] w-[min(32rem,90vw)] rounded-lg',
+            : !wide && 'max-h-[85vh] w-[min(32rem,90vw)] rounded-lg',
           mobileSheet && !dragging && 'transition-transform duration-200',
         )}
       >
-        <header className="flex items-center justify-between gap-4 border-b border-border px-6 py-4">
+        <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
           <h2 id={titleId} className="text-lg">
             {title}
           </h2>
@@ -129,7 +138,9 @@ export function Modal({ open, title, onClose, children, initialFocus, mobileShee
             <X size={18} />
           </IconButton>
         </header>
-        <div data-modal-body className="p-6">{children}</div>
+        <div data-modal-body className={cn(wide ? 'flex min-h-0 flex-1 flex-col' : 'p-6')}>
+          {children}
+        </div>
         {mobileSheet && (
           // Asa para arrastrar hacia arriba y cerrar; solo en móvil.
           <div

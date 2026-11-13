@@ -18,6 +18,12 @@ export function Input({ label, error, trailing, id, className, ...rest }: InputP
       {label && (
         <label htmlFor={inputId} className="text-sm font-medium">
           {label}
+          {rest.required && (
+            <span aria-hidden="true" className="text-danger">
+              {' '}
+              *
+            </span>
+          )}
         </label>
       )}
       <div className="relative">

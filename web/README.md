@@ -34,5 +34,17 @@ npm run dev            # http://localhost:5173
 
 El alias `@/` apunta a `src/`.
 
+## Administración de lugares
+
+El área `/admin` (solo con sesión de administrador; se entra por la dirección `/admin/login`) tiene tres pestañas:
+
+- **Perfil**: por ahora vacía.
+- **Lugares** (`/admin/lugares`): tabla con todos los lugares, también los ocultos, con búsqueda (sin tildes ni mayúsculas) y filtros por categoría, estado y verificación; 20 por página. Cada fila permite **editar**, **despublicar/publicar** (despublicar pide confirmación) y **marcar o quitar la verificación**. «Nuevo lugar» y «Editar» abren un diálogo sobre toda la pantalla, con el fondo difuminado, título, X y Esc, con todos los campos de la ficha. La ubicación se elige en un **mapa 2D** de Mapbox (clic o arrastrar el marcador; también se pueden escribir latitud y longitud) y solo se aceptan puntos dentro del área del campus. La categoría y el lugar contenedor son selectores con búsqueda que solo admiten valores existentes. Los errores de validación del servidor salen junto a cada campo.
+- **Categorías** (`/admin/categorias`): crear, editar y borrar (solo las vacías).
+
+Todo se guarda con la API de administración del backend (`/api/admin/...`, ver `backend/README.md`) a través de `src/services/api/adminClient.ts`, el único punto que envía el token. Tras guardar, el mapa público de la misma sesión se actualiza sin recargar. Si el asistente no pudo actualizarse (`rag_sync: failed`), aparece un aviso con «Reintentar».
+
+El mapa del formulario se descarga solo al abrir el diálogo (un chunk aparte). Sin `VITE_MAPBOX_TOKEN` el formulario sigue funcionando escribiendo las coordenadas.
+
 ## Estilos
 Tailwind CSS v4. Los tokens (colores, fuentes, radios, sombras) están en `@theme` dentro de `src/index.css`; el tema oscuro los redefine con `data-theme="dark"`.
