@@ -124,7 +124,7 @@ export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProp
               aria-label="Elegir color"
               value={HEX.test(form.color) ? form.color : '#000000'}
               onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
-              className="h-12 w-14 cursor-pointer rounded-md border border-border bg-bg p-1"
+              className="size-12 flex-none cursor-pointer appearance-none overflow-hidden rounded-full border border-border bg-transparent p-0 [&::-moz-color-swatch]:rounded-full [&::-moz-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0"
             />
           </div>
           <div role="radiogroup" aria-label="Ícono" className="flex flex-col gap-2">
