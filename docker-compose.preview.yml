@@ -1,0 +1,56 @@
+# Preview: backend (FastAPI) y web (Vite) en contenedores, encima de la base de datos y las
+# migraciones de docker-compose.yml. Se usa con ./scripts/preview.sh, que combina los dos archivos.
+# Para desarrollar a diario usa ./scripts/dev.sh (backend y web en tu máquina, más rápido).
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "0.0.0.0:8000:8000"
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      # Dentro de Docker la base está en el host `db` (tiene prioridad sobre .env).
+      DATABASE_URL: postgresql://ondesanmarcos:ondesanmarcos@db:5432/ondesanmarcos
+    # --reload recarga el servidor al editar el código montado en /app.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+      # Algunos tests del backend leen archivos de la app anterior (se quita al borrar frontend/).
+      - ./frontend:/frontend:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    # Instala dependencias con `npm ci` solo si package-lock.json cambió
+    # (no modifica el lockfile del repo).
+    command: >
+      sh -c "cmp -s package-lock.json node_modules/.lock-copy ||
+      (npm ci --no-audit --no-fund && cp package-lock.json node_modules/.lock-copy);
+      npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      # dev.sh up define LAN_API_URL (IP de la red local) para que el celular alcance el
+      # backend; tiene prioridad sobre VITE_API_URL de web/.env.
+      VITE_API_URL: ${LAN_API_URL:-http://localhost:8000}
+    ports:
+      - "0.0.0.0:5173:5173"
+    volumes:
+      - ./web:/app
+      # node_modules vive en un volumen para no mezclar binarios de macOS y Linux.
+      - web_node_modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  web_node_modules:
