@@ -54,3 +54,5 @@ htmlcov/
 .expo
 .vscode
 .expo/
+# Logs y PID de ./scripts/dev.sh
+.dev/

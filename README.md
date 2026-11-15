@@ -22,46 +22,56 @@ Por ahora la interfaz está pensada **solo para escritorio** (≥ 1024 px). La a
 | `backend/` | API FastAPI con el asistente RAG (Python 3.11+) y las migraciones de la base (`backend/db/migrations`). |
 | `web-docs/` | Plan, historias de usuario y specs de la web. |
 | `documents/` | Documentación del proyecto original (describe la app móvil; sin actualizar). |
-| `script/` | `dev.sh`, para levantar todo con Docker. |
+| `scripts/` | `dev.sh` (desarrollo: la base de datos en Docker, el backend y la web en tu máquina) y `preview.sh` (todo en contenedores). |
 | `frontend/` | App móvil anterior (Expo). Solo referencia; se elimina en HU-20. |
 
-## Inicio rápido (Docker)
+## Inicio rápido
 
-Requiere Docker con `docker compose`.
+Requiere Docker con `docker compose` (para la base de datos), Python 3.11+ y Node 20+. La primera vez crea `backend/.venv` e instala las dependencias; después arranca en segundos.
 
 ```sh
-./script/dev.sh            # base de datos + backend :8000 + web :5173 (Ctrl+C detiene)
-./script/dev.sh up -d      # en segundo plano
-./script/dev.sh logs web   # logs de un servicio (db | migrate | backend | web)
-./script/dev.sh test       # tests del backend (con integración) y de la web
-./script/dev.sh down       # detener (la base de datos se conserva)
+./scripts/dev.sh            # base de datos (Docker) + backend :8000 + web :5173 en local (Ctrl+C detiene backend y web)
+./scripts/dev.sh up -d      # en segundo plano (logs en .dev/)
+./scripts/dev.sh logs web   # logs de un servicio (db | migrate | backend | web)
+./scripts/dev.sh test       # tests del backend (con integración) y de la web
+./scripts/dev.sh down       # detener (la base de datos se conserva)
 ```
+
+Para probar todo en contenedores (sin depender de tu Python ni de tu Node), como se hacía antes:
+
+```sh
+./scripts/preview.sh        # base de datos + backend + web en contenedores (Ctrl+C detiene)
+./scripts/preview.sh up -d  # en segundo plano
+./scripts/preview.sh down   # detener
+```
+
+`dev.sh` y `preview.sh` usan los mismos puertos (8000 y 5173): no pueden correr a la vez.
 
 Base de datos del asistente (Postgres + pgvector en un contenedor):
 
 ```sh
-./script/dev.sh ingest     # carga el corpus en la base (una vez; consume llamadas a Gemini)
-./script/dev.sh psql       # consola SQL
-./script/dev.sh db-dump    # copia de seguridad de los vectores
-./script/dev.sh db-restore # restaura el último dump, sin gastar cuota de Gemini
-./script/dev.sh db-reset   # BORRA la base (pide confirmación)
+./scripts/dev.sh ingest     # carga el corpus en la base (una vez; consume llamadas a Gemini)
+./scripts/dev.sh psql       # consola SQL
+./scripts/dev.sh db-dump    # copia de seguridad de los vectores
+./scripts/dev.sh db-restore # restaura el último dump, sin gastar cuota de Gemini
+./scripts/dev.sh db-reset   # BORRA la base (pide confirmación)
 ```
 
 - Web: http://localhost:5173
 - API: http://localhost:8000/docs (Swagger) y http://localhost:8000/health
 - Base de datos: `localhost:5432` (usuario, contraseña y base: `ondesanmarcos`; solo desarrollo)
 
-La primera vez crea `backend/.env` y `web/.env` desde sus `.env.example`. El backend arranca en **modo mock** (`RAG_USE_MOCK=true`): no usa la base de datos ni necesita llaves de LLM. Para respuestas reales: `RAG_USE_MOCK=false`, `LLM_PROVIDER=gemini` y `LLM_API_KEY` en `backend/.env`, y `./script/dev.sh ingest` una vez.
+La primera vez crea `backend/.env` y `web/.env` desde sus `.env.example`. El backend arranca en **modo mock** (`RAG_USE_MOCK=true`): no usa la base de datos ni necesita llaves de LLM. Para respuestas reales: `RAG_USE_MOCK=false`, `LLM_PROVIDER=gemini` y `LLM_API_KEY` en `backend/.env`, y `./scripts/dev.sh ingest` una vez.
 
 ### Primer arranque con respuestas reales
 
-Levantar los contenedores crea la base **vacía**: el backend no carga los embeddings por su cuenta. Si preguntas al asistente antes de cargarlos, responde 503 («La base de conocimiento está vacía») y la web solo muestra «El asistente no está disponible por ahora». El orden es:
+Levantar la base de datos crea una base **vacía**: el backend no carga los embeddings por su cuenta. Si preguntas al asistente antes de cargarlos, responde 503 («La base de conocimiento está vacía») y la web solo muestra «El asistente no está disponible por ahora». El orden es:
 
 1. En `backend/.env`: `RAG_USE_MOCK=false`, `LLM_PROVIDER=gemini` y `LLM_API_KEY`.
-2. `./script/dev.sh ingest`: levanta solo la base y las migraciones, y embebe el corpus (consume cuota de Gemini). No hace falta tener el backend corriendo.
-3. `./script/dev.sh`: levanta todo con normalidad.
+2. `./scripts/dev.sh ingest`: levanta solo la base y las migraciones, y embebe el corpus (consume cuota de Gemini). No hace falta tener el backend corriendo.
+3. `./scripts/dev.sh`: levanta todo con normalidad.
 
-La carga se hace una sola vez: los datos viven en el volumen `db_data` y sobreviven a `down` y `clean`. Si ya hay datos, `ingest` se niega a correr salvo con `--force`. Para no volver a gastar cuota, haz `./script/dev.sh db-dump` tras ingerir y usa `./script/dev.sh db-restore` cuando necesites recargar (por ejemplo, tras un `db-reset`).
+La carga se hace una sola vez: los datos viven en el volumen `db_data` y sobreviven a `down` y `clean`. Si ya hay datos, `ingest` se niega a correr salvo con `--force`. Para no volver a gastar cuota, haz `./scripts/dev.sh db-dump` tras ingerir y usa `./scripts/dev.sh db-restore` cuando necesites recargar (por ejemplo, tras un `db-reset`).
 
 ### Token de Mapbox
 
@@ -73,7 +83,7 @@ VITE_MAPBOX_TOKEN=pk.eyJ1...
 
 Hay que reiniciar el servidor después de cambiarlo. Sin token, la página del mapa muestra un aviso. Nunca uses el token secreto (`sk.`) en la web.
 
-## Sin Docker
+## Sin el script (a mano)
 
 ### Web
 
@@ -109,7 +119,7 @@ uvicorn app.main:app --reload
 python -m pytest                 # tests
 ```
 
-Para respuestas reales (no mock) hacen falta `LLM_API_KEY` (Gemini) y `DATABASE_URL` (un Postgres con pgvector; `./script/dev.sh` ya levanta uno) en `backend/.env`, y cargar el corpus con la ingesta. Detalles y cuidado de la cuota de Gemini en [`backend/README.md`](backend/README.md).
+Para respuestas reales (no mock) hacen falta `LLM_API_KEY` (Gemini) y `DATABASE_URL` (un Postgres con pgvector; `./scripts/dev.sh` ya levanta uno en Docker) en `backend/.env`, y cargar el corpus con la ingesta. Detalles y cuidado de la cuota de Gemini en [`backend/README.md`](backend/README.md).
 
 ## Flujo de trabajo
 

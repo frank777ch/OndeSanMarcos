@@ -12,7 +12,7 @@ La semilla (`backend/db/seed/places.json`) la genera una sola vez
 
 Uso (desde `backend/`):
     python -m app.places.seed [--seed RUTA]
-Desde Docker: `./scripts/dev.sh seed-places`.
+Con el script de desarrollo: `./scripts/dev.sh seed-places`.
 """
 
 from __future__ import annotations

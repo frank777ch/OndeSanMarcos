@@ -112,7 +112,7 @@ def _build_pgvector_retriever(settings: Settings) -> PgVectorRetriever:
     """Recuperación con Postgres + pgvector (embeddings Gemini + `match_documents`).
 
     Requiere el esquema creado por las migraciones (`backend/db/migrations`) y la
-    tabla poblada con `./script/dev.sh ingest`. La conexión se abre al primer uso.
+    tabla poblada con `./scripts/dev.sh ingest`. La conexión se abre al primer uso.
     """
     embedding = build_embedding_provider(settings)
     database = get_database(settings)
