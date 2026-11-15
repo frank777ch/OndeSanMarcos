@@ -33,8 +33,16 @@ from typing import Any
 
 from app.knowledge.corpus import DOCUMENTS, Document
 from app.knowledge.places import CAMPUS_PLACES, CampusPlace, normalize
+from app.places.icons import DEFAULT_ICON
 from app.places.seed import DEFAULT_SEED_PATH, SCHEMA
 from app.tools.places.slugs import derive_slug
+
+# Ícono de las categorías de origen; una categoría desconocida usa el ícono por defecto.
+ICON_BY_SLUG = {
+    "facultades": "graduation-cap", "cafeterias": "utensils-crossed", "auditorios": "theater",
+    "campos-deportivos": "trophy", "puertas": "door-open", "administracion": "briefcase",
+    "salud": "stethoscope", "servicios": "wrench", "otros": "shapes",
+}
 
 DEFAULT_MAP_PATH = DEFAULT_SEED_PATH.with_name("place_id_map.json")
 
@@ -104,7 +112,8 @@ def build_seed(
     report = Report()
 
     categories = [
-        {"slug": c["id"], "label": c["label"], "color": c["color"], "sort_order": index}
+        {"slug": c["id"], "label": c["label"], "color": c["color"],
+         "icon": ICON_BY_SLUG.get(c["id"], DEFAULT_ICON), "sort_order": index}
         for index, c in enumerate(raw["categories"])
     ]
 

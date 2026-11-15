@@ -97,13 +97,13 @@ class FakePlacesAdminMixin:
     def _category_admin(self, c):
         count = sum(1 for p in self.place_rows.values() if p["category_id"] == c["id"])
         return {"id": c["id"], "slug": c["slug"], "label": c["label"], "color": c["color"],
-                "sort_order": c.get("sort_order", 0), "places_count": count}
+                "icon": c.get("icon", "map-pin"), "sort_order": c.get("sort_order", 0), "places_count": count}
 
     def admin_list_categories(self):
         rows = sorted(self.categories.values(), key=lambda c: (c.get("sort_order", 0), c["id"]))
         return [self._category_admin(c) for c in rows]
 
-    def create_category(self, label, color, sort_order):
+    def create_category(self, label, color, icon, sort_order):
         base = slugify(label, "categoria")
         taken = {c["slug"] for c in self.categories.values()}
         slug, n = base, 2
@@ -115,15 +115,16 @@ class FakePlacesAdminMixin:
         category_id = self.next_category_id
         self.next_category_id += 1
         self.categories[category_id] = {
-            "id": category_id, "slug": slug, "label": label, "color": color, "sort_order": sort_order,
+            "id": category_id, "slug": slug, "label": label, "color": color, "icon": icon,
+            "sort_order": sort_order,
         }
         return self._category_admin(self.categories[category_id])
 
-    def update_category(self, category_id, label, color, sort_order):
+    def update_category(self, category_id, label, color, icon, sort_order):
         c = self.categories.get(category_id)
         if c is None:
             return None
-        c.update(label=label, color=color)
+        c.update(label=label, color=color, icon=icon)
         if sort_order is not None:
             c["sort_order"] = sort_order
         return self._category_admin(c)

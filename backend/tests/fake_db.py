@@ -62,7 +62,8 @@ class FakeDatabase(FakePlacesAdminMixin):
 
     def list_place_categories(self) -> list[dict]:
         rows = sorted(self.categories.values(), key=lambda c: (c.get("sort_order", 0), c["id"]))
-        return [{"id": c["id"], "slug": c["slug"], "label": c["label"], "color": c["color"]} for c in rows]
+        return [{"id": c["id"], "slug": c["slug"], "label": c["label"], "color": c["color"],
+                 "icon": c.get("icon", "map-pin")} for c in rows]
 
     def list_places(self, category_id: int | None = None) -> list[dict]:
         rows = [self._public(p) for p in self.place_rows.values()]

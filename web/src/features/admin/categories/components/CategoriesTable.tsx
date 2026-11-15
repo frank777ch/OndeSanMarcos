@@ -7,6 +7,7 @@ import { useToastStore } from '@/components/Toast/toastStore'
 import { parseFieldErrors } from '@/services/api/adminPlacesApi'
 import { ApiError } from '@/services/api/client'
 import type { AdminCategory } from '../../places/types'
+import { getCategoryIcon } from '@/features/map/categoryIcons'
 import { useAdminCategoriesStore } from '../store/useAdminCategoriesStore'
 import { CategoryFormDialog } from './CategoryFormDialog'
 
@@ -59,6 +60,7 @@ export function CategoriesTable() {
             <thead className="bg-surface text-sm">
               <tr>
                 <th scope="col" className="px-4 py-3">Color</th>
+                <th scope="col" className="px-4 py-3">Ícono</th>
                 <th scope="col" className="px-4 py-3">Nombre</th>
                 <th scope="col" className="px-4 py-3">Slug</th>
                 <th scope="col" className="px-4 py-3">Orden</th>
@@ -76,6 +78,12 @@ export function CategoriesTable() {
                       className="block size-5 rounded-full border border-border"
                       style={{ backgroundColor: c.color }}
                     />
+                  </td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const Icon = getCategoryIcon(c.icon)
+                      return <Icon size={18} aria-label={`Ícono ${c.icon}`} role="img" />
+                    })()}
                   </td>
                   <th scope="row" className="px-4 py-3 font-medium">{c.label}</th>
                   <td className="px-4 py-3"><code>{c.slug}</code></td>

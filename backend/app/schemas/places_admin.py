@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.places.area import MAX_LAT, MAX_LNG, MIN_LAT, MIN_LNG
+from app.places.icons import DEFAULT_ICON, ICONS
 from app.schemas.places import PlaceOut
 
 _EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
@@ -153,6 +154,7 @@ class PlaceCategoryIn(BaseModel):
 
     label: str = Field(..., min_length=1, max_length=100, description="Nombre legible.")
     color: str = Field(..., description="Color '#RRGGBB'.")
+    icon: str = Field(default=DEFAULT_ICON, description="Ícono de la lista permitida.")
     sort_order: int | None = Field(default=None, ge=0, le=10000, description="Posición; por defecto, al final.")
 
     @field_validator("color")
@@ -162,11 +164,19 @@ class PlaceCategoryIn(BaseModel):
             raise ValueError("Debe tener el formato #RRGGBB.")
         return value
 
+    @field_validator("icon")
+    @classmethod
+    def _icon(cls, value: str) -> str:
+        if value not in ICONS:
+            raise ValueError("Elige un ícono de la lista.")
+        return value
+
 
 class PlaceCategoryAdminOut(BaseModel):
     id: int
     slug: str
     label: str
     color: str
+    icon: str
     sort_order: int
     places_count: int = Field(..., description="Lugares de la categoría, publicados o no.")

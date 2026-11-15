@@ -304,6 +304,20 @@ def test_rf_30_19_create_category_rejects_bad_data_and_client_ids(client):
         assert r.status_code == 422
 
 
+def test_category_icon_defaults_is_saved_and_must_be_allowed(client):
+    created = client.post("/api/admin/place-categories", json={"label": "Sin ícono", "color": "#112233"})
+    assert created.status_code == 201 and created.json()["icon"] == "map-pin"
+    chosen = client.post("/api/admin/place-categories", json={"label": "Con ícono", "color": "#112233", "icon": "trophy"})
+    assert chosen.json()["icon"] == "trophy"
+    edited = client.put(
+        f"/api/admin/place-categories/{chosen.json()['id']}", json={"label": "Con ícono", "color": "#112233", "icon": "bus"}
+    )
+    assert edited.json()["icon"] == "bus"
+    for bad in ("no-existe", "", 5):
+        r = client.post("/api/admin/place-categories", json={"label": "X", "color": "#112233", "icon": bad})
+        assert r.status_code == 422 and "icon" in errors(r)
+
+
 def test_rf_30_20_update_category_keeps_id_and_404(client):
     puertas = cid("puertas")
     r = client.put(f"/api/admin/place-categories/{puertas}", json={"label": "Accesos", "color": "#000000", "sort_order": 5})

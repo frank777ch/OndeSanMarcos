@@ -220,7 +220,7 @@ class Database:
         with self.connection() as conn:
             return list(
                 conn.execute(
-                    "select id, slug, label, color from place_categories order by sort_order, id"
+                    "select id, slug, label, color, icon from place_categories order by sort_order, id"
                 ).fetchall()
             )
 
@@ -401,7 +401,7 @@ class Database:
         with self.connection() as conn:
             return list(
                 conn.execute(
-                    "select c.id, c.slug, c.label, c.color, c.sort_order, count(p.id)::int as places_count "
+                    "select c.id, c.slug, c.label, c.color, c.icon, c.sort_order, count(p.id)::int as places_count "
                     "from place_categories c left join places p on p.category_id = c.id "
                     "group by c.id order by c.sort_order, c.id"
                 ).fetchall()
@@ -409,13 +409,13 @@ class Database:
 
     def _category_row(self, conn: psycopg.Connection[Any], category_id: int) -> dict:
         return conn.execute(  # type: ignore[return-value]
-            "select c.id, c.slug, c.label, c.color, c.sort_order, count(p.id)::int as places_count "
+            "select c.id, c.slug, c.label, c.color, c.icon, c.sort_order, count(p.id)::int as places_count "
             "from place_categories c left join places p on p.category_id = c.id "
             "where c.id = %s group by c.id",
             (category_id,),
         ).fetchone()
 
-    def create_category(self, label: str, color: str, sort_order: int | None) -> dict:
+    def create_category(self, label: str, color: str, icon: str, sort_order: int | None) -> dict:
         """Crea una categoría: el id lo asigna la base y el slug sale de la etiqueta."""
         with self.connection() as conn, conn.transaction():
             conn.execute("select pg_advisory_xact_lock(%s)", (_CATEGORY_SLUG_LOCK,))
@@ -431,19 +431,21 @@ class Database:
                 slug = f"{base}-{n}"[:MAX_SLUG_LENGTH]
                 n += 1
             row = conn.execute(
-                "insert into place_categories (slug, label, color, sort_order) values "
-                "(%s, %s, %s, coalesce(%s, (select coalesce(max(sort_order) + 1, 0) from place_categories))) "
+                "insert into place_categories (slug, label, color, icon, sort_order) values "
+                "(%s, %s, %s, %s, coalesce(%s, (select coalesce(max(sort_order) + 1, 0) from place_categories))) "
                 "returning id",
-                (slug, label, color, sort_order),
+                (slug, label, color, icon, sort_order),
             ).fetchone()
             return self._category_row(conn, row["id"])  # type: ignore[index]
 
-    def update_category(self, category_id: int, label: str, color: str, sort_order: int | None) -> dict | None:
+    def update_category(
+        self, category_id: int, label: str, color: str, icon: str, sort_order: int | None
+    ) -> dict | None:
         with self.connection() as conn:
             row = conn.execute(
-                "update place_categories set label = %s, color = %s, sort_order = coalesce(%s, sort_order) "
+                "update place_categories set label = %s, color = %s, icon = %s, sort_order = coalesce(%s, sort_order) "
                 "where id = %s returning id",
-                (label, color, sort_order, category_id),
+                (label, color, icon, sort_order, category_id),
             ).fetchone()
             return None if row is None else self._category_row(conn, category_id)
 
@@ -474,7 +476,7 @@ class Database:
                 return self._insert_missing(
                     conn,
                     "place_categories",
-                    ("slug", "label", "color", "sort_order"),
+                    ("slug", "label", "color", "icon", "sort_order"),
                     rows,
                 )
 

@@ -1,3 +1,4 @@
+import { DEFAULT_CATEGORY_ICON } from '@/features/map/categoryIcons'
 import type { Place, PlaceCategory } from '@/features/map/types'
 import { ApiError, apiClient } from './client'
 
@@ -32,6 +33,7 @@ interface ApiCategory {
   slug?: unknown
   label?: unknown
   color?: unknown
+  icon?: unknown
 }
 
 export interface PlacesData {
@@ -91,7 +93,13 @@ function toCategory(raw: ApiCategory): PlaceCategory {
   if (!isId(raw.id) || !isText(raw.slug) || !isText(raw.label) || !isText(raw.color)) {
     throw invalid('/api/place-categories', `una categoría no trae id, etiqueta o color (${JSON.stringify(raw.id)})`)
   }
-  return { id: raw.id, slug: raw.slug, label: raw.label, color: raw.color }
+  return {
+    id: raw.id,
+    slug: raw.slug,
+    label: raw.label,
+    color: raw.color,
+    icon: isText(raw.icon) ? raw.icon : DEFAULT_CATEGORY_ICON,
+  }
 }
 
 /**

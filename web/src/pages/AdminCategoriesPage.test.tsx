@@ -41,7 +41,7 @@ describe('AdminCategoriesPage · tabla (RF-31.28)', () => {
   it('muestra color, nombre, slug, orden y cantidad de lugares, por orden', async () => {
     await renderPage()
     expect(screen.getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
-      'Color', 'Nombre', 'Slug', 'Orden', 'Lugares', 'Acciones',
+      'Color', 'Ícono', 'Nombre', 'Slug', 'Orden', 'Lugares', 'Acciones',
     ])
     const rows = screen.getAllByRole('row').slice(1)
     expect(rows.map((r) => within(r).getByRole('rowheader').textContent)).toEqual(['Facultades', 'Puertas', 'Vacía'])
@@ -77,7 +77,7 @@ describe('AdminCategoriesPage · crear y editar (RF-31.29, RF-31.30)', () => {
 
   it('crear: Guardar espera nombre y color (sin campo de id); envía los datos y agrega la fila', async () => {
     await renderPage()
-    api.saveAdminCategory.mockResolvedValue({ id: catId('labs'), slug: 'laboratorios', label: 'Laboratorios', color: '#112233', sortOrder: 3, placesCount: 0 })
+    api.saveAdminCategory.mockResolvedValue({ id: catId('labs'), slug: 'laboratorios', label: 'Laboratorios', color: '#112233', icon: 'map-pin', sortOrder: 3, placesCount: 0 })
     await userEvent.click(screen.getByRole('button', { name: 'Nueva categoría' }))
     const save = screen.getByRole('button', { name: 'Guardar' })
     expect(save).toBeDisabled()
@@ -88,10 +88,22 @@ describe('AdminCategoriesPage · crear y editar (RF-31.29, RF-31.30)', () => {
     expect(save).toBeEnabled()
     await userEvent.click(save)
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(api.saveAdminCategory).toHaveBeenCalledWith(null, { label: 'Laboratorios', color: '#112233', sortOrder: null })
+    expect(api.saveAdminCategory).toHaveBeenCalledWith(null, { label: 'Laboratorios', color: '#112233', icon: 'map-pin', sortOrder: null })
     expect(rowOf('Laboratorios')).toBeInTheDocument()
     expect(toasts()).toContain('Categoría guardada')
     expect(refresh).toHaveBeenCalled()
+  })
+
+  it('el ícono se elige de la lista y se envía al guardar; al editar viene marcado el actual', async () => {
+    await renderPage()
+    api.saveAdminCategory.mockResolvedValue({ ...ADMIN_CATEGORIES[1], icon: 'bus' })
+    await userEvent.click(screen.getByRole('button', { name: 'Editar Puertas' }))
+    const dialog = within(screen.getByRole('dialog'))
+    expect(dialog.getByRole('radio', { name: 'door-open' })).toBeChecked()
+    await userEvent.click(dialog.getByRole('radio', { name: 'bus' }))
+    expect(dialog.getByRole('radio', { name: 'bus' })).toBeChecked()
+    await userEvent.click(dialog.getByRole('button', { name: 'Guardar' }))
+    await waitFor(() => expect(api.saveAdminCategory).toHaveBeenCalledWith(catId('puertas'), expect.objectContaining({ icon: 'bus' })))
   })
 
   it('el selector de color y el texto #RRGGBB están sincronizados', async () => {
@@ -117,7 +129,7 @@ describe('AdminCategoriesPage · crear y editar (RF-31.29, RF-31.30)', () => {
     await userEvent.type(screen.getByLabelText(/^Nombre/), 'Accesos')
     await userEvent.click(screen.getByRole('button', { name: 'Guardar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(api.saveAdminCategory).toHaveBeenCalledWith(catId('puertas'), { label: 'Accesos', color: '#e74c3c', sortOrder: 1 })
+    expect(api.saveAdminCategory).toHaveBeenCalledWith(catId('puertas'), { label: 'Accesos', color: '#e74c3c', icon: 'door-open', sortOrder: 1 })
     expect(rowOf('Accesos')).toBeInTheDocument()
   })
 

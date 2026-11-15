@@ -54,7 +54,7 @@ def test_scenario_2_nine_categories_in_order(api):
     categories = client.get("/api/place-categories").json()
     assert len(categories) == 9
     assert categories[0]["slug"] == "facultades" and isinstance(categories[0]["id"], int)
-    assert all(set(c) == {"id", "slug", "label", "color"} for c in categories)
+    assert all(set(c) == {"id", "slug", "label", "color", "icon"} for c in categories)
 
 
 def test_scenario_3_filter_by_category(api):

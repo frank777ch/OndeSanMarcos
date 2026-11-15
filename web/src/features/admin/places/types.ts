@@ -63,6 +63,8 @@ export interface AdminCategory {
   slug: string
   label: string
   color: string
+  /** Nombre del ícono (ver `features/map/categoryIcons.ts`). */
+  icon: string
   sortOrder: number
   placesCount: number
 }
@@ -70,6 +72,7 @@ export interface AdminCategory {
 export interface AdminCategoryInput {
   label: string
   color: string
+  icon: string
   /** `null`: al crear queda al final; al editar se conserva. */
   sortOrder: number | null
 }

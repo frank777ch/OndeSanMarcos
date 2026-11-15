@@ -6,6 +6,7 @@ import type {
   RagSync,
   SavedPlace,
 } from '@/features/admin/places/types'
+import { DEFAULT_CATEGORY_ICON } from '@/features/map/categoryIcons'
 import { adminClient } from './adminClient'
 import { ApiError } from './client'
 
@@ -99,6 +100,7 @@ interface RawCategory {
   slug?: unknown
   label?: unknown
   color?: unknown
+  icon?: unknown
   sort_order?: unknown
   places_count?: unknown
 }
@@ -112,6 +114,7 @@ function toAdminCategory(raw: RawCategory): AdminCategory {
     slug: raw.slug,
     label: raw.label,
     color: raw.color,
+    icon: typeof raw.icon === 'string' ? raw.icon : DEFAULT_CATEGORY_ICON,
     sortOrder: typeof raw.sort_order === 'number' ? raw.sort_order : 0,
     placesCount: typeof raw.places_count === 'number' ? raw.places_count : 0,
   }
@@ -208,7 +211,7 @@ export async function saveAdminCategory(
   id: number | null,
   input: AdminCategoryInput,
 ): Promise<AdminCategory> {
-  const body = { label: input.label, color: input.color, sort_order: input.sortOrder }
+  const body = { label: input.label, color: input.color, icon: input.icon, sort_order: input.sortOrder }
   if (id === null) {
     const created = await adminClient.post<RawCategory>('/api/admin/place-categories', body)
     return toAdminCategory(created)

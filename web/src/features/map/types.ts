@@ -10,6 +10,8 @@ export interface PlaceCategory {
   label: string
   /** Color del punto en el mapa, `#RRGGBB`. */
   color: string
+  /** Nombre del ícono del botón (ver `categoryIcons.ts`). */
+  icon: string
 }
 
 /**

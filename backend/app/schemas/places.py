@@ -18,6 +18,7 @@ class PlaceCategoryOut(BaseModel):
     slug: str = Field(..., description="Nombre estandarizado con guiones, ej. 'campos-deportivos'.")
     label: str = Field(..., description="Nombre legible, ej. 'Facultades'.")
     color: str = Field(..., description="Color del punto en el mapa, '#RRGGBB'.")
+    icon: str = Field(..., description="Ícono del botón de la categoría, ej. 'graduation-cap'.")
 
 
 class PlaceOut(BaseModel):

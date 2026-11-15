@@ -5,54 +5,63 @@
       "slug": "facultades",
       "label": "Facultades",
       "color": "#3056ac",
+      "icon": "graduation-cap",
       "sort_order": 0
     },
     {
       "slug": "cafeterias",
       "label": "Cafeterías",
       "color": "#ff8f10",
+      "icon": "utensils-crossed",
       "sort_order": 1
     },
     {
       "slug": "auditorios",
       "label": "Auditorios",
       "color": "#8e44ad",
+      "icon": "theater",
       "sort_order": 2
     },
     {
       "slug": "campos-deportivos",
       "label": "Campos deportivos",
       "color": "#2e9e57",
+      "icon": "trophy",
       "sort_order": 3
     },
     {
       "slug": "puertas",
       "label": "Puertas",
       "color": "#e74c3c",
+      "icon": "door-open",
       "sort_order": 4
     },
     {
       "slug": "administracion",
       "label": "Administración",
       "color": "#00838f",
+      "icon": "briefcase",
       "sort_order": 5
     },
     {
       "slug": "salud",
       "label": "Salud",
       "color": "#d81b60",
+      "icon": "stethoscope",
       "sort_order": 6
     },
     {
       "slug": "servicios",
       "label": "Servicios",
       "color": "#6d4c41",
+      "icon": "wrench",
       "sort_order": 7
     },
     {
       "slug": "otros",
       "label": "Otros",
       "color": "#757575",
+      "icon": "shapes",
       "sort_order": 8
     }
   ],

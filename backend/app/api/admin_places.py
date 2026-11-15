@@ -61,8 +61,8 @@ class AdminPlacesStore(Protocol):
     def create_place(self, data: dict, verified: bool, username: str) -> dict: ...
     def update_place(self, place_id: int, data: dict, verified: bool, username: str) -> dict | None: ...
     def admin_list_categories(self) -> list[dict]: ...
-    def create_category(self, label: str, color: str, sort_order: int | None) -> dict: ...
-    def update_category(self, category_id: int, label: str, color: str, sort_order: int | None) -> dict | None: ...
+    def create_category(self, label: str, color: str, icon: str, sort_order: int | None) -> dict: ...
+    def update_category(self, category_id: int, label: str, color: str, icon: str, sort_order: int | None) -> dict | None: ...
     def delete_category(self, category_id: int) -> tuple[str, int]: ...
 
 
@@ -199,7 +199,7 @@ def create_category(
     admin: str = Depends(get_current_admin),
     store: AdminPlacesStore = Depends(get_admin_places_store),
 ) -> dict:
-    category = store.create_category(body.label, body.color, body.sort_order)
+    category = store.create_category(body.label, body.color, body.icon, body.sort_order)
     response.headers["Location"] = f"/api/admin/place-categories/{category['id']}"
     logger.info("categoría creada id=%s por=%s", category["id"], admin)
     return category
@@ -217,7 +217,7 @@ def update_category(
     admin: str = Depends(get_current_admin),
     store: AdminPlacesStore = Depends(get_admin_places_store),
 ) -> dict:
-    category = store.update_category(category_id, body.label, body.color, body.sort_order)
+    category = store.update_category(category_id, body.label, body.color, body.icon, body.sort_order)
     if category is None:
         raise HTTPException(status_code=404, detail=_NOT_FOUND_CATEGORY)
     logger.info("categoría editada id=%s por=%s", category_id, admin)

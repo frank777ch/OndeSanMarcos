@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from app.places.icons import DEFAULT_ICON, ICONS
 from app.rag.db import PLACE_SEED_COLUMNS, Database
 
 SCHEMA = "ondesanmarcos.places-seed/v3"
@@ -105,12 +106,16 @@ def validate_seed(seed: Seed) -> Seed:
             raise SeedError(f"{label}: falta la etiqueta.")
         if not _COLOR.match(str(raw.get("color", ""))):
             raise SeedError(f"{label}: el color debe ser #RRGGBB.")
+        icon = raw.get("icon", DEFAULT_ICON)
+        if icon not in ICONS:
+            raise SeedError(f"{label}: el ícono «{icon}» no está en la lista permitida.")
         category_ids.add(category_slug)
         categories.append(
             {
                 "slug": category_slug,
                 "label": raw["label"].strip(),
                 "color": raw["color"],
+                "icon": icon,
                 "sort_order": int(raw.get("sort_order", index)),
             }
         )

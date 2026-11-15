@@ -46,8 +46,8 @@ describe('listAdminPlaces / listAdminCategories', () => {
   })
 
   it('RF-31.28: categorías con su cantidad de lugares', async () => {
-    fetchMock.mockImplementation(() => json([{ id: 4, slug: 'a', label: 'A', color: '#111111', sort_order: 3, places_count: 7 }]))
-    expect(await listAdminCategories()).toEqual([{ id: 4, slug: 'a', label: 'A', color: '#111111', sortOrder: 3, placesCount: 7 }])
+    fetchMock.mockImplementation(() => json([{ id: 4, slug: 'a', label: 'A', color: '#111111', icon: 'trophy', sort_order: 3, places_count: 7 }]))
+    expect(await listAdminCategories()).toEqual([{ id: 4, slug: 'a', label: 'A', color: '#111111', icon: 'trophy', sortOrder: 3, placesCount: 7 }])
   })
 })
 
@@ -110,10 +110,10 @@ describe('saveAdminPlace', () => {
 
 describe('categorías', () => {
   it('crea con POST y edita con PUT (el id y el slug los asigna el servidor)', async () => {
-    fetchMock.mockImplementation(() => json({ id: 7, slug: 'l', label: 'L', color: '#112233', sort_order: 3, places_count: 0 }, 201))
-    await saveAdminCategory(null, { label: 'L', color: '#112233', sortOrder: null })
+    fetchMock.mockImplementation(() => json({ id: 7, slug: 'l', label: 'L', color: '#112233', icon: 'map-pin', sort_order: 3, places_count: 0 }, 201))
+    await saveAdminCategory(null, { label: 'L', color: '#112233', icon: 'map-pin', sortOrder: null })
     expect(lastCall()[1].method).toBe('POST')
-    expect(JSON.parse(lastCall()[1].body as string)).toEqual({ label: 'L', color: '#112233', sort_order: null })
+    expect(JSON.parse(lastCall()[1].body as string)).toEqual({ label: 'L', color: '#112233', icon: 'map-pin', sort_order: null })
     await saveAdminCategory(7, { label: 'L2', color: '#112233', sortOrder: 5 })
     expect(lastCall()[1].method).toBe('PUT')
     expect(lastCall()[0]).toMatch(/place-categories\/7$/)

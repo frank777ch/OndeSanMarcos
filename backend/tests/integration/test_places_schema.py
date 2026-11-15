@@ -45,7 +45,7 @@ def _insert(conn, **overrides):
 
 def test_rf_22_1_place_categories_columns(conn):
     cols = _columns(conn, "place_categories")
-    assert set(cols) == {"id", "slug", "label", "color", "sort_order"}
+    assert set(cols) == {"id", "slug", "label", "color", "icon", "sort_order"}
     assert cols["id"][1] == "bigint"
     assert all(cols[c][0] == "NO" for c in cols)
 

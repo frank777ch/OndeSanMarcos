@@ -39,7 +39,7 @@ const apiPlace = (over: Record<string, unknown> = {}) => ({
   updated_at: '2026-11-12T00:00:00Z',
   ...over,
 })
-const apiCategory = { id: 1, slug: 'facultades', label: 'Facultades', color: '#3056ac' }
+const apiCategory = { id: 1, slug: 'facultades', label: 'Facultades', color: '#3056ac', icon: 'graduation-cap' }
 
 function backend(places: unknown, categories: unknown = [apiCategory]) {
   fetchMock.mockImplementation(async (url: string) => {
@@ -105,7 +105,12 @@ describe('placesApi', () => {
     expect((await fetchPlacesAndCategories()).places[0]).toMatchObject({ id: 12, slug: 'puerta-8' })
   })
 
-  it('devuelve las categorías con id, etiqueta y color', async () => {
+  it('una categoría sin ícono usa el ícono por defecto', async () => {
+    backend([apiPlace()], [{ id: 1, slug: 'x', label: 'X', color: '#111111' }])
+    expect((await fetchPlacesAndCategories()).categories[0].icon).toBe('map-pin')
+  })
+
+  it('devuelve las categorías con id, etiqueta, color e ícono', async () => {
     backend([apiPlace()])
     expect((await fetchPlacesAndCategories()).categories).toEqual([apiCategory])
   })

@@ -63,8 +63,8 @@ def test_rf_27_1_categories_have_id_label_color_and_follow_sort_order(client):
     r = client.get("/api/place-categories")
     assert r.status_code == 200
     assert r.json() == [
-        {"id": cid("facultades"), "slug": "facultades", "label": "Facultades", "color": "#3056ac"},
-        {"id": cid("puertas"), "slug": "puertas", "label": "Puertas", "color": "#e74c3c"},
+        {"id": cid("facultades"), "slug": "facultades", "label": "Facultades", "color": "#3056ac", "icon": "map-pin"},
+        {"id": cid("puertas"), "slug": "puertas", "label": "Puertas", "color": "#e74c3c", "icon": "map-pin"},
     ]
 
 

@@ -79,6 +79,13 @@ def test_rf_22_13_invalid_place_cancels_everything_without_touching_the_db():
     assert db.insert_calls == 0 and db.place_rows == {} and db.categories == {}
 
 
+def test_category_icon_is_validated_and_defaults():
+    with pytest.raises(SeedError, match="ícono"):
+        validate_seed(make_seed(categories=[{"slug": "x", "label": "X", "color": "#112233", "icon": "nope"}]))
+    ok = validate_seed(make_seed(categories=[{"slug": "x", "label": "X", "color": "#112233"}]))
+    assert ok.categories[0]["icon"] == "map-pin"
+
+
 def test_rf_22_13_invalid_category():
     with pytest.raises(SeedError, match="color"):
         validate_seed(make_seed(categories=[{"slug": "x", "label": "X", "color": "rojo"}]))

@@ -12,15 +12,15 @@ export function catId(slug: string): number {
 
 /** Categorías de ejemplo, en el orden de la API. */
 export const CATEGORIES: PlaceCategory[] = [
-  { id: catId('facultades'), slug: 'facultades', label: 'Facultades', color: '#3056ac' },
-  { id: catId('cafeterias'), slug: 'cafeterias', label: 'Cafeterías', color: '#ff8f10' },
-  { id: catId('auditorios'), slug: 'auditorios', label: 'Auditorios', color: '#8e44ad' },
-  { id: catId('campos-deportivos'), slug: 'campos-deportivos', label: 'Campos deportivos', color: '#2e9e57' },
-  { id: catId('puertas'), slug: 'puertas', label: 'Puertas', color: '#e74c3c' },
-  { id: catId('administracion'), slug: 'administracion', label: 'Administración', color: '#00838f' },
-  { id: catId('servicios'), slug: 'servicios', label: 'Servicios', color: '#6d4c41' },
+  { id: catId('facultades'), slug: 'facultades', label: 'Facultades', color: '#3056ac', icon: 'graduation-cap' },
+  { id: catId('cafeterias'), slug: 'cafeterias', label: 'Cafeterías', color: '#ff8f10', icon: 'utensils-crossed' },
+  { id: catId('auditorios'), slug: 'auditorios', label: 'Auditorios', color: '#8e44ad', icon: 'theater' },
+  { id: catId('campos-deportivos'), slug: 'campos-deportivos', label: 'Campos deportivos', color: '#2e9e57', icon: 'trophy' },
+  { id: catId('puertas'), slug: 'puertas', label: 'Puertas', color: '#e74c3c', icon: 'door-open' },
+  { id: catId('administracion'), slug: 'administracion', label: 'Administración', color: '#00838f', icon: 'briefcase' },
+  { id: catId('servicios'), slug: 'servicios', label: 'Servicios', color: '#6d4c41', icon: 'wrench' },
   // Sin lugares en las fixtures: sirve para probar que no se muestra (RF-28.8).
-  { id: catId('otros'), slug: 'otros', label: 'Otros', color: '#757575' },
+  { id: catId('otros'), slug: 'otros', label: 'Otros', color: '#757575', icon: 'shapes' },
 ]
 
 /** Lugares de ejemplo con coordenadas reales del campus (los usa el cálculo de rutas). */

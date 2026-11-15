@@ -1,33 +1,9 @@
 import { useMemo } from 'react'
-import {
-  Building2,
-  Coffee,
-  ConciergeBell,
-  DoorOpen,
-  Dumbbell,
-  HeartPulse,
-  LayoutGrid,
-  Landmark,
-  MapPin,
-  Mic,
-  type LucideIcon,
-} from 'lucide-react'
+import { LayoutGrid } from 'lucide-react'
+import { getCategoryIcon } from '../categoryIcons'
 import { useMapStore } from '../store/useMapStore'
 import { selectVisibleCategories, usePlacesStore } from '../store/usePlacesStore'
 import { cn } from '@/lib/cn'
-
-/** Icono por categoría; una categoría nueva (creada por el administrador) usa `MapPin`. */
-const ICONS: Record<string, LucideIcon> = {
-  facultades: Building2,
-  cafeterias: Coffee,
-  auditorios: Mic,
-  'campos-deportivos': Dumbbell,
-  puertas: DoorOpen,
-  administracion: Landmark,
-  salud: HeartPulse,
-  servicios: ConciergeBell,
-  otros: MapPin,
-}
 
 export function CategoryChips() {
   const activeCategory = useMapStore((s) => s.activeCategory)
@@ -60,8 +36,8 @@ export function CategoryChips() {
         <LayoutGrid size={16} aria-hidden="true" />
         Todos
       </button>
-      {visible.map(({ id, label }) => {
-        const Icon = ICONS[id] ?? MapPin
+      {visible.map(({ id, label, icon }) => {
+        const Icon = getCategoryIcon(icon)
         const active = activeCategory === id
         return (
           <button

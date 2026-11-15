@@ -1,6 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { Button } from '@/components/Button/Button'
 import { Input } from '@/components/Input/Input'
+import { CATEGORY_ICONS, CATEGORY_ICON_NAMES, DEFAULT_CATEGORY_ICON } from '@/features/map/categoryIcons'
+import { cn } from '@/lib/cn'
 import { Modal } from '@/components/Modal/Modal'
 import { ApiError } from '@/services/api/client'
 import { parseFieldErrors } from '@/services/api/adminPlacesApi'
@@ -13,6 +15,7 @@ const NETWORK_MESSAGE = 'No se pudo guardar. Revisa tu conexión e inténtalo de
 interface FormState {
   label: string
   color: string
+  icon: string
   sortOrder: string
 }
 
@@ -28,6 +31,7 @@ export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProp
     () => ({
       label: category?.label ?? '',
       color: category?.color ?? '#3056ac',
+      icon: category?.icon ?? DEFAULT_CATEGORY_ICON,
       sortOrder: category ? String(category.sortOrder) : '',
     }),
     [category],
@@ -73,6 +77,7 @@ export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProp
       await save(category?.id ?? null, {
         label: form.label.trim(),
         color: form.color.trim(),
+        icon: form.icon,
         sortOrder: form.sortOrder.trim() === '' ? null : Number(form.sortOrder),
       })
       onClose()
@@ -121,6 +126,32 @@ export function CategoryFormDialog({ category, onClose }: CategoryFormDialogProp
               onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
               className="h-12 w-14 cursor-pointer rounded-md border border-border bg-bg p-1"
             />
+          </div>
+          <div role="radiogroup" aria-label="Ícono" className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Ícono</span>
+            <div className="grid max-h-40 grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2 overflow-y-auto">
+              {CATEGORY_ICON_NAMES.map((name) => {
+                const Icon = CATEGORY_ICONS[name]
+                const selected = form.icon === name
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    aria-label={name}
+                    title={name}
+                    onClick={() => setForm((f) => ({ ...f, icon: name }))}
+                    className={cn(
+                      'flex h-11 items-center justify-center rounded-md border transition-colors',
+                      selected ? 'border-primary bg-primary text-on-primary' : 'border-border bg-bg text-ink hover:bg-surface',
+                    )}
+                  >
+                    <Icon size={20} aria-hidden="true" />
+                  </button>
+                )
+              })}
+            </div>
           </div>
           <Input
             label="Orden"

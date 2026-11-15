@@ -2,9 +2,9 @@ import type { AdminCategory, AdminPlace } from '@/features/admin/places/types'
 import { catId } from './places'
 
 export const ADMIN_CATEGORIES: AdminCategory[] = [
-  { id: catId('facultades'), slug: 'facultades', label: 'Facultades', color: '#3056ac', sortOrder: 0, placesCount: 2 },
-  { id: catId('puertas'), slug: 'puertas', label: 'Puertas', color: '#e74c3c', sortOrder: 1, placesCount: 1 },
-  { id: catId('vacia'), slug: 'vacia', label: 'Vacía', color: '#757575', sortOrder: 2, placesCount: 0 },
+  { id: catId('facultades'), slug: 'facultades', label: 'Facultades', color: '#3056ac', icon: 'graduation-cap', sortOrder: 0, placesCount: 2 },
+  { id: catId('puertas'), slug: 'puertas', label: 'Puertas', color: '#e74c3c', icon: 'door-open', sortOrder: 1, placesCount: 1 },
+  { id: catId('vacia'), slug: 'vacia', label: 'Vacía', color: '#757575', icon: 'map-pin', sortOrder: 2, placesCount: 0 },
 ]
 
 const ADMIN_IDS: Record<string, number> = { fisi: 1, psicologia: 2, 'puerta-3': 3 }
