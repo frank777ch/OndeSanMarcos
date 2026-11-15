@@ -2,14 +2,14 @@ import { render } from '@testing-library/react'
 import { act } from 'react'
 import { useRouteStore } from '../store/useRouteStore'
 
-const fitBounds = vi.fn()
-vi.mock('react-map-gl/mapbox', () => ({
-  useMap: () => ({ current: { fitBounds, getContainer: () => document.body, getPitch: () => 42, getBearing: () => 17 } }),
-}))
-
+import { useCameraStore } from '@/features/map/scene/cameraStore'
 import { routeBounds } from '../utils/routeBounds'
 import { idOf } from '@/test/fixtures/places'
 import { FlyToRoute } from './FlyToRoute'
+
+const fitPoints = vi.fn()
+const realFitPoints = useCameraStore.getState().fitPoints
+const container = { current: document.body }
 
 const route = {
   origin: { kind: 'place' as const, placeId: idOf('puerta-3') },
@@ -23,8 +23,11 @@ const route = {
 }
 
 describe('FlyToRoute', () => {
+  afterAll(() => useCameraStore.setState({ fitPoints: realFitPoints }))
+
   beforeEach(() => {
-    fitBounds.mockClear()
+    fitPoints.mockClear()
+    useCameraStore.setState({ fitPoints })
     useRouteStore.setState({ activeRoute: null })
   })
 
@@ -36,33 +39,32 @@ describe('FlyToRoute', () => {
   })
 
   it('RF-13.42: sin ruta no mueve la cámara', () => {
-    render(<FlyToRoute />)
-    expect(fitBounds).not.toHaveBeenCalled()
+    render(<FlyToRoute container={container} />)
+    expect(fitPoints).not.toHaveBeenCalled()
   })
 
-  it('RF-13.42: al iniciar una ruta la cámara vuela para encuadrarla, con animación, espacio para los paneles y la misma inclinación y orientación', () => {
-    render(<FlyToRoute />)
+  it('RF-13.42: al iniciar una ruta la cámara se encuadra con animación y con espacio para los paneles (la inclinación y la orientación las conserva el store)', () => {
+    render(<FlyToRoute container={container} />)
     act(() => useRouteStore.setState({ activeRoute: route }))
-    expect(fitBounds).toHaveBeenCalledTimes(1)
-    const [bounds, options] = fitBounds.mock.calls[0]
-    expect(bounds).toEqual(routeBounds(route.path))
+    expect(fitPoints).toHaveBeenCalledTimes(1)
+    const [points, padding, options] = fitPoints.mock.calls[0]
+    expect(points).toEqual(route.path)
     expect(options.duration).toBeGreaterThan(0)
-    expect(options.padding.top).toBeGreaterThan(0)
-    expect(options.pitch).toBe(42)
-    expect(options.bearing).toBe(17)
+    expect(padding.top).toBeGreaterThan(0)
+    expect(padding.left).toBeGreaterThan(0)
   })
 
   it('RF-13.42: quitar la ruta no mueve la cámara', () => {
-    render(<FlyToRoute />)
+    render(<FlyToRoute container={container} />)
     act(() => useRouteStore.setState({ activeRoute: route }))
-    fitBounds.mockClear()
+    fitPoints.mockClear()
     act(() => useRouteStore.getState().clearActiveRoute())
-    expect(fitBounds).not.toHaveBeenCalled()
+    expect(fitPoints).not.toHaveBeenCalled()
   })
 
   it('RF-13.42: una ruta que ya existía al montar no mueve la cámara', () => {
     useRouteStore.setState({ activeRoute: route })
-    render(<FlyToRoute />)
-    expect(fitBounds).not.toHaveBeenCalled()
+    render(<FlyToRoute container={container} />)
+    expect(fitPoints).not.toHaveBeenCalled()
   })
 })

@@ -1,11 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
+import { PerspectiveCamera } from 'three'
 import { useRouteStore } from '../store/useRouteStore'
 
-vi.mock('react-map-gl/mapbox', () => ({
-  Marker: ({ children }: { children: ReactNode }) => <div data-testid="marker">{children}</div>,
-  useMap: () => ({ current: undefined }),
+vi.mock('@react-three/drei', () => ({
+  Html: ({ children }: { children: ReactNode }) => <div data-testid="html">{children}</div>,
+}))
+vi.mock('@react-three/fiber', () => ({
+  useThree: (select: (s: unknown) => unknown) => select({ camera: new PerspectiveCamera(), size: { height: 800 } }),
 }))
 
 import { idOf } from '@/test/fixtures/places'

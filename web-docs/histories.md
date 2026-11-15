@@ -43,6 +43,7 @@
 | HU-37 | Perfil del administrador y cambio de contraseña | ⬜ Pendiente |
 | HU-38 | Id numérico de los lugares y `slug` aparte | ✅ Hecha |
 | HU-39 | Id numérico de las categorías y `slug` aparte | ✅ Hecha |
+| HU-40 | Mapa propio de la universidad en 3D (Three.js) | ⬜ Pendiente |
 
 **Avance: 20 de 35 historias hechas.** HU-22 a HU-35 tienen ID alto para no renumerar. Orden propuesto para los datos: HU-22 → 27 → 28 → 29 → 30 → 31 (lugares) y luego HU-32 → 33 → 34 → 35 (eventos); conviene terminarlos antes de HU-20. Al cerrar una historia hay que actualizar esta tabla y el ✅ de su título más abajo.
 
@@ -306,6 +307,14 @@ Estados: ⬜ pendiente · ✅ hecha
 - La API y la web usan el id numérico (`?category=5`).
 - Depende de: HU-38.
 - **Aceptación:** crear dos categorías con el mismo nombre da slugs distintos; filtrar `/api/places?category=<id>` devuelve sus lugares; el formulario no muestra campo de id.
+
+### HU-40 · Mapa propio de la universidad en 3D (Three.js) ⬜
+**Como** visitante, **quiero** un mapa simple y solo de la universidad, en 3D y 2D, **para** ver el campus sin el detalle de toda la ciudad y sin depender de Mapbox.
+- Edificios en bloques, caminos, áreas verdes y borde punteado con datos de OpenStreetMap guardados en el repositorio; cámara propia (desplazar, zoom, girar, inclinar); botón de vista 3D/2D; colores según el tema claro/oscuro.
+- Lugares, selección, ruta con su «X», ubicación y «Volver al campus» siguen funcionando igual.
+- Fuera de alcance: el selector de ubicación del panel de administración; modelado manual o fotogrametría.
+- Depende de: HU-12, HU-13, HU-15 y HU-18.
+- **Aceptación:** sin token de Mapbox, el mapa muestra el campus, se mueve con fluidez, alterna 3D/2D, cambia con el tema y permite elegir lugares, trazar y quitar rutas y ver mi ubicación.
 
 ## Extras y cierre
 
