@@ -131,18 +131,18 @@ aplicada no se edita: un cambio va en una migración nueva (`V2__...sql`).
 Desde la raíz del repo, con Docker:
 
 ```bash
-./script/dev.sh                 # base de datos + migraciones + backend + web
-./script/dev.sh ingest          # embebe el corpus (55 fragmentos) y lo carga en la base
-./script/dev.sh psql            # consola SQL
-./script/dev.sh db-dump         # copia de seguridad de los vectores (backend/db/dumps/)
-./script/dev.sh db-restore      # restaura el último dump, sin llamar a Gemini
-./script/dev.sh db-reset        # BORRA la base y la recrea vacía (pide confirmación)
+./scripts/dev.sh                 # base de datos + migraciones (Docker) + backend + web (local)
+./scripts/dev.sh ingest          # embebe el corpus (55 fragmentos) y lo carga en la base
+./scripts/dev.sh psql            # consola SQL
+./scripts/dev.sh db-dump         # copia de seguridad de los vectores (backend/db/dumps/)
+./scripts/dev.sh db-restore      # restaura el último dump, sin llamar a Gemini
+./scripts/dev.sh db-reset        # BORRA la base y la recrea vacía (pide confirmación)
 ```
 
 Para usar los vectores hay que poner `RAG_USE_MOCK=false` en `backend/.env` (con
 `LLM_PROVIDER=gemini` y `LLM_API_KEY`) y haber ingerido el corpus. Si la tabla está
 vacía, `POST /api/chat` responde **503** con «La base de conocimiento está vacía;
-ejecuta ./script/dev.sh ingest». Si la base no responde, también **503**.
+ejecuta ./scripts/dev.sh ingest». Si la base no responde, también **503**.
 
 ### Cuidar la cuota de Gemini
 
@@ -166,7 +166,7 @@ otra, además de la que redacta la respuesta. Por eso:
 
 | Variable | Para qué |
 |---|---|
-| `DATABASE_URL` | Cadena de conexión. En Docker la fija `docker-compose.yml` (host `db`); fuera de Docker usa `localhost:5432` (ver `.env.example`) |
+| `DATABASE_URL` | Cadena de conexión. `./scripts/dev.sh` la fija a `localhost:5432` (la base corre en Docker); `./scripts/preview.sh` usa el host `db` dentro de Docker (ver `.env.example`) |
 | `DB_CONNECT_TIMEOUT` | Segundos máximos para conectar antes de responder 503 (por defecto 3) |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Administrador inicial: al arrancar se crea en `admin_users` si no existe (contraseña hasheada con bcrypt, máx. 72 bytes). Si ya existe no se modifica. `DATABASE_URL` es obligatoria: sin ella la app no arranca y lo informa; cambia la contraseña fuera de desarrollo |
 | `JWT_SECRET` | Secreto para firmar los tokens del administrador (**obligatoria**, ≥ 32 caracteres; sin ella la app no arranca). Genérala con `python -c "import secrets; print(secrets.token_urlsafe(48))"` |

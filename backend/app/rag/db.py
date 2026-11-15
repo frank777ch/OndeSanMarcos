@@ -29,7 +29,7 @@ from app.config import Settings
 from app.places.text import MAX_SLUG_LENGTH, slugify
 from app.rag.errors import RagProviderError
 
-EMPTY_MESSAGE = "La base de conocimiento está vacía; ejecuta ./script/dev.sh ingest"
+EMPTY_MESSAGE = "La base de conocimiento está vacía; ejecuta ./scripts/dev.sh ingest"
 _BATCH = 100
 # Clave del bloqueo de aviso (advisory lock) que serializa la creación de lugares.
 _PLACE_SLUG_LOCK = 38_0001
@@ -128,7 +128,7 @@ class Database:
         except (psycopg.OperationalError, PoolTimeout) as exc:
             raise RagProviderError(
                 "No se pudo conectar a la base de datos. ¿Está levantada? "
-                "Ejecuta ./script/dev.sh y revisa DATABASE_URL."
+                "Ejecuta ./scripts/dev.sh y revisa DATABASE_URL."
             ) from exc
 
     def close(self) -> None:

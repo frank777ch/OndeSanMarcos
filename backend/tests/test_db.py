@@ -96,7 +96,7 @@ def test_match_with_no_rows_on_empty_table_asks_to_ingest():
     with pytest.raises(RagProviderError) as info:
         db.match([0.1, 0.2], 4)
     assert str(info.value) == EMPTY_MESSAGE
-    assert "./script/dev.sh ingest" in EMPTY_MESSAGE
+    assert "./scripts/dev.sh ingest" in EMPTY_MESSAGE
 
 
 def test_match_with_no_rows_on_filled_table_returns_empty_list():

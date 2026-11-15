@@ -6,18 +6,19 @@ Web responsive (Vite + React + TypeScript) para orientarse en el campus de la UN
 - Node 20+
 - Backend FastAPI corriendo (ver `../backend/README.md`) o `VITE_USE_MOCK_CHAT=true`
 
-## Todo con Docker (recomendado)
+## Todo con el script (recomendado)
 Desde la raíz del repo:
 ```bash
-./script/dev.sh          # backend :8000 + web :5173 (Ctrl+C detiene)
-./script/dev.sh up -d    # en segundo plano
-./script/dev.sh logs web # logs de un servicio
-./script/dev.sh test     # tests de backend y web
-./script/dev.sh down     # detener (clean = también borra volúmenes)
+./scripts/dev.sh          # base de datos (Docker) + backend :8000 + web :5173 en local (Ctrl+C detiene)
+./scripts/dev.sh up -d    # en segundo plano
+./scripts/dev.sh logs web # logs de un servicio
+./scripts/dev.sh test     # tests de backend y web
+./scripts/dev.sh down     # detener (clean = también borra backend/.venv y web/node_modules)
 ```
+`./scripts/preview.sh` levanta todo en contenedores, si lo prefieres.
 Crea `backend/.env` y `web/.env` desde sus `.env.example` si faltan. El backend arranca en modo mock (sin llaves). Completa `VITE_MAPBOX_TOKEN` en `web/.env` para ver el mapa.
 
-## Sin Docker
+## Solo la web
 ```bash
 cp .env.example .env   # y completa VITE_MAPBOX_TOKEN
 npm install
