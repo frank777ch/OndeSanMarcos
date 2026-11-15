@@ -24,7 +24,8 @@ export function PlaceLabels() {
         const el = refs.current.get(p.id)
         if (!el) continue
         const { x, y, visible } = api.project(p.position)
-        el.style.visibility = visible ? 'visible' : 'hidden'
+        // `inherit` y no `visible`: así respeta el `invisible` del contenedor cuando la pestaña del mapa no está activa.
+        el.style.visibility = visible ? 'inherit' : 'hidden'
         el.style.transform = `translate3d(${x}px, ${y + LABEL_OFFSET_PX}px, 0) translateX(-50%)`
       }
     }
