@@ -100,6 +100,13 @@
   color-scheme: dark;
 }
 
+/* El cambio de tema anima con un círculo (useThemeStore); sin el fundido por defecto de la raíz. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 @layer base {
   /* Tailwind usa rem: bajar la base en móvil reduce todo el texto a la vez. */
   html {
