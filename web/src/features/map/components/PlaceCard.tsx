@@ -3,6 +3,7 @@ import { Route, X } from 'lucide-react'
 import { Button } from '@/components/Button/Button'
 import { IconButton } from '@/components/IconButton/IconButton'
 import { useRouteStore } from '@/features/routing/store/useRouteStore'
+import { useMapActive } from '../MapActiveContext'
 import { useMapStore } from '../store/useMapStore'
 import { usePlacesStore } from '../store/usePlacesStore'
 
@@ -44,6 +45,7 @@ export function PlaceCard() {
   const place = usePlacesStore((s) => (selectedPlaceId ? s.byId[selectedPlaceId] : undefined)) ?? null
   const categoryLabel = usePlacesStore((s) => s.categories.find((c) => c.id === place?.category)?.label)
   const isOpen = place !== null
+  const active = useMapActive()
 
   // Foco: al abrir va a «Cerrar»; al cerrar vuelve a donde estaba.
   useEffect(() => {
@@ -57,14 +59,14 @@ export function PlaceCard() {
 
   // Esc cierra la ficha.
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen || !active) return
     const onKeyDown = (e: KeyboardEvent) => {
       // Con un diálogo modal encima (planificar ruta), Esc es suyo: la ficha sigue abierta.
       if (e.key === 'Escape' && !document.querySelector('[aria-modal="true"]')) clearSelection()
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [isOpen, clearSelection])
+  }, [isOpen, active, clearSelection])
 
   if (!place) return null
 

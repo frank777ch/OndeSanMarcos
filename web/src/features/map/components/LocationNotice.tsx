@@ -1,6 +1,7 @@
 import { useEffect, useId } from 'react'
 import { MapPin } from 'lucide-react'
 import { Button } from '@/components/Button/Button'
+import { useMapActive } from '../MapActiveContext'
 import { useLocationStore } from '../store/useLocationStore'
 
 /**
@@ -13,15 +14,16 @@ export function LocationNotice() {
   const dismiss = useLocationStore((s) => s.dismissNotice)
   const titleId = useId()
   const descId = useId()
+  const active = useMapActive()
 
   useEffect(() => {
-    if (!open) return
+    if (!open || !active) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') dismiss()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [open, dismiss])
+  }, [open, active, dismiss])
 
   if (!open) return null
 
