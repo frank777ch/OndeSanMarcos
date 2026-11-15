@@ -18,6 +18,8 @@ interface SidebarShellProps {
   navLabel: string
   /** El contenido ocupa todo el ancho y la barra va encima (el mapa no se redimensiona). */
   overContent?: boolean
+  /** Contenido que sigue montado entre rutas (el mapa); se mueve con el contenido, antes del `<Outlet />`. */
+  persistent?: ReactNode
   /** Contenido al pie de la barra; recibe si está contraída. */
   footer?: (collapsed: boolean) => ReactNode
 }
@@ -33,7 +35,7 @@ function readCollapsed(): boolean {
 }
 
 /** Barra lateral contraíble + área de contenido, compartida por la web pública y la de administración. */
-export function SidebarShell({ links, navLabel, overContent = false, footer }: SidebarShellProps) {
+export function SidebarShell({ links, navLabel, overContent = false, persistent, footer }: SidebarShellProps) {
   // Solo aplica desde md (barra lateral); en móvil la barra de abajo no cambia.
   const [collapsed, setCollapsed] = useState(readCollapsed)
   // Con `overContent` (el mapa) la barra va encima y el contenido ocupa todo el ancho: así no se
@@ -119,6 +121,7 @@ export function SidebarShell({ links, navLabel, overContent = false, footer }: S
           overContent ? 'md:left-0' : 'md:left-[var(--sidebar-w)]',
         )}
       >
+        {persistent}
         <Outlet />
       </main>
       <ToastHost />

@@ -24,6 +24,18 @@ describe('rutas', () => {
     ).toBeInTheDocument()
   })
 
+  it('el mapa sigue montado (oculto) al ir al asistente y vuelve sin recrearse', async () => {
+    await renderAt('/mapa')
+    const map = await screen.findByRole('region', { name: 'Mapa del campus' })
+    await userEvent.click(screen.getByRole('link', { name: 'Asistente' }))
+    expect(screen.getByRole('heading', { name: 'Asistente' })).toBeInTheDocument()
+    // Sigue en el DOM, pero inerte para el foco y el lector de pantalla.
+    expect(map.closest('[inert]')).not.toBeNull()
+    await userEvent.click(screen.getByRole('link', { name: 'Mapa' }))
+    expect(screen.getByRole('region', { name: 'Mapa del campus' })).toBe(map)
+    expect(map.closest('[inert]')).toBeNull()
+  })
+
   it('navega al asistente desde la barra lateral', async () => {
     await renderAt('/mapa')
     await userEvent.click(screen.getByRole('link', { name: 'Asistente' }))

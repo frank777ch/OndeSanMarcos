@@ -32,13 +32,8 @@ export const routes: RouteObject[] = [
     element: <AppLayout />,
     children: [
       { path: '/', element: <Navigate to="/mapa" replace /> },
-      {
-        path: '/mapa',
-        // Carga diferida: mapbox-gl pesa mucho y no hace falta en el resto de páginas.
-        lazy: async () => ({
-          Component: (await import('@/pages/MapPage')).MapPage,
-        }),
-      },
+      // El mapa lo dibuja AppLayout (siempre montado, ver PersistentMap); aquí solo existe la ruta.
+      { path: '/mapa', element: null },
       { path: '/asistente', element: <ChatPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
