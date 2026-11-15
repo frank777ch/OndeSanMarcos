@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { useAuthStore } from '@/features/admin/store/useAuthStore'
 import { AdminProfilePage } from '@/pages/AdminProfilePage'
+import { useThemeStore } from '@/features/theme/useThemeStore'
 import { AdminLayout } from './AdminLayout'
 
 function renderLayout() {
@@ -50,5 +51,19 @@ describe('AdminLayout', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
     expect(useAuthStore.getState().session).toBeNull()
     expect(useAuthStore.getState().expired).toBe(false)
+  })
+
+  it('el botón de tema está encima de «Cerrar sesión» y alterna el tema', async () => {
+    useThemeStore.setState({ theme: 'light' })
+    renderLayout()
+    const theme = screen.getByRole('button', { name: 'Tema oscuro' })
+    const logout = screen.getByRole('button', { name: 'Cerrar sesión' })
+    expect(theme.compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    await userEvent.click(theme)
+    expect(useThemeStore.getState().theme).toBe('dark')
+    expect(screen.getByRole('button', { name: 'Tema claro' })).toBeInTheDocument()
+    expect(useAuthStore.getState().session).not.toBeNull()
+    useThemeStore.setState({ theme: 'light' })
+    document.documentElement.removeAttribute('data-theme')
   })
 })

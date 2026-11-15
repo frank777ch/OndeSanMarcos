@@ -112,7 +112,11 @@ export function CampusMap() {
           {
             label: dark ? 'Tema claro' : 'Tema oscuro',
             icon: dark ? <Sun size={20} /> : <Moon size={20} />,
-            onClick: () => useThemeStore.getState().toggle(),
+            onClick: (event) => {
+              // El círculo del cambio de tema nace en el centro del botón.
+              const box = event.currentTarget.getBoundingClientRect()
+              useThemeStore.getState().toggle({ x: box.left + box.width / 2, y: box.top + box.height / 2 })
+            },
           },
         ]}
       />

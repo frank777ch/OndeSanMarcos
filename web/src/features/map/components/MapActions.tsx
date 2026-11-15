@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, type MouseEvent, type ReactNode } from 'react'
 import { Ellipsis, X } from 'lucide-react'
 import { IconButton } from '@/components/IconButton/IconButton'
 import { cn } from '@/lib/cn'
@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn'
 export interface MapAction {
   label: string
   icon: ReactNode
-  onClick: () => void
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
   busy?: boolean
 }
