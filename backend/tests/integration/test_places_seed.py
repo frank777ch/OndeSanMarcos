@@ -30,7 +30,9 @@ def test_rf_22_5_loads_the_nine_categories(seeded):
     seed = load_seed()
     result = apply_seed(database, seed)
     assert result.categories_inserted == 9
-    ids = {r[0] for r in psycopg.connect(url).execute("select slug from place_categories").fetchall()}
+    # La conexión se cierra: abierta, deja una transacción que bloquea el `truncate` del siguiente test.
+    with psycopg.connect(url) as conn:
+        ids = {r[0] for r in conn.execute("select slug from place_categories").fetchall()}
     assert ids == {"facultades", "cafeterias", "auditorios", "campos-deportivos", "puertas",
                    "administracion", "salud", "servicios", "otros"}
 
