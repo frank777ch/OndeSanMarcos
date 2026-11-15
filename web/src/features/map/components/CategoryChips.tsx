@@ -6,6 +6,7 @@ import {
   DoorOpen,
   Dumbbell,
   HeartPulse,
+  LayoutGrid,
   Landmark,
   MapPin,
   Mic,
@@ -31,16 +32,34 @@ const ICONS: Record<string, LucideIcon> = {
 export function CategoryChips() {
   const activeCategory = useMapStore((s) => s.activeCategory)
   const toggleCategory = useMapStore((s) => s.toggleCategory)
+  const clearCategory = useMapStore((s) => s.clearCategory)
   const status = usePlacesStore((s) => s.status)
   const places = usePlacesStore((s) => s.places)
   const categories = usePlacesStore((s) => s.categories)
-  const visible = useMemo(() => selectVisibleCategories({ places, categories }), [places, categories])
+  const visible = useMemo(
+    () => [...selectVisibleCategories({ places, categories })].sort((a, b) => a.label.localeCompare(b.label, 'es')),
+    [places, categories],
+  )
 
   // Sin datos no hay botones (RF-28.3); las categorías sin lugares tampoco (RF-28.8).
   if (status !== 'ready') return null
 
   return (
     <div className="flex w-full min-w-0 gap-2 overflow-x-auto [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar lugares por categoría">
+      <button
+        type="button"
+        aria-pressed={activeCategory === null}
+        className={cn(
+          'inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition-colors',
+          activeCategory === null
+            ? 'border-primary bg-primary text-on-primary'
+            : 'border-border bg-bg text-ink hover:bg-surface',
+        )}
+        onClick={clearCategory}
+      >
+        <LayoutGrid size={16} aria-hidden="true" />
+        Todos
+      </button>
       {visible.map(({ id, label }) => {
         const Icon = ICONS[id] ?? MapPin
         const active = activeCategory === id

@@ -17,6 +17,8 @@ interface MapState {
    * oculta el lugar elegido, también limpia la selección.
    */
   toggleCategory: (id: PlaceCategoryId) => void
+  /** Quita el filtro de categoría («Todos»). */
+  clearCategory: () => void
   /**
    * Elige un lugar. Si un filtro de otra categoría lo ocultaría, quita el filtro.
    * Un id desconocido se ignora.
@@ -38,6 +40,7 @@ export const useMapStore = create<MapState>((set) => ({
         ? { activeCategory: next, selectedPlaceId: null, selectionOrigin: null }
         : { activeCategory: next }
     }),
+  clearCategory: () => set({ activeCategory: null }),
   selectPlace: (id, origin = 'other') =>
     set((s) => {
       const place = usePlacesStore.getState().byId[id]
