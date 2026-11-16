@@ -1,9 +1,7 @@
 import { Line } from '@react-three/drei'
-import campusPaths from '@/features/routing/data/campus-paths.json'
-import type { LngLat } from '../constants/campus'
+import { walkableLines } from '@/features/routing/utils/pathfinder'
 import { campusOsm } from '../data/campusData'
 import { toLocal } from '../utils/projection'
-import type { FeatureCollection, LineString } from 'geojson'
 import { ORDER } from './order'
 import { buildingsGeometry, flatGeometry, ribbonGeometry } from './geometry'
 import type { MapColors } from './useMapColors'
@@ -32,10 +30,7 @@ const greenParts = once(() =>
   })),
 )
 
-const pathsGeometry = once(() => {
-  const lines = (campusPaths as FeatureCollection<LineString>).features.map((f) => f.geometry.coordinates as LngLat[])
-  return ribbonGeometry(lines, PATH_WIDTH)
-})
+const pathsGeometry = once(() => ribbonGeometry(walkableLines(), PATH_WIDTH))
 
 /** Suelo del campus (el contorno relleno). Fuera de él solo se ve el fondo liso. */
 export function Ground({ colors }: { colors: MapColors }) {
