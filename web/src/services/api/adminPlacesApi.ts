@@ -37,7 +37,6 @@ interface RawPlace {
   image_url?: string | null
   parent_place_id?: number | null
   is_published?: unknown
-  verified_at?: string | null
   created_at?: unknown
   updated_at?: unknown
   updated_by?: string | null
@@ -78,7 +77,6 @@ export function toAdminPlace(raw: RawPlace, endpoint = '/api/admin/places'): Adm
     imageUrl: raw.image_url ?? null,
     parentPlaceId: raw.parent_place_id ?? null,
     isPublished: raw.is_published !== false,
-    verifiedAt: raw.verified_at ?? null,
     createdAt: String(raw.created_at ?? ''),
     updatedAt: String(raw.updated_at ?? ''),
     updatedBy: raw.updated_by ?? null,
@@ -150,7 +148,6 @@ function toBody(input: AdminPlaceInput) {
     image_url: input.imageUrl,
     parent_place_id: input.parentPlaceId,
     is_published: input.isPublished,
-    verified: input.verified,
   }
 }
 
@@ -173,9 +170,15 @@ export async function reindexAdminPlace(id: number): Promise<SavedPlace> {
   return toSaved(await adminClient.post<RawPlace>(endpoint, {}), endpoint)
 }
 
+/** Borra el lugar; `ragSync` dice si su ficha ya se quitó del asistente. */
+export async function deleteAdminPlace(id: number): Promise<RagSync> {
+  const raw = await adminClient.delete<{ rag_sync?: unknown }>(`/api/admin/places/${id}`)
+  return toRagSync(raw?.rag_sync)
+}
+
 /**
  * Entrada completa a partir de un lugar ya guardado, con algunos cambios. La API reemplaza todos los
- * campos, así que una acción de fila (publicar, verificar) debe reenviar el resto intacto (RF-31.9).
+ * campos, así que una acción de fila (publicar) debe reenviar el resto intacto (RF-31.9).
  */
 export function toInput(
   place: AdminPlace,
@@ -202,7 +205,6 @@ export function toInput(
     imageUrl: place.imageUrl,
     parentPlaceId: place.parentPlaceId,
     isPublished: place.isPublished,
-    verified: place.verifiedAt !== null,
     ...changes,
   }
 }

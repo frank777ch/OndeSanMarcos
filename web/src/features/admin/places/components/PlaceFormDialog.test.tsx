@@ -68,7 +68,7 @@ describe('PlaceFormDialog · diálogo (RF-31.11, RF-31.12)', () => {
     expect(screen.getByLabelText('Nombre corto o sigla')).toHaveValue('FISI')
     expect(screen.getByRole('combobox', { name: /Categoría/ })).toHaveValue('Facultades')
     expect(screen.getByLabelText('Palabras clave')).toHaveValue('informática\nsoftware')
-    expect(screen.getByLabelText(/Verificado/)).toBeChecked()
+    expect(screen.queryByLabelText(/Verificado/)).not.toBeInTheDocument()
     expect(screen.getByText(String(adminId('fisi')))).toBeInTheDocument()
     expect(screen.getByText('fisi')).toBeInTheDocument() // slug, solo lectura
     expect(screen.queryByLabelText(/^Id/)).not.toBeInTheDocument()
@@ -187,7 +187,7 @@ describe('PlaceFormDialog · guardar (RF-31.16 a RF-31.18)', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
     expect(api.saveAdminPlace).toHaveBeenCalledWith(null, expect.objectContaining({
       name: 'Laboratorio', categoryId: catId('facultades'), lat: -12.0565, lng: -77.0827,
-      keywords: ['Redes', 'Wifi'], email: 'lab@unmsm.edu.pe', phone: null, isPublished: false, verified: false,
+      keywords: ['Redes', 'Wifi'], email: 'lab@unmsm.edu.pe', phone: null, isPublished: false,
     }))
     expect(useToastStore.getState().toasts.map((t) => t.message)).toContain('Lugar guardado')
     expect(useAdminPlacesStore.getState().places.map((p) => p.id)).toContain(adminId('laboratorio'))

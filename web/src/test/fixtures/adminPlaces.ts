@@ -38,7 +38,6 @@ export function adminPlace(slug: string, overrides: Partial<AdminPlace> = {}): A
     imageUrl: null,
     parentPlaceId: null,
     isPublished: true,
-    verifiedAt: null,
     createdAt: '2026-11-01T10:00:00Z',
     updatedAt: '2026-11-10T10:00:00Z',
     updatedBy: 'admin',
@@ -53,7 +52,6 @@ export const ADMIN_PLACES: AdminPlace[] = [
     keywords: ['informática', 'software'],
     phone: '619-7000',
     careers: ['Ingeniería de Software'],
-    verifiedAt: '2026-11-05T09:00:00Z',
   }),
   adminPlace('psicologia', { name: 'Facultad de Psicología', shortName: 'Psicología' }),
   adminPlace('puerta-3', { name: 'Puerta 3', categoryId: catId('puertas'), lat: -12.0571, lng: -77.08, isPublished: false }),
@@ -67,7 +65,7 @@ export function rawPlace(p: AdminPlace, ragSync?: string) {
     detailed_schedule: p.detailedSchedule, phone: p.phone, annex: p.annex, email: p.email,
     website: p.website, access_hint: p.accessHint, careers: p.careers, services: p.services,
     usage: p.usage, image_url: p.imageUrl, parent_place_id: p.parentPlaceId,
-    is_published: p.isPublished, verified_at: p.verifiedAt, created_at: p.createdAt,
+    is_published: p.isPublished, created_at: p.createdAt,
     updated_at: p.updatedAt, updated_by: p.updatedBy, ...(ragSync ? { rag_sync: ragSync } : {}),
   }
 }

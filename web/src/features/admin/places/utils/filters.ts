@@ -9,13 +9,12 @@ export interface PlaceFilters {
   q: string
   categoryId: number | null
   published: TriState
-  verified: TriState
 }
 
-export const EMPTY_FILTERS: PlaceFilters = { q: '', categoryId: null, published: 'all', verified: 'all' }
+export const EMPTY_FILTERS: PlaceFilters = { q: '', categoryId: null, published: 'all' }
 
 export const hasActiveFilters = (f: PlaceFilters) =>
-  f.q.trim() !== '' || f.categoryId !== null || f.published !== 'all' || f.verified !== 'all'
+  f.q.trim() !== '' || f.categoryId !== null || f.published !== 'all'
 
 const matchesTri = (value: boolean, filter: TriState) =>
   filter === 'all' || (filter === 'yes') === value
@@ -26,7 +25,6 @@ export function filterPlaces(places: AdminPlace[], filters: PlaceFilters): Admin
   return places.filter((p) => {
     if (filters.categoryId && p.categoryId !== filters.categoryId) return false
     if (!matchesTri(p.isPublished, filters.published)) return false
-    if (!matchesTri(p.verifiedAt !== null, filters.verified)) return false
     if (!needle) return true
     return [String(p.id), p.slug, p.name, p.shortName ?? '', ...p.keywords].some((t) => normalizeText(t).includes(needle))
   })

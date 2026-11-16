@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { useToastStore } from '@/components/Toast/toastStore'
 import { usePlacesStore } from '@/features/map/store/usePlacesStore'
 import {
+  deleteAdminPlace,
   listAdminPlaces,
   reindexAdminPlace,
   saveAdminPlace,
@@ -28,7 +29,8 @@ interface AdminPlacesState {
   /** `id` nulo crea; con `id` reemplaza. Lanza el error del servidor para que el diálogo lo muestre. */
   save: (id: number | null, input: AdminPlaceInput) => Promise<SavedPlace>
   togglePublished: (place: AdminPlace) => Promise<boolean>
-  toggleVerified: (place: AdminPlace) => Promise<boolean>
+  /** Borra el lugar. Lanza el error del servidor (p. ej. 409 si contiene otros lugares). */
+  remove: (place: AdminPlace) => Promise<void>
   retryReindex: () => Promise<void>
   dismissRagWarning: () => void
 }
@@ -103,9 +105,29 @@ export const useAdminPlacesStore = create<AdminPlacesState>((set, get) => {
         { isPublished: !place.isPublished },
         place.isPublished ? 'Lugar despublicado' : 'Lugar publicado',
       ),
-    toggleVerified: (place) => {
-      const verified = place.verifiedAt === null
-      return rowAction(place, { verified }, verified ? 'Lugar verificado' : 'Verificación quitada')
+    remove: async (place) => {
+      if (get().busy[place.id]) return
+      set((s) => ({ busy: { ...s.busy, [place.id]: true } }))
+      try {
+        const ragSync = await deleteAdminPlace(place.id)
+        set((s) => ({
+          places: s.places.filter((p) => p.id !== place.id),
+          ragWarning: s.ragWarning?.placeId === place.id ? null : s.ragWarning,
+        }))
+        toast(
+          ragSync === 'failed'
+            ? 'Lugar borrado, pero el asistente todavía recuerda su ficha.'
+            : 'Lugar borrado',
+          ragSync === 'failed' ? 'error' : 'success',
+        )
+        void usePlacesStore.getState().refresh()
+        void useAdminCategoriesStore.getState().load({ quiet: true })
+      } finally {
+        set((s) => {
+          const { [place.id]: _removed, ...rest } = s.busy
+          return { busy: rest }
+        })
+      }
     },
     retryReindex: async () => {
       const warning = get().ragWarning

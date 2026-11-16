@@ -171,9 +171,6 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
               <Switch checked={form.isPublished} onChange={set('isPublished')}>
                 Publicado (visible en el mapa y para el asistente)
               </Switch>
-              <Switch checked={form.verified} onChange={set('verified')}>
-                Verificado (dato confirmado con la universidad)
-              </Switch>
             </Section>
 
             <Section title="Ubicación">

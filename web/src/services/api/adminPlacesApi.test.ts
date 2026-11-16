@@ -35,7 +35,7 @@ describe('listAdminPlaces / listAdminCategories', () => {
     expect(lastCall()[0]).toMatch(/\/api\/admin\/places$/)
     expect((lastCall()[1].headers as Record<string, string>).Authorization).toBe('Bearer tok')
     expect(places).toHaveLength(3)
-    expect(places[0]).toMatchObject({ slug: 'fisi', shortName: 'FISI', verifiedAt: '2026-11-05T09:00:00Z' })
+    expect(places[0]).toMatchObject({ slug: 'fisi', shortName: 'FISI' })
     expect(places[2].isPublished).toBe(false)
   })
 
@@ -60,14 +60,12 @@ describe('toInput · RF-31.9', () => {
       keywords: ['informática', 'software'], description: null, schedule: null, detailedSchedule: [],
       phone: '619-7000', annex: null, email: null, website: null, accessHint: null,
       careers: ['Ingeniería de Software'], services: [], usage: null, imageUrl: null,
-      parentPlaceId: null, isPublished: false, verified: true,
+      parentPlaceId: null, isPublished: false,
     })
   })
 
-  it('verified sale de verifiedAt', () => {
-    expect(toInput(adminPlace('a')).verified).toBe(false)
-    expect(toInput(adminPlace('a', { verifiedAt: '2026-01-01T00:00:00Z' })).verified).toBe(true)
-    expect(toInput(adminPlace('a', { verifiedAt: '2026-01-01T00:00:00Z' }), { verified: false }).verified).toBe(false)
+  it('no manda ni lee ninguna verificación', () => {
+    expect(toInput(adminPlace('a'))).not.toHaveProperty('verified')
   })
 })
 
@@ -81,7 +79,8 @@ describe('saveAdminPlace', () => {
     expect(init.method).toBe('POST')
     expect(url).toMatch(/\/api\/admin\/places$/)
     const body = JSON.parse(init.body as string)
-    expect(body).toMatchObject({ name: 'Nuevo', category_id: catId('facultades'), is_published: true, verified: false })
+    expect(body).toMatchObject({ name: 'Nuevo', category_id: catId('facultades'), is_published: true })
+    expect(body).not.toHaveProperty('verified')
     expect(body).not.toHaveProperty('id')
     expect(saved.place.id).toBe(adminId('nuevo'))
     expect(saved.ragSync).toBe('ok')

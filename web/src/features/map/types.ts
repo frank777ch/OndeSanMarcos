@@ -50,6 +50,4 @@ export interface Place {
   imageUrl?: string
   /** Lugar que lo contiene (un auditorio dentro de una facultad). */
   parentPlaceId?: number
-  /** Cuándo se confirmó el dato con la universidad; sin valor = sin verificar. */
-  verifiedAt?: string
 }

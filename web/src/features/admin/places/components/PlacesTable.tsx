@@ -6,6 +6,9 @@ import { ConfirmDialog } from '@/components/ConfirmDialog/ConfirmDialog'
 import { Input } from '@/components/Input/Input'
 import { Pagination } from '@/components/Pagination/Pagination'
 import { Select } from '@/components/Select/Select'
+import { useToastStore } from '@/components/Toast/toastStore'
+import { parseFieldErrors } from '@/services/api/adminPlacesApi'
+import { ApiError } from '@/services/api/client'
 import { useAdminCategoriesStore } from '../../categories/store/useAdminCategoriesStore'
 import { useAdminPlacesStore } from '../store/useAdminPlacesStore'
 import type { AdminPlace } from '../types'
@@ -59,11 +62,12 @@ export function PlacesTable() {
   const filters = useAdminPlacesStore((s) => s.filters)
   const page = useAdminPlacesStore((s) => s.page)
   const busy = useAdminPlacesStore((s) => s.busy)
-  const { setFilters, resetFilters, setPage, togglePublished, toggleVerified } = useAdminPlacesStore.getState()
+  const { setFilters, resetFilters, setPage, togglePublished } = useAdminPlacesStore.getState()
   const categories = useAdminCategoriesStore((s) => s.categories)
 
   const [editing, setEditing] = useState<AdminPlace | 'new' | null>(null)
   const [unpublishing, setUnpublishing] = useState<AdminPlace | null>(null)
+  const [deleting, setDeleting] = useState<AdminPlace | null>(null)
 
   const categoryById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
   const categoryOptions = useMemo(() => categories.map((c) => ({ value: String(c.id), label: c.label })), [categories])
@@ -77,6 +81,29 @@ export function PlacesTable() {
     else void togglePublished(place)
   }
 
+  const confirmDelete = async () => {
+    const target = deleting
+    setDeleting(null)
+    if (!target) return
+    try {
+      await useAdminPlacesStore.getState().remove(target)
+    } catch (error) {
+      // 409: el lugar contiene otros lugares; el servidor explica el motivo.
+      const reason = parseFieldErrors(error).general
+      useToastStore
+        .getState()
+        .show(
+          error instanceof ApiError && error.status === 409 && reason
+            ? reason
+            : 'No se pudo borrar el lugar. Inténtalo de nuevo.',
+          'error',
+        )
+      if (error instanceof ApiError && (error.status === 409 || error.status === 404)) {
+        void useAdminPlacesStore.getState().load({ quiet: true })
+      }
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
@@ -88,7 +115,7 @@ export function PlacesTable() {
 
       <RagWarning />
 
-      <div className="grid grid-cols-[minmax(12rem,2fr)_minmax(10rem,1fr)_auto_auto] items-end gap-4">
+      <div className="grid grid-cols-[minmax(12rem,2fr)_minmax(10rem,1fr)_auto] items-end gap-4">
         <Input
           label="Buscar"
           type="search"
@@ -109,12 +136,6 @@ export function PlacesTable() {
           value={filters.published}
           options={['Todos', 'Publicados', 'Ocultos']}
           onChange={(published) => setFilters({ published })}
-        />
-        <TriStateSelect
-          label="Verificación"
-          value={filters.verified}
-          options={['Todos', 'Verificados', 'Sin verificar']}
-          onChange={(verified) => setFilters({ verified })}
         />
       </div>
 
@@ -145,7 +166,6 @@ export function PlacesTable() {
                 <th scope="col" className="px-4 py-3">Nombre</th>
                 <th scope="col" className="px-4 py-3">Categoría</th>
                 <th scope="col" className="px-4 py-3">Estado</th>
-                <th scope="col" className="px-4 py-3">Verificación</th>
                 <th scope="col" className="px-4 py-3">Última modificación</th>
                 <th scope="col" className="px-4 py-3 text-right">Acciones</th>
               </tr>
@@ -172,7 +192,6 @@ export function PlacesTable() {
                       </span>
                     </td>
                     <td className="px-4 py-3">{place.isPublished ? 'Publicado' : 'Oculto'}</td>
-                    <td className="px-4 py-3">{place.verifiedAt ? 'Verificado' : 'Sin verificar'}</td>
                     <td className="px-4 py-3 text-sm">
                       {formatDate(place.updatedAt)}
                       {place.updatedBy && <span className="block text-muted">{place.updatedBy}</span>}
@@ -183,7 +202,7 @@ export function PlacesTable() {
                         busy={Boolean(busy[place.id])}
                         onEdit={setEditing}
                         onTogglePublished={onTogglePublished}
-                        onToggleVerified={(p) => void toggleVerified(p)}
+                        onDelete={setDeleting}
                       />
                     </td>
                   </tr>
@@ -209,6 +228,14 @@ export function PlacesTable() {
           if (unpublishing) void togglePublished(unpublishing)
           setUnpublishing(null)
         }}
+      />
+      <ConfirmDialog
+        open={deleting !== null}
+        title="¿Borrar este lugar?"
+        message={`Se borrará «${deleting?.name ?? ''}» del mapa y del asistente. Esta acción no se puede deshacer; si solo quieres ocultarlo, despublícalo.`}
+        confirmLabel="Borrar"
+        onCancel={() => setDeleting(null)}
+        onConfirm={() => void confirmDelete()}
       />
     </div>
   )

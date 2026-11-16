@@ -23,7 +23,6 @@ export interface PlaceForm {
   imageUrl: string
   parentPlaceId: number | null
   isPublished: boolean
-  verified: boolean
 }
 
 /** Un elemento por línea; sin líneas vacías ni repetidas (RF-31.14a). */
@@ -47,7 +46,6 @@ export function emptyForm(): PlaceForm {
     name: '', shortName: '', categoryId: null, lat: '', lng: '', keywords: '', description: '',
     schedule: '', detailedSchedule: '', phone: '', annex: '', email: '', website: '', accessHint: '',
     careers: '', services: '', usage: '', imageUrl: '', parentPlaceId: null, isPublished: true,
-    verified: false,
   }
 }
 
@@ -73,7 +71,6 @@ export function placeToForm(place: AdminPlace): PlaceForm {
     imageUrl: place.imageUrl ?? '',
     parentPlaceId: place.parentPlaceId,
     isPublished: place.isPublished,
-    verified: place.verifiedAt !== null,
   }
 }
 
@@ -102,7 +99,6 @@ export function formToInput(form: PlaceForm): AdminPlaceInput {
     imageUrl: orNull(form.imageUrl),
     parentPlaceId: form.parentPlaceId,
     isPublished: form.isPublished,
-    verified: form.verified,
   }
 }
 

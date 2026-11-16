@@ -18,19 +18,17 @@ describe('filterPlaces · RF-31.4', () => {
     expect(ids(filterPlaces(ADMIN_PLACES, f({ q: 'xyz' })))).toEqual([])
   })
 
-  it('filtra por categoría, estado y verificación, y los combina', () => {
+  it('filtra por categoría, y estado, y los combina', () => {
     expect(ids(filterPlaces(ADMIN_PLACES, f({ categoryId: catId('puertas') })))).toEqual(['puerta-3'])
     expect(ids(filterPlaces(ADMIN_PLACES, f({ published: 'no' })))).toEqual(['puerta-3'])
     expect(ids(filterPlaces(ADMIN_PLACES, f({ published: 'yes' })))).toEqual(['fisi', 'psicologia'])
-    expect(ids(filterPlaces(ADMIN_PLACES, f({ verified: 'no' })))).toEqual(['psicologia', 'puerta-3'])
-    expect(ids(filterPlaces(ADMIN_PLACES, f({ verified: 'yes' })))).toEqual(['fisi'])
-    expect(ids(filterPlaces(ADMIN_PLACES, f({ verified: 'no', published: 'yes', q: 'psi' })))).toEqual(['psicologia'])
+    expect(ids(filterPlaces(ADMIN_PLACES, f({ published: 'yes', q: 'psi' })))).toEqual(['psicologia'])
   })
 
   it('hasActiveFilters distingue «sin filtros»', () => {
     expect(hasActiveFilters(EMPTY_FILTERS)).toBe(false)
     expect(hasActiveFilters(f({ q: '  ' }))).toBe(false)
-    expect(hasActiveFilters(f({ verified: 'no' }))).toBe(true)
+    expect(hasActiveFilters(f({ published: 'no' }))).toBe(true)
   })
 })
 

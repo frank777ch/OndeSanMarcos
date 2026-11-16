@@ -25,7 +25,6 @@ interface ApiPlace {
   usage?: string | null
   image_url?: string | null
   parent_place_id?: number | null
-  verified_at?: string | null
 }
 
 interface ApiCategory {
@@ -85,7 +84,6 @@ export function toPlace(raw: ApiPlace): Place {
     detailedSchedule: list(raw.detailed_schedule),
     imageUrl: text(raw.image_url),
     parentPlaceId: isId(raw.parent_place_id) ? raw.parent_place_id : undefined,
-    verifiedAt: text(raw.verified_at),
   }
 }
 

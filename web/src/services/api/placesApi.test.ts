@@ -35,7 +35,6 @@ const apiPlace = (over: Record<string, unknown> = {}) => ({
   image_url: null,
   parent_place_id: null,
   is_published: true,
-  verified_at: null,
   updated_at: '2026-11-12T00:00:00Z',
   ...over,
 })
@@ -76,7 +75,6 @@ describe('placesApi', () => {
         access_hint: 'Puerta 3',
         image_url: 'https://x/y.png',
         parent_place_id: 3,
-        verified_at: '2026-01-01T00:00:00Z',
       }),
     )
     expect(place).toMatchObject({
@@ -86,7 +84,6 @@ describe('placesApi', () => {
       accessHint: 'Puerta 3',
       imageUrl: 'https://x/y.png',
       parentPlaceId: 3,
-      verifiedAt: '2026-01-01T00:00:00Z',
     })
   })
 

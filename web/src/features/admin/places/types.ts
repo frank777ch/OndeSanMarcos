@@ -26,7 +26,6 @@ export interface AdminPlace {
   imageUrl: string | null
   parentPlaceId: number | null
   isPublished: boolean
-  verifiedAt: string | null
   createdAt: string
   updatedAt: string
   updatedBy: string | null
@@ -54,7 +53,6 @@ export interface AdminPlaceInput {
   imageUrl: string | null
   parentPlaceId: number | null
   isPublished: boolean
-  verified: boolean
 }
 
 export interface AdminCategory {

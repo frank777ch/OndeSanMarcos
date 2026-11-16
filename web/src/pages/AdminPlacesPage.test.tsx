@@ -14,6 +14,7 @@ const api = vi.hoisted(() => ({
   listAdminCategories: vi.fn(),
   saveAdminPlace: vi.fn(),
   reindexAdminPlace: vi.fn(),
+  deleteAdminPlace: vi.fn(),
 }))
 vi.mock('@/services/api/adminPlacesApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/api/adminPlacesApi')>()),
@@ -55,17 +56,15 @@ describe('AdminPlacesPage · lista (RF-31.2, RF-31.3)', () => {
   it('RF-31.2: todos los lugares (también los ocultos) con sus columnas, y el total', async () => {
     await renderPage()
     expect(screen.getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
-      'Nombre', 'Categoría', 'Estado', 'Verificación', 'Última modificación', 'Acciones',
+      'Nombre', 'Categoría', 'Estado', 'Última modificación', 'Acciones',
     ])
     expect(screen.getAllByRole('row')).toHaveLength(4) // encabezado + 3
     const fisi = rowOf('Ingeniería de Sistemas')
     expect(within(fisi).getByText('Facultades')).toBeInTheDocument()
     expect(within(fisi).getByText('Publicado')).toBeInTheDocument()
-    expect(within(fisi).getByText('Verificado')).toBeInTheDocument()
     expect(within(fisi).getByText('FISI')).toBeInTheDocument()
     const puerta = rowOf('Puerta 3')
     expect(within(puerta).getByText('Oculto')).toBeInTheDocument()
-    expect(within(puerta).getByText('Sin verificar')).toBeInTheDocument()
     expect(screen.getByText('3 de 3 lugares')).toBeInTheDocument()
   })
 
@@ -97,12 +96,10 @@ describe('AdminPlacesPage · búsqueda y filtros (RF-31.4 a RF-31.6)', () => {
     expect(screen.getByText('1 de 3 lugares')).toBeInTheDocument()
   })
 
-  it('filtra por categoría, estado y verificación y los combina', async () => {
+  it('filtra por categoría y estado y los combina', async () => {
     await renderPage()
-    await userEvent.selectOptions(screen.getByLabelText('Verificación'), 'no')
-    expect(screen.getByText('2 de 3 lugares')).toBeInTheDocument()
     await userEvent.selectOptions(screen.getByLabelText('Estado'), 'yes')
-    expect(screen.getByText('1 de 3 lugares')).toBeInTheDocument()
+    expect(screen.getByText('2 de 3 lugares')).toBeInTheDocument()
     expect(screen.getByRole('row', { name: /Psicología/ })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('combobox', { name: 'Categoría' }))
     await userEvent.click(screen.getByRole('option', { name: 'Puertas' }))
@@ -126,12 +123,12 @@ describe('AdminPlacesPage · búsqueda y filtros (RF-31.4 a RF-31.6)', () => {
 
   it('RF-31.6: los filtros se conservan después de guardar un cambio', async () => {
     await renderPage()
-    await userEvent.selectOptions(screen.getByLabelText('Verificación'), 'no')
-    api.saveAdminPlace.mockResolvedValue({ place: { ...ADMIN_PLACES[1], verifiedAt: '2026-11-12T00:00:00Z' }, ragSync: 'ok' })
-    await userEvent.click(screen.getByRole('button', { name: 'Marcar como verificado Facultad de Psicología' }))
-    await waitFor(() => expect(toasts()).toContain('Lugar verificado'))
-    expect(screen.getByLabelText('Verificación')).toHaveValue('no')
-    expect(screen.queryByRole('row', { name: /Psicología/ })).not.toBeInTheDocument()
+    await userEvent.selectOptions(screen.getByLabelText('Estado'), 'no')
+    api.saveAdminPlace.mockResolvedValue({ place: { ...ADMIN_PLACES[2], isPublished: true }, ragSync: 'ok' })
+    await userEvent.click(screen.getByRole('button', { name: 'Publicar Puerta 3' }))
+    await waitFor(() => expect(toasts()).toContain('Lugar publicado'))
+    expect(screen.getByLabelText('Estado')).toHaveValue('no')
+    expect(screen.queryByRole('row', { name: /Puerta 3/ })).not.toBeInTheDocument()
   })
 })
 
@@ -188,43 +185,41 @@ describe('AdminPlacesPage · acciones de fila (RF-31.7 a RF-31.10)', () => {
     await waitFor(() => expect(within(rowOf('Puerta 3')).getByText('Publicado')).toBeInTheDocument())
   })
 
-  it('RF-31.8 y RF-31.9: verificar y quitar la verificación envían el lugar completo sin abrir el diálogo', async () => {
+  it('RF-31.8 y RF-31.9: publicar envía el lugar completo sin abrir el diálogo', async () => {
     await renderPage()
-    const fisi = ADMIN_PLACES[0]
-    api.saveAdminPlace.mockResolvedValue({ place: { ...fisi, verifiedAt: null }, ragSync: 'ok' })
-    await userEvent.click(screen.getByRole('button', { name: /^Quitar verificación de Facultad de Ingeniería/ }))
+    const puerta = ADMIN_PLACES[2]
+    api.saveAdminPlace.mockResolvedValue({ place: { ...puerta, isPublished: true }, ragSync: 'ok' })
+    await userEvent.click(screen.getByRole('button', { name: 'Publicar Puerta 3' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(api.saveAdminPlace).toHaveBeenCalledWith(adminId('fisi'), expect.objectContaining({
-      verified: false, phone: '619-7000', careers: ['Ingeniería de Software'], keywords: ['informática', 'software'],
-      shortName: 'FISI', lat: fisi.lat, isPublished: true,
+    expect(api.saveAdminPlace).toHaveBeenCalledWith(adminId('puerta-3'), expect.objectContaining({
+      name: 'Puerta 3', lat: puerta.lat, lng: puerta.lng, isPublished: true,
     }))
-    await waitFor(() => expect(within(rowOf('Ingeniería de Sistemas')).getByText('Sin verificar')).toBeInTheDocument())
   })
 
   it('RF-31.10: la fila queda deshabilitada mientras guarda', async () => {
     await renderPage()
     let resolve!: (v: unknown) => void
     api.saveAdminPlace.mockReturnValue(new Promise((r) => (resolve = r)))
-    await userEvent.click(screen.getByRole('button', { name: 'Marcar como verificado Facultad de Psicología' }))
-    for (const button of within(rowOf('Psicología')).getAllByRole('button')) expect(button).toBeDisabled()
-    expect(within(rowOf('Puerta 3')).getAllByRole('button')[0]).toBeEnabled()
-    await act(async () => resolve({ place: ADMIN_PLACES[1], ragSync: 'ok' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Publicar Puerta 3' }))
+    for (const button of within(rowOf('Puerta 3')).getAllByRole('button')) expect(button).toBeDisabled()
     expect(within(rowOf('Psicología')).getAllByRole('button')[0]).toBeEnabled()
+    await act(async () => resolve({ place: ADMIN_PLACES[2], ragSync: 'ok' }))
+    expect(within(rowOf('Puerta 3')).getAllByRole('button')[0]).toBeEnabled()
   })
 
   it('RF-31.10: si falla, la fila vuelve a su estado y se avisa', async () => {
     await renderPage()
     api.saveAdminPlace.mockRejectedValue(new ApiError('network', 'x'))
-    await userEvent.click(screen.getByRole('button', { name: 'Marcar como verificado Facultad de Psicología' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Publicar Puerta 3' }))
     await waitFor(() => expect(toasts()).toContain('No se pudo guardar el cambio. Inténtalo de nuevo.'))
-    expect(within(rowOf('Psicología')).getByText('Sin verificar')).toBeInTheDocument()
-    expect(within(rowOf('Psicología')).getAllByRole('button')[0]).toBeEnabled()
+    expect(within(rowOf('Puerta 3')).getByText('Oculto')).toBeInTheDocument()
+    expect(within(rowOf('Puerta 3')).getAllByRole('button')[0]).toBeEnabled()
   })
 
   it('RF-31.35: cada botón de fila nombra el lugar', async () => {
     await renderPage()
     const labels = within(rowOf('Puerta 3')).getAllByRole('button').map((b) => b.getAttribute('aria-label'))
-    expect(labels).toEqual(['Editar Puerta 3', 'Publicar Puerta 3', 'Marcar como verificado Puerta 3'])
+    expect(labels).toEqual(['Editar Puerta 3', 'Publicar Puerta 3', 'Borrar Puerta 3'])
   })
 })
 
@@ -267,21 +262,55 @@ describe('AdminPlacesPage · crear y editar (RF-31.11, RF-31.16, RF-31.20)', () 
 
   it('RF-31.20: con rag_sync failed aparece el aviso y «Reintentar» llama a reindex', async () => {
     await renderPage()
-    api.saveAdminPlace.mockResolvedValue({ place: { ...ADMIN_PLACES[1], verifiedAt: '2026-11-12T00:00:00Z' }, ragSync: 'failed' })
-    await userEvent.click(screen.getByRole('button', { name: 'Marcar como verificado Facultad de Psicología' }))
+    api.saveAdminPlace.mockResolvedValue({ place: { ...ADMIN_PLACES[2], isPublished: true }, ragSync: 'failed' })
+    await userEvent.click(screen.getByRole('button', { name: 'Publicar Puerta 3' }))
     const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('El lugar «Facultad de Psicología» se guardó, pero el asistente aún no lo conoce.')
-    api.reindexAdminPlace.mockResolvedValue({ place: ADMIN_PLACES[1], ragSync: 'ok' })
+    expect(alert).toHaveTextContent('El lugar «Puerta 3» se guardó, pero el asistente aún no lo conoce.')
+    api.reindexAdminPlace.mockResolvedValue({ place: ADMIN_PLACES[2], ragSync: 'ok' })
     await userEvent.click(within(alert).getByRole('button', { name: 'Reintentar' }))
-    expect(api.reindexAdminPlace).toHaveBeenCalledWith(adminId('psicologia'))
+    expect(api.reindexAdminPlace).toHaveBeenCalledWith(adminId('puerta-3'))
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
   })
 
   it('RF-31.20: con ok o skipped no aparece ningún aviso', async () => {
     await renderPage()
-    api.saveAdminPlace.mockResolvedValue({ place: ADMIN_PLACES[1], ragSync: 'skipped' })
-    await userEvent.click(screen.getByRole('button', { name: 'Marcar como verificado Facultad de Psicología' }))
-    await waitFor(() => expect(toasts()).toContain('Lugar verificado'))
+    api.saveAdminPlace.mockResolvedValue({ place: { ...ADMIN_PLACES[2], isPublished: true }, ragSync: 'skipped' })
+    await userEvent.click(screen.getByRole('button', { name: 'Publicar Puerta 3' }))
+    await waitFor(() => expect(toasts()).toContain('Lugar publicado'))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
+describe('AdminPlacesPage · borrar un lugar', () => {
+  it('pide confirmar y, al aceptar, borra el lugar y lo quita de la tabla', async () => {
+    await renderPage()
+    api.deleteAdminPlace.mockResolvedValue('ok')
+    await userEvent.click(screen.getByRole('button', { name: 'Borrar Puerta 3' }))
+    expect(api.deleteAdminPlace).not.toHaveBeenCalled()
+    const dialog = screen.getByRole('dialog', { name: '¿Borrar este lugar?' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Borrar' }))
+    await waitFor(() => expect(screen.queryByRole('row', { name: /Puerta 3/ })).not.toBeInTheDocument())
+    expect(api.deleteAdminPlace).toHaveBeenCalledWith(adminId('puerta-3'))
+    expect(toasts()).toContain('Lugar borrado')
+    expect(screen.getByText('2 de 2 lugares')).toBeInTheDocument()
+  })
+
+  it('«Cancelar» no borra nada', async () => {
+    await renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Borrar Puerta 3' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(api.deleteAdminPlace).not.toHaveBeenCalled()
+    expect(screen.getByRole('row', { name: /Puerta 3/ })).toBeInTheDocument()
+  })
+
+  it('si contiene otros lugares (409) muestra el motivo y conserva la fila', async () => {
+    await renderPage()
+    api.deleteAdminPlace.mockRejectedValue(
+      new ApiError('http', 'x', 409, undefined, { detail: 'No se puede borrar: contiene 1 lugar. Muévelos o bórralos antes.' }),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Borrar Puerta 3' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Borrar' }))
+    await waitFor(() => expect(toasts()).toContain('No se puede borrar: contiene 1 lugar. Muévelos o bórralos antes.'))
+    expect(screen.getByRole('row', { name: /Puerta 3/ })).toBeInTheDocument()
   })
 })

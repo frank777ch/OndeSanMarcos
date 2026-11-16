@@ -12,6 +12,7 @@ const api = vi.hoisted(() => ({
   listAdminPlaces: vi.fn(),
   saveAdminPlace: vi.fn(),
   reindexAdminPlace: vi.fn(),
+  deleteAdminPlace: vi.fn(),
   listAdminCategories: vi.fn(),
 }))
 vi.mock('@/services/api/adminPlacesApi', async (importOriginal) => ({
@@ -70,11 +71,11 @@ describe('filtros y página · RF-31.6', () => {
   })
 
   it('guardar un lugar conserva filtros y página', async () => {
-    store().setFilters({ verified: 'no' })
+    store().setFilters({ published: 'no' })
     store().setPage(2)
     api.saveAdminPlace.mockResolvedValue({ place: adminPlace('fisi', { name: 'FISI nueva' }), ragSync: 'ok' })
     await act(async () => void (await store().save(adminId('fisi'), toInput(ADMIN_PLACES[0]))))
-    expect(store()).toMatchObject({ page: 2, filters: { verified: 'no' } })
+    expect(store()).toMatchObject({ page: 2, filters: { published: 'no' } })
   })
 })
 
@@ -92,7 +93,7 @@ describe('save · RF-31.16, RF-31.33', () => {
 
   it('edita: reemplaza el lugar con lo que devolvió el servidor', async () => {
     api.saveAdminPlace.mockResolvedValue({
-      place: adminPlace('fisi', { name: 'FISI', verifiedAt: '2026-11-12T00:00:00Z', updatedBy: 'maria' }),
+      place: adminPlace('fisi', { name: 'FISI', updatedBy: 'maria' }),
       ragSync: 'ok',
     })
     await act(async () => void (await store().save(adminId('fisi'), toInput(ADMIN_PLACES[0]))))
@@ -128,26 +129,37 @@ describe('acciones de fila · RF-31.8 a RF-31.10', () => {
     expect(toasts()).toContain('Lugar publicado')
   })
 
-  it('verificar y quitar la verificación', async () => {
-    const psico = ADMIN_PLACES[1]
-    api.saveAdminPlace.mockResolvedValue({ place: { ...psico, verifiedAt: '2026-11-12T00:00:00Z' }, ragSync: 'ok' })
-    await store().toggleVerified(psico)
-    expect(api.saveAdminPlace).toHaveBeenLastCalledWith(adminId('psicologia'), expect.objectContaining({ verified: true }))
-    const fisi = ADMIN_PLACES[0] // ya verificado
-    api.saveAdminPlace.mockResolvedValue({ place: { ...fisi, verifiedAt: null }, ragSync: 'ok' })
-    await store().toggleVerified(fisi)
-    expect(api.saveAdminPlace).toHaveBeenLastCalledWith(adminId('fisi'), expect.objectContaining({ verified: false }))
-    expect(toasts()).toEqual(expect.arrayContaining(['Lugar verificado', 'Verificación quitada']))
+  it('borrar quita el lugar, refresca el mapa y las categorías y avisa', async () => {
+    api.deleteAdminPlace.mockResolvedValue('ok')
+    await store().remove(ADMIN_PLACES[1])
+    expect(api.deleteAdminPlace).toHaveBeenCalledWith(adminId('psicologia'))
+    expect(store().places.map((p) => p.slug)).toEqual(['fisi', 'puerta-3'])
+    expect(store().busy).toEqual({})
+    expect(toasts()).toContain('Lugar borrado')
+    expect(refresh).toHaveBeenCalledTimes(1)
+  })
+
+  it('borrar avisa si el asistente conserva la ficha', async () => {
+    api.deleteAdminPlace.mockResolvedValue('failed')
+    await store().remove(ADMIN_PLACES[1])
+    expect(toasts()).toContain('Lugar borrado, pero el asistente todavía recuerda su ficha.')
+  })
+
+  it('borrar que falla deja el lugar, libera la fila y lanza el error', async () => {
+    api.deleteAdminPlace.mockRejectedValue(new ApiError('http', 'x', 409))
+    await expect(store().remove(ADMIN_PLACES[0])).rejects.toBeInstanceOf(ApiError)
+    expect(store().places).toHaveLength(3)
+    expect(store().busy).toEqual({})
   })
 
   it('la fila queda ocupada mientras guarda y se libera al terminar', async () => {
     let resolve!: (v: unknown) => void
     api.saveAdminPlace.mockReturnValue(new Promise((r) => (resolve = r)))
-    const pending = store().toggleVerified(ADMIN_PLACES[1])
-    expect(store().busy).toEqual({ [adminId('psicologia')]: true })
-    expect(await store().toggleVerified(ADMIN_PLACES[1])).toBe(false) // no acepta un segundo envío
+    const pending = store().togglePublished(ADMIN_PLACES[2])
+    expect(store().busy).toEqual({ [adminId('puerta-3')]: true })
+    expect(await store().togglePublished(ADMIN_PLACES[2])).toBe(false) // no acepta un segundo envío
     await act(async () => {
-      resolve({ place: ADMIN_PLACES[1], ragSync: 'ok' })
+      resolve({ place: ADMIN_PLACES[2], ragSync: 'ok' })
       await pending
     })
     expect(store().busy).toEqual({})

@@ -17,13 +17,13 @@ describe('placeToForm / formToInput', () => {
   it('ida y vuelta de un lugar completo', () => {
     const place = adminPlace('fisi', {
       shortName: 'FISI', keywords: ['a', 'b'], phone: '1', careers: ['X'], parentPlaceId: 9,
-      verifiedAt: '2026-01-01T00:00:00Z', isPublished: false,
+      isPublished: false,
     })
     const form = placeToForm(place)
-    expect(form).toMatchObject({ keywords: 'a\nb', lat: '-12.0535', verified: true, isPublished: false })
+    expect(form).toMatchObject({ keywords: 'a\nb', lat: '-12.0535', isPublished: false })
     expect(formToInput(form)).toMatchObject({
       shortName: 'FISI', keywords: ['a', 'b'], phone: '1', careers: ['X'], parentPlaceId: 9,
-      lat: -12.0535, verified: true, isPublished: false,
+      lat: -12.0535, isPublished: false,
     })
   })
 
