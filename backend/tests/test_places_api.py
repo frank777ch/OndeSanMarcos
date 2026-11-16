@@ -16,7 +16,7 @@ PUBLIC_FIELDS = {
     "id", "slug", "name", "short_name", "category_id", "lat", "lng", "keywords", "description",
     "schedule", "detailed_schedule", "phone", "annex", "email", "website", "access_hint",
     "careers", "services", "usage", "image_url", "parent_place_id", "is_published",
-    "verified_at", "updated_at",
+    "updated_at",
 }
 # Cada lugar de prueba tiene un id numérico estable; su slug es el nombre estandarizado.
 _IDS = {"puerta-1": 1, "rectorado": 2, "fisi": 3, "oculto": 4}
@@ -89,7 +89,7 @@ def test_rf_27_4_sorted_by_name_with_empty_lists_and_nulls(client):
     puerta = next(p for p in client.get("/api/places").json() if p["slug"] == "puerta-1")
     assert puerta["keywords"] == [] and puerta["detailed_schedule"] == []
     assert puerta["careers"] == [] and puerta["services"] == []
-    assert puerta["schedule"] is None and puerta["email"] is None and puerta["verified_at"] is None
+    assert puerta["schedule"] is None and puerta["email"] is None
     assert client.get("/api/places").json() == client.get("/api/places").json()
 
 

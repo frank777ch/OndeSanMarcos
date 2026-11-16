@@ -57,12 +57,6 @@ def test_scenario_2_full_card_of_a_place(seeded):
     assert "fisi" in keywords and schedule and careers
 
 
-def test_rf_22_11_nothing_is_verified_after_the_load(seeded):
-    database, url = seeded
-    apply_seed(database, load_seed())
-    assert _one(url, "select count(*) from places where verified_at is not null")[0] == 0
-
-
 def test_rf_22_12_running_twice_does_not_duplicate_or_overwrite_edits(seeded):
     database, url = seeded
     seed = load_seed()

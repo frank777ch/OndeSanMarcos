@@ -83,14 +83,15 @@ def test_rf_30_8_ids_grow_even_with_concurrent_creations(api):
     assert client.post("/api/admin/places", json=place()).json()["id"] == max(ids) + 1
 
 
-def test_rf_30_11_verified_sets_keeps_and_clears(api):
+def test_delete_place_and_409_when_it_contains_places(api):
     client, _ = api
-    pid = client.post("/api/admin/places", json=place()).json()["id"]
-    assert client.get(f"/api/admin/places/{pid}").json()["verified_at"] is None
-    first = client.put(f"/api/admin/places/{pid}", json=place(verified=True)).json()["verified_at"]
-    second = client.put(f"/api/admin/places/{pid}", json=place(verified=True, phone="1")).json()["verified_at"]
-    assert first is not None and second == first
-    assert client.put(f"/api/admin/places/{pid}", json=place(verified=False)).json()["verified_at"] is None
+    parent = client.post("/api/admin/places", json=place()).json()["id"]
+    child = client.post("/api/admin/places", json=place(name="Hijo", parent_place_id=parent)).json()["id"]
+    assert client.delete(f"/api/admin/places/{parent}").status_code == 409
+    assert client.delete(f"/api/admin/places/{child}").status_code == 200
+    assert client.delete(f"/api/admin/places/{parent}").status_code == 200
+    assert client.get(f"/api/admin/places/{parent}").status_code == 404
+    assert client.delete(f"/api/admin/places/{parent}").status_code == 404
 
 
 def test_rf_30_10_audit_fields(api):

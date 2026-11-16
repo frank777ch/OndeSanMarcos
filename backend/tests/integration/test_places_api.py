@@ -70,7 +70,7 @@ def test_scenario_4_detail_and_404(api):
     fisi = client.get(f"/api/places/{fisi_id(url)}")
     assert fisi.status_code == 200
     body = fisi.json()
-    assert isinstance(body["id"], int) and body["slug"] == "fisi" and body["careers"] and body["verified_at"] is None
+    assert isinstance(body["id"], int) and body["slug"] == "fisi" and body["careers"]
     missing = client.get("/api/places/999999")
     invalid = client.get("/api/places/fisi")
     assert missing.status_code == invalid.status_code == 404

@@ -1,6 +1,6 @@
 """Administración de lugares y categorías (HU-30). Requiere sesión de administrador.
 
-Los lugares no se borran: se despublican con `is_published`. El `id` de un lugar
+Un lugar se puede despublicar (`is_published`) o borrar. El `id` de un lugar
 nuevo lo asigna el sistema (número incremental).
 """
 
@@ -14,13 +14,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from app.auth.dependencies import get_current_admin
 from app.config import get_settings
 from app.places import service
-from app.places.sync import PlaceSync, get_place_sync, safe_sync
+from app.places.sync import PlaceSync, get_place_sync, safe_remove, safe_sync
 from app.places.text import normalize_text, parse_place_id
 from app.rag.db import get_database
 from app.schemas.places_admin import (
     PlaceAdminOut,
     PlaceCategoryAdminOut,
     PlaceCategoryIn,
+    PlaceDeletedOut,
     PlaceIn,
     PlaceSavedOut,
 )
@@ -52,14 +53,15 @@ categories_router = APIRouter(
 
 class AdminPlacesStore(Protocol):
     def admin_list_places(
-        self, category_id: int | None = None, published: bool | None = None, verified: bool | None = None
+        self, category_id: int | None = None, published: bool | None = None
     ) -> list[dict]: ...
     def admin_get_place(self, place_id: int) -> dict | None: ...
     def category_exists(self, category_id: int) -> bool: ...
     def place_exists(self, place_id: int) -> bool: ...
     def would_create_cycle(self, place_id: int, parent_id: int) -> bool: ...
-    def create_place(self, data: dict, verified: bool, username: str) -> dict: ...
-    def update_place(self, place_id: int, data: dict, verified: bool, username: str) -> dict | None: ...
+    def create_place(self, data: dict, username: str) -> dict: ...
+    def update_place(self, place_id: int, data: dict, username: str) -> dict | None: ...
+    def delete_place(self, place_id: int) -> tuple[str, str | int]: ...
     def admin_list_categories(self) -> list[dict]: ...
     def create_category(self, label: str, color: str, icon: str, sort_order: int | None) -> dict: ...
     def update_category(self, category_id: int, label: str, color: str, icon: str, sort_order: int | None) -> dict | None: ...
@@ -86,13 +88,12 @@ def _matches(place: dict, needle: str) -> bool:
 def list_places(
     category: int | None = Query(default=None, gt=0, description="Solo esta categoría (id)."),
     published: bool | None = Query(default=None, description="true = publicados, false = ocultos."),
-    verified: bool | None = Query(default=None, description="true = verificados, false = sin verificar."),
     q: str | None = Query(default=None, max_length=200, description="Texto en nombre, sigla, palabras clave, slug o id."),
     _: str = Depends(get_current_admin),
     store: AdminPlacesStore = Depends(get_admin_places_store),
 ) -> list[dict]:
     """Lugares por nombre, con `created_at` y `updated_by`. Los filtros se combinan con «y»."""
-    places = store.admin_list_places(category, published, verified)
+    places = store.admin_list_places(category, published)
     needle = normalize_text(q) if q else ""
     return [p for p in places if _matches(p, needle)] if needle else places
 
@@ -148,10 +149,40 @@ def update_place(
     sync: PlaceSync = Depends(get_place_sync),
 ) -> PlaceSavedOut:
     """Reemplaza todos los campos editables: lo que no se envía queda vacío. Para despublicar
-    se envía `is_published: false`. `verified` fija o borra `verified_at`."""
+    se envía `is_published: false`."""
     pid = _pid(place_id)
     place = service.update_place(store, pid, body, admin)
     return _saved(place, safe_sync(sync, pid))
+
+
+@places_router.delete(
+    "/{place_id}",
+    response_model=PlaceDeletedOut,
+    responses={
+        **_DB,
+        404: {"description": "No existe."},
+        409: {"description": "Otros lugares lo tienen como contenedor."},
+    },
+    summary="Borrar un lugar",
+)
+def delete_place(
+    place_id: str,
+    admin: str = Depends(get_current_admin),
+    store: AdminPlacesStore = Depends(get_admin_places_store),
+    sync: PlaceSync = Depends(get_place_sync),
+) -> PlaceDeletedOut:
+    """Borra el lugar y su ficha del asistente. Si contiene otros lugares no se puede (409)."""
+    pid = _pid(place_id)
+    result, detail = store.delete_place(pid)
+    if result == "not_found":
+        raise HTTPException(status_code=404, detail=_NOT_FOUND_PLACE)
+    if result == "has_children":
+        noun = "lugar" if detail == 1 else "lugares"
+        raise HTTPException(
+            status_code=409, detail=f"No se puede borrar: contiene {detail} {noun}. Muévelos o bórralos antes."
+        )
+    logger.info("lugar borrado id=%s por=%s", pid, admin)
+    return PlaceDeletedOut(rag_sync=safe_remove(sync, str(detail)))
 
 
 @places_router.post(

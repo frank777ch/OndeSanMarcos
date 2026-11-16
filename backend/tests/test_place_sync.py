@@ -143,3 +143,13 @@ def test_rf_29_8_sin_base_de_datos_no_se_sincroniza(monkeypatch):
     finally:
         monkeypatch.undo()
         get_settings.cache_clear()
+
+
+def test_remove_borra_la_ficha_y_refresca_el_directorio():
+    db = FakeDatabase(None)
+    sync, directory = build(db)
+
+    assert sync.remove("laboratorio-zeta") == "ok"
+    assert db.calls == [("delete", "place", "laboratorio-zeta")]
+    assert directory.invalidations == 1
+    assert NullPlaceSync().remove("x") == "skipped"

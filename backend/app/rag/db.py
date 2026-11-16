@@ -42,7 +42,7 @@ PUBLIC_PLACE_COLUMNS = (
     "id", "slug", "name", "short_name", "category_id", "lat", "lng", "keywords",
     "description", "schedule", "detailed_schedule", "phone", "annex", "email",
     "website", "access_hint", "careers", "services", "usage", "image_url",
-    "parent_place_id", "is_published", "verified_at", "updated_at",
+    "parent_place_id", "is_published", "updated_at",
 )
 
 # Columnas de la semilla: el lugar se identifica por `slug` (el id lo asigna la base) y su
@@ -300,17 +300,15 @@ class Database:
         self,
         category_id: int | None = None,
         published: bool | None = None,
-        verified: bool | None = None,
     ) -> list[dict]:
         """Todos los lugares (publicados o no), con campos internos, por nombre."""
         query = sql.SQL(
             "select {cols} from places where "
             "(%(category)s::bigint is null or category_id = %(category)s) "
             "and (%(published)s::boolean is null or is_published = %(published)s) "
-            "and (%(verified)s::boolean is null or (verified_at is not null) = %(verified)s) "
             "order by name, id"
         ).format(cols=_admin_columns())
-        params = {"category": category_id, "published": published, "verified": verified}
+        params = {"category": category_id, "published": published}
         with self.connection() as conn:
             return list(conn.execute(query, params).fetchall())
 
@@ -357,13 +355,12 @@ class Database:
             ).fetchone()
         return bool(row and row["cycle"])
 
-    def create_place(self, data: dict, verified: bool, username: str) -> dict:
+    def create_place(self, data: dict, username: str) -> dict:
         """Crea un lugar (el id lo asigna la base; el slug sale del nombre) y devuelve la fila completa."""
         cols = EDITABLE_PLACE_COLUMNS
         query = sql.SQL(
-            "insert into places (slug, {cols}, verified_at, updated_by) "
-            "values (%(slug)s, {marks}, "
-            "case when %(verified)s then now() end, %(user)s) returning {out}"
+            "insert into places (slug, {cols}, updated_by) "
+            "values (%(slug)s, {marks}, %(user)s) returning {out}"
         ).format(
             cols=sql.SQL(", ").join(sql.Identifier(c) for c in cols),
             marks=sql.SQL(", ").join(sql.Placeholder(c) for c in cols),
@@ -374,7 +371,6 @@ class Database:
             conn.execute("select pg_advisory_xact_lock(%s)", (_PLACE_SLUG_LOCK,))
             params = {
                 **{c: data.get(c) for c in cols},
-                "verified": verified,
                 "user": username,
                 "slug": self._free_slug(conn, slugify(data["name"])),
             }
@@ -396,12 +392,11 @@ class Database:
             n += 1
         return f"{base}-{n}"[:MAX_SLUG_LENGTH]
 
-    def update_place(self, place_id: int, data: dict, verified: bool, username: str) -> dict | None:
+    def update_place(self, place_id: int, data: dict, username: str) -> dict | None:
         """Reemplaza los campos editables; `None` si el lugar no existe."""
         cols = EDITABLE_PLACE_COLUMNS
         query = sql.SQL(
             "update places set {sets}, "
-            "verified_at = case when %(verified)s then coalesce(verified_at, now()) else null end, "
             "updated_at = now(), updated_by = %(user)s where id = %(id)s returning {out}"
         ).format(
             sets=sql.SQL(", ").join(
@@ -409,9 +404,23 @@ class Database:
             ),
             out=_admin_columns(),
         )
-        params = {**{c: data.get(c) for c in cols}, "verified": verified, "user": username, "id": place_id}
+        params = {**{c: data.get(c) for c in cols}, "user": username, "id": place_id}
         with self.connection() as conn:
             return conn.execute(query, params).fetchone()
+
+    def delete_place(self, place_id: int) -> tuple[str, str | int]:
+        """`("deleted", slug)`, `("not_found", 0)` o `("has_children", n)` si otros lugares lo contienen."""
+        with self.connection() as conn, conn.transaction():
+            row = conn.execute("select slug from places where id = %s for update", (place_id,)).fetchone()
+            if row is None:
+                return ("not_found", 0)
+            n = conn.execute(
+                "select count(*)::int as n from places where parent_place_id = %s", (place_id,)
+            ).fetchone()["n"]  # type: ignore[index]
+            if n:
+                return ("has_children", n)
+            conn.execute("delete from places where id = %s", (place_id,))
+            return ("deleted", row["slug"])
 
     def admin_list_categories(self) -> list[dict]:
         with self.connection() as conn:

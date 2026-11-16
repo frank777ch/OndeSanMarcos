@@ -52,7 +52,4 @@ class PlaceOut(BaseModel):
         default=None, description="Lugar que lo contiene (un auditorio dentro de una facultad)."
     )
     is_published: bool = Field(..., description="Siempre verdadero en la API pública.")
-    verified_at: datetime | None = Field(
-        default=None, description="Cuándo se confirmó el dato con la universidad; vacío = sin verificar."
-    )
     updated_at: datetime = Field(..., description="Última modificación.")

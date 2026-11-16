@@ -26,10 +26,14 @@ RagSync = Literal["ok", "skipped", "failed"]
 
 class PlaceSync(Protocol):
     def sync(self, place_id: int) -> RagSync: ...
+    def remove(self, slug: str) -> RagSync: ...
 
 
 class NullPlaceSync:
     def sync(self, place_id: int) -> RagSync:
+        return "skipped"
+
+    def remove(self, slug: str) -> RagSync:
         return "skipped"
 
 
@@ -71,6 +75,12 @@ class RagPlaceSync:
         self._database.replace_source(SOURCE_TYPE_PLACE, slug, rows)
         return "ok"
 
+    def remove(self, slug: str) -> RagSync:
+        """El lugar ya se borró de `places`: se quita su ficha del asistente."""
+        self._directory.invalidate()
+        self._database.delete_source(SOURCE_TYPE_PLACE, slug)
+        return "ok"
+
 
 @lru_cache
 def _rag_place_sync() -> RagPlaceSync:
@@ -100,4 +110,13 @@ def safe_sync(sync: PlaceSync, place_id: int) -> RagSync:
         return sync.sync(place_id)
     except Exception:
         logger.exception("No se pudo sincronizar el lugar %s con el asistente", place_id)
+        return "failed"
+
+
+def safe_remove(sync: PlaceSync, slug: str) -> RagSync:
+    """Como `safe_sync`, para un lugar borrado."""
+    try:
+        return sync.remove(slug)
+    except Exception:
+        logger.exception("No se pudo quitar el lugar %s del asistente", slug)
         return "failed"

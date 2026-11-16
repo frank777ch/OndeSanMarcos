@@ -31,19 +31,18 @@ class FakePlacesAdminMixin:
     def _admin(self, row: dict) -> dict:
         defaults = {
             **{k: [] for k in _LISTS},
-            "is_published": True, "verified_at": None,
+            "is_published": True,
             "updated_at": datetime(2026, 11, 12, tzinfo=timezone.utc),
             "created_at": datetime(2026, 11, 12, tzinfo=timezone.utc), "updated_by": None,
         }
         return {c: row.get(c, defaults.get(c)) for c in ADMIN_PLACE_COLUMNS}
 
-    def admin_list_places(self, category_id=None, published=None, verified=None):
+    def admin_list_places(self, category_id=None, published=None):
         rows = [self._admin(p) for p in self.place_rows.values()]
         rows = [
             p for p in rows
             if category_id in (None, p["category_id"])
             and published in (None, p["is_published"])
-            and verified in (None, p["verified_at"] is not None)
         ]
         return sorted(rows, key=lambda p: (p["name"], p["id"]))
 
@@ -66,7 +65,7 @@ class FakePlacesAdminMixin:
             current = self.place_rows.get(current, {}).get("parent_place_id")
         return False
 
-    def create_place(self, data, verified, username):
+    def create_place(self, data, username):
         place_id = self.next_place_id
         self.next_place_id += 1
         taken = {r["slug"] for r in self.place_rows.values()}
@@ -77,22 +76,30 @@ class FakePlacesAdminMixin:
         now = _now()
         row = {c: data.get(c) for c in EDITABLE_PLACE_COLUMNS}
         row.update(
-            id=place_id, slug=slug, verified_at=now if verified else None,
+            id=place_id, slug=slug,
             created_at=now, updated_at=now, updated_by=username,
         )
         self.place_rows[place_id] = row
         return self._admin(row)
 
-    def update_place(self, place_id, data, verified, username):
+    def update_place(self, place_id, data, username):
         row = self.place_rows.get(place_id)
         if row is None:
             return None
-        previous = row.get("verified_at")
         row.update({c: data.get(c) for c in EDITABLE_PLACE_COLUMNS})
-        row["verified_at"] = (previous or _now()) if verified else None
         row["updated_at"] = _now()
         row["updated_by"] = username
         return self._admin(row)
+
+    def delete_place(self, place_id):
+        row = self.place_rows.get(place_id)
+        if row is None:
+            return ("not_found", 0)
+        n = sum(1 for p in self.place_rows.values() if p.get("parent_place_id") == place_id)
+        if n:
+            return ("has_children", n)
+        del self.place_rows[place_id]
+        return ("deleted", row["slug"])
 
     def _category_admin(self, c):
         count = sum(1 for p in self.place_rows.values() if p["category_id"] == c["id"])

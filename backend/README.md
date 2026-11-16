@@ -206,8 +206,7 @@ teléfono, anexo, descripción, carreras, servicios, cómo llegar…). El `id` e
 número autoincremental (migración `V6`) y el nombre estandarizado en minúsculas y con
 guiones vive aparte, en `slug` (`fisi`, `biblioteca-central`): único, estable (no cambia al
 renombrar el lugar) y generado del nombre en los lugares nuevos. La sigla (`FISI`, `FCA`…) es otro
-dato, opcional: `short_name` (migración `V10` y `places.json` la rellenan; el `name` no la repite). `verified_at` vacío = dato sin confirmar con la
-universidad (hoy todos). `is_published` permite ocultar un lugar sin borrarlo.
+dato, opcional: `short_name` (migración `V10` y `places.json` la rellenan; el `name` no la repite). `is_published` permite ocultar un lugar sin borrarlo.
 
 ```bash
 ./scripts/dev.sh seed-places    # carga db/seed/places.json; no pisa lo que ya existe
@@ -239,7 +238,7 @@ universidad (hoy todos). `is_published` permite ocultar un lugar sin borrarlo.
 Cada lugar trae `id` (número), `slug`, `name`, `short_name`, `category_id` (número), `lat`, `lng`, `keywords`,
 `description`, `schedule`, `detailed_schedule`, `phone`, `annex`, `email`, `website`,
 `access_hint`, `careers`, `services`, `usage`, `image_url`, `parent_place_id`,
-`is_published`, `verified_at` (vacío = dato sin confirmar) y `updated_at`. Las listas
+`is_published` y `updated_at`. Las listas
 sin datos son `[]` y los textos sin dato, `null`. No se exponen `created_at` ni
 `updated_by`. Con la base apagada responden `503`.
 
@@ -264,16 +263,17 @@ Todas las rutas llevan `Authorization: Bearer <token>` (se obtiene en `POST /api
 
 | Método y ruta | Qué hace |
 |---|---|
-| `GET /api/admin/places` | Todos los lugares, también los ocultos, con `created_at` y `updated_by`. Filtros: `category`, `published`, `verified`, `q` (sin tildes ni mayúsculas; nombre, sigla, palabras clave e id). |
+| `GET /api/admin/places` | Todos los lugares, también los ocultos, con `created_at` y `updated_by`. Filtros: `category`, `published`, `q` (sin tildes ni mayúsculas; nombre, sigla, palabras clave e id). |
 | `GET /api/admin/places/{id}` | Ficha completa, publicada o no. |
 | `POST /api/admin/places` | Crea un lugar (201 + `Location`). El `id` (número incremental) y el `slug` (del nombre, con `-2`, `-3`… si ya existe) los asigna el sistema; no se aceptan en el cuerpo. |
 | `PUT /api/admin/places/{id}` | **Reemplazo completo**: lo que no se envía queda vacío. Para despublicar: `is_published: false`. |
+| `DELETE /api/admin/places/{id}` | Borra el lugar y su ficha del asistente (200 + `rag_sync`). 409 si contiene otros lugares. |
 | `POST /api/admin/places/{id}/reindex` | Repite la sincronización con el asistente. |
 | `GET/POST /api/admin/place-categories`, `PUT/DELETE /api/admin/place-categories/{id}` | Categorías con su `places_count`. El `id` y el `slug` (de la etiqueta; `-2`, `-3`… si ya existe) los asigna el sistema. Solo se borra una categoría sin lugares (409 si tiene). |
 
-Los lugares **no se borran** (`DELETE` responde 405): se despublican.
+Un lugar se puede **despublicar** (`is_published: false`) o **borrar**.
 
-Campos obligatorios: `name`, `category_id`, `lat`, `lng` (dentro del área del campus: lat -12.070…-12.043, lng -77.096…-77.069). `verified: true` fija `verified_at` (si ya estaba, conserva la fecha); `false` la borra. Un campo desconocido, un `id` o `slug`, una categoría o un lugar contenedor inexistente, un correo mal escrito o una URL que no sea `http(s)` dan **422** con `detail: [{loc: ["body", "<campo>"], msg}]`.
+Campos obligatorios: `name`, `category_id`, `lat`, `lng` (dentro del área del campus: lat -12.070…-12.043, lng -77.096…-77.069). Un campo desconocido, un `id` o `slug`, una categoría o un lugar contenedor inexistente, un correo mal escrito o una URL que no sea `http(s)` dan **422** con `detail: [{loc: ["body", "<campo>"], msg}]`.
 
 Las respuestas de crear, editar y reindexar traen `rag_sync`: `ok` (la ficha del lugar ya está al día en el asistente), `skipped` (asistente en modo de prueba o sin base de datos) o `failed` (el cambio **sí** se guardó; se repite con `/reindex`). La conexión con el asistente vive en `app/places/sync.py`.
 

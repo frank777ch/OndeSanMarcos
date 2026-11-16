@@ -72,7 +72,6 @@ class PlaceIn(BaseModel):
     image_url: str | None = Field(default=None, description="Dirección de una imagen (http o https).")
     parent_place_id: int | None = Field(default=None, gt=0, description="Id del lugar que lo contiene.")
     is_published: bool = Field(default=True, description="Si es visible en el mapa y para el asistente.")
-    verified: bool = Field(default=False, description="Si el dato está confirmado (fija `verified_at`).")
 
     @field_validator(*_SHORT_TEXTS, mode="before")
     @classmethod
@@ -146,6 +145,12 @@ class PlaceSavedOut(PlaceAdminOut):
         ...,
         description="Estado de la sincronización con el asistente: ok, skipped (modo de prueba) o "
         "failed (el cambio se guardó; se puede repetir con /reindex).",
+    )
+
+
+class PlaceDeletedOut(BaseModel):
+    rag_sync: Literal["ok", "skipped", "failed"] = Field(
+        ..., description="Si la ficha del lugar ya se quitó del asistente (ok, skipped o failed)."
     )
 
 

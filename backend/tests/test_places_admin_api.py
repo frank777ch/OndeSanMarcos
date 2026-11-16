@@ -26,6 +26,7 @@ SECRET = "secreto-de-pruebas-con-mas-de-32-caracteres"
 class SpySync:
     def __init__(self, result="ok", fail=False):
         self.calls: list[str] = []
+        self.removed: list[str] = []
         self.result = result
         self.fail = fail
 
@@ -33,6 +34,12 @@ class SpySync:
         self.calls.append(place_id)
         if self.fail:
             raise RuntimeError("embeddings caídos")
+        return self.result
+
+    def remove(self, slug):
+        if self.fail:
+            raise RuntimeError("embeddings caídos")
+        self.removed.append(slug)
         return self.result
 
 
@@ -133,12 +140,11 @@ def test_rf_30_3_list_has_hidden_places_and_internal_fields(client):
 
 def test_rf_30_4_filters_combine(client, db):
     db.place_rows[3] = {"id": 3, "slug": "puerta-2", "name": "Puerta 2", "category_id": cid("puertas"),
-                                 "lat": -12.059, "lng": -77.079, "verified_at": datetime(2026, 1, 1, tzinfo=timezone.utc)}
+                                 "lat": -12.059, "lng": -77.079}
     ids = lambda **p: [x["id"] for x in client.get("/api/admin/places", params=p).json()]  # noqa: E731
     assert ids(category=cid("puertas")) == [3, 2]  # Puerta 2 (id 3) y Puerta 3 (id 2), por nombre
     assert ids(published="false") == [2]
-    assert ids(verified="true") == [3]
-    assert ids(verified="false", category=cid("puertas")) == [2]
+    assert ids(published="true", category=cid("puertas")) == [3]
     assert ids(q="INFORMATICA") == [1]
     assert ids(q="fi") == [1]
     assert ids(q="puerta 3") == [2]
@@ -169,7 +175,7 @@ def test_rf_30_7_required_fields_and_defaults(client):
     assert r.status_code == 422
     assert {"category_id", "lat", "lng"} <= set(errors(r))
     ok = client.post("/api/admin/places", json=base_place()).json()
-    assert ok["is_published"] is True and ok["verified_at"] is None and ok["keywords"] == []
+    assert ok["is_published"] is True and ok["keywords"] == []
 
 
 def test_rf_30_8_ids_are_incremental_and_id_in_body_is_rejected(client):
@@ -203,16 +209,41 @@ def test_rf_30_9_put_replaces_everything_and_id_is_fixed(client):
 def test_rf_30_10_updated_by_and_unknown_audit_fields_rejected(client):
     body = client.post("/api/admin/places", json=base_place()).json()
     assert body["updated_by"] == "admin"
-    for field in ("created_at", "updated_by", "updated_at", "verified_at"):
+    for field in ("created_at", "updated_by", "updated_at", "verified_at", "verified"):
         assert client.post("/api/admin/places", json=base_place(**{field: "x"})).status_code == 422
 
 
-def test_rf_30_11_verified_sets_keeps_and_clears(client):
-    first = client.put("/api/admin/places/1", json=base_place(verified=True)).json()["verified_at"]
-    assert first is not None
-    second = client.put("/api/admin/places/1", json=base_place(verified=True)).json()["verified_at"]
-    assert second == first
-    assert client.put("/api/admin/places/1", json=base_place(verified=False)).json()["verified_at"] is None
+def test_places_have_no_verification_attribute(client):
+    assert "verified_at" not in client.get("/api/admin/places/1").json()
+    assert client.put("/api/admin/places/1", json=base_place(verified=True)).status_code == 422
+
+
+def test_delete_place_removes_it_and_its_assistant_sheet(client, db, sync):
+    r = client.delete("/api/admin/places/2")
+    assert r.status_code == 200 and r.json() == {"rag_sync": "ok"}
+    assert 2 not in db.place_rows and sync.removed == ["puerta-3"]
+    assert client.get("/api/admin/places/2").status_code == 404
+
+
+def test_delete_place_404_and_409_when_it_contains_places(client, db, sync):
+    assert client.delete("/api/admin/places/999").status_code == 404
+    assert client.delete("/api/admin/places/abc").status_code == 404
+    db.place_rows[2]["parent_place_id"] = 1
+    r = client.delete("/api/admin/places/1")
+    assert r.status_code == 409 and "contiene 1 lugar" in r.json()["detail"]
+    assert 1 in db.place_rows and sync.removed == []
+
+
+def test_delete_place_reports_failed_sync(client, db, sync):
+    sync.fail = True
+    r = client.delete("/api/admin/places/2")
+    assert r.status_code == 200 and r.json() == {"rag_sync": "failed"} and 2 not in db.place_rows
+
+
+def test_delete_place_requires_admin(db, sync):
+    app = create_app()
+    app.dependency_overrides[get_admin_places_store] = lambda: db
+    assert TestClient(app).delete("/api/admin/places/2").status_code == 401
 
 
 def test_rf_30_12_edit_without_changes_still_ok_and_updates_audit(client, db):
@@ -269,12 +300,6 @@ def test_rf_30_16_unpublish_hides_from_public_api_but_not_from_admin(client):
     assert [p["id"] for p in client.get("/api/admin/places", params={"published": "false"}).json()].count(1) == 1
     client.put("/api/admin/places/1", json=base_place(is_published=True))
     assert client.get("/api/places/1").status_code == 200
-
-
-def test_rf_30_17_places_cannot_be_deleted(client, db):
-    r = client.delete("/api/admin/places/1")
-    assert r.status_code == 405
-    assert 1 in db.place_rows
 
 
 def test_rf_30_18_categories_with_count_including_hidden(client):

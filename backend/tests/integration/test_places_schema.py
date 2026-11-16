@@ -9,7 +9,7 @@ PLACE_COLUMNS = {
     "id", "slug", "name", "short_name", "category_id", "lat", "lng", "keywords",
     "description", "schedule", "detailed_schedule", "phone", "annex", "email",
     "website", "access_hint", "careers", "services", "usage", "image_url",
-    "parent_place_id", "is_published", "verified_at", "created_at",
+    "parent_place_id", "is_published", "created_at",
     "updated_at", "updated_by",
 }
 
@@ -57,7 +57,7 @@ def test_rf_22_2_places_has_all_columns_and_types(conn):
         assert cols[required][0] == "NO", required
     for optional in ("short_name", "description", "schedule", "phone", "annex", "email",
                      "website", "access_hint", "usage", "image_url", "parent_place_id",
-                     "verified_at", "updated_by"):
+                     "updated_by"):
         assert cols[optional][0] == "YES", optional
     assert cols["id"][1] == "bigint"
     assert cols["lat"][1] == "double precision"
@@ -118,10 +118,10 @@ def test_hu_38_slug_is_unique_and_a_place_cannot_contain_itself(conn):
 def test_rf_22_4_lists_default_to_empty_and_reject_null(conn):
     _insert(conn)
     row = conn.execute(
-        "select keywords, detailed_schedule, careers, services, is_published, verified_at "
+        "select keywords, detailed_schedule, careers, services, is_published "
         "from places where slug = 'fisi'"
     ).fetchone()
-    assert row == ([], [], [], [], True, None)
+    assert row == ([], [], [], [], True)
     for column in ("keywords", "detailed_schedule", "careers", "services"):
         with pytest.raises(psycopg.errors.NotNullViolation):
             _insert(conn, slug=f"x-{column.replace('_', '-')}", **{column: None})

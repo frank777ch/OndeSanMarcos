@@ -125,7 +125,7 @@ class FakeDatabase(FakePlacesAdminMixin):
 
         defaults = {
             "keywords": [], "detailed_schedule": [], "careers": [], "services": [],
-            "is_published": True, "verified_at": None,
+            "is_published": True,
             "updated_at": datetime(2026, 11, 12, tzinfo=timezone.utc),
         }
         return {c: row.get(c, defaults.get(c)) for c in PUBLIC_PLACE_COLUMNS}

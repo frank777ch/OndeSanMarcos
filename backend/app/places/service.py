@@ -16,8 +16,8 @@ class PlaceWriter(Protocol):
     def category_exists(self, category_id: int) -> bool: ...
     def place_exists(self, place_id: int) -> bool: ...
     def would_create_cycle(self, place_id: int, parent_id: int) -> bool: ...
-    def create_place(self, data: dict, verified: bool, username: str) -> dict: ...
-    def update_place(self, place_id: int, data: dict, verified: bool, username: str) -> dict | None: ...
+    def create_place(self, data: dict, username: str) -> dict: ...
+    def update_place(self, place_id: int, data: dict, username: str) -> dict | None: ...
 
 
 def field_error(field: str, message: str, status: int = 422) -> HTTPException:
@@ -43,12 +43,12 @@ def _check_references(db: PlaceWriter, body: PlaceIn, place_id: int | None) -> N
 
 
 def _data(body: PlaceIn) -> dict[str, Any]:
-    return body.model_dump(exclude={"verified"})
+    return body.model_dump()
 
 
 def create_place(db: PlaceWriter, body: PlaceIn, username: str) -> dict:
     _check_references(db, body, None)
-    place = db.create_place(_data(body), body.verified, username)
+    place = db.create_place(_data(body), username)
     logger.info("lugar creado id=%s por=%s", place["id"], username)
     return place
 
@@ -57,7 +57,7 @@ def update_place(db: PlaceWriter, place_id: int, body: PlaceIn, username: str) -
     if not db.place_exists(place_id):
         raise HTTPException(status_code=404, detail="Lugar no encontrado.")
     _check_references(db, body, place_id)
-    place = db.update_place(place_id, _data(body), body.verified, username)
+    place = db.update_place(place_id, _data(body), username)
     if place is None:
         raise HTTPException(status_code=404, detail="Lugar no encontrado.")
     logger.info("lugar editado id=%s por=%s publicado=%s", place_id, username, place["is_published"])
