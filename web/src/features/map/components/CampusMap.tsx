@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { Box, LoaderCircle, LocateFixed, Map as MapIcon, Moon, Route, Spline, Sun } from 'lucide-react'
+import { Box, LoaderCircle, LocateFixed, Map as MapIcon, Moon, Route, Sun } from 'lucide-react'
 import { useToastStore } from '@/components/Toast/toastStore'
 import { useRouteStore } from '@/features/routing/store/useRouteStore'
-import { useWalkwaysDebug } from '@/features/routing/debug/useWalkwaysDebug'
-import { WalkwaysLegend } from '@/features/routing/debug/WalkwaysLegend'
 import { FlyToRoute } from '@/features/routing/components/FlyToRoute'
 import { RouteDialog } from '@/features/routing/components/RouteDialog'
 import { useThemeStore } from '@/features/theme/useThemeStore'
@@ -120,11 +118,8 @@ export function CampusMap() {
               useThemeStore.getState().toggle({ x: box.left + box.width / 2, y: box.top + box.height / 2 })
             },
           },
-          // TEMPORAL: ver los caminos de OSM sobre el mapa.
-          { label: 'Caminos OSM (temporal)', icon: <Spline size={20} />, onClick: () => useWalkwaysDebug.getState().toggle() },
         ]}
       />
-      <WalkwaysLegend />
       <RouteDialog />
     </div>
   )

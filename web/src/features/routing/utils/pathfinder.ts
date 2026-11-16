@@ -1,4 +1,4 @@
-import campusPaths from '../data/campus-paths.json'
+import osmWalkways from '../data/osm-walkways.json'
 import { haversine, type Coord } from './distance'
 
 /** Dos vértices a esta distancia (m) o menos son el mismo nodo: une cruces mal digitalizados. */
@@ -88,9 +88,33 @@ export function shortestPath(
   return { nodes: nodes.reverse(), distance: dist[to] }
 }
 
+interface OsmWayLike {
+  access?: string
+  line: Coord[]
+}
+
+/** Vías de OSM transitables a pie, como líneas: las del grafo de rutas y las que se dibujan en el mapa. */
+export function walkableLines(): Coord[][] {
+  return (osmWalkways.ways as OsmWayLike[]).filter(isWalkable).map((w) => w.line)
+}
+
+const isWalkable = (w: OsmWayLike) => w.access !== 'no'
+
+/**
+ * Vías de OSM transitables a pie. Se descarta `access=no`; las `private` se conservan porque son
+ * vías internas del campus que sirven de enlace (sin ellas el grafo queda partido en 6 islas).
+ */
+export function osmToGeoJson(ways: OsmWayLike[]): GeoJsonLike {
+  return {
+    features: ways
+      .filter(isWalkable)
+      .map((w) => ({ geometry: { type: 'LineString', coordinates: w.line } })),
+  }
+}
+
 let campusGraph: Graph | null = null
-/** Grafo de los caminos del campus; se construye la primera vez que se pide. */
+/** Grafo de los caminos del campus (vías peatonales de OpenStreetMap); se construye la primera vez que se pide. */
 export function getCampusGraph(): Graph {
-  campusGraph ??= buildGraph(campusPaths as GeoJsonLike)
+  campusGraph ??= buildGraph(osmToGeoJson(osmWalkways.ways as OsmWayLike[]))
   return campusGraph
 }

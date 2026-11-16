@@ -2,7 +2,6 @@ import { Canvas } from '@react-three/fiber'
 import { useRouteStore } from '@/features/routing/store/useRouteStore'
 import { CampusCamera } from './CampusCamera'
 import { FOV } from './cameraMath'
-import { WalkwaysDebugLayer } from '@/features/routing/debug/WalkwaysDebugLayer'
 import { RouteRemoveButton } from '@/features/routing/components/RouteRemoveButton'
 import { PlaceMarkers } from './PlaceMarkers'
 import { RouteLine } from './RouteLine'
@@ -36,7 +35,6 @@ export function CampusScene() {
       <Buildings colors={colors} />
       <PlaceMarkers />
       <RouteLine />
-      <WalkwaysDebugLayer />
       <RouteRemoveButton />
       <UserLocation />
     </Canvas>

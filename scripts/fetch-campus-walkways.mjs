@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Descarga de OpenStreetMap (Overpass) todas las vías (`highway=*`) DENTRO de la Ciudad Universitaria y las guarda en
-// web/src/features/routing/data/osm-walkways.json. Es solo para inspeccionar qué hay mapeado (comparar con campus-paths.json).
+// web/src/features/routing/data/osm-walkways.json. Con ese archivo se dibujan los caminos del mapa y se calculan las rutas.
 // Datos © colaboradores de OpenStreetMap, licencia ODbL.
 import { writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
