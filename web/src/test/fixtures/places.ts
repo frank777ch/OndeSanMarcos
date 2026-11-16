@@ -29,7 +29,8 @@ export const PLACES: Place[] = [
   { id: 2, slug: 'puerta-2', name: 'Puerta 2', category: catId('puertas'), coordinates: [-77.07936395135454, -12.059496369475596], keywords: [] },
   {
     id: 3, slug: 'fisi',
-    name: 'Facultad de Ingeniería de Sistemas e Informática (FISI)',
+    name: 'Facultad de Ingeniería de Sistemas e Informática',
+    shortName: 'FISI',
     category: catId('facultades'),
     coordinates: [-77.0857217, -12.0535548],
     keywords: ['fisi', 'sistemas', 'ingenieria de sistemas', 'informatica', 'software'],

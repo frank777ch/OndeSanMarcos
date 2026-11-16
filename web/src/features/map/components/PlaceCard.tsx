@@ -81,8 +81,10 @@ export function PlaceCard() {
     <aside role="dialog" aria-labelledby={titleId} className="mt-auto min-h-0 w-[min(24rem,100%)] flex-[0_1_auto] overflow-y-auto rounded-lg border border-border bg-bg px-6 py-4 shadow-lg">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 id={titleId} className="text-lg">
-            {place.name}
+          <h2 className="text-lg">
+            {/* La etiqueta del diálogo es solo el nombre (RF-12.16); la sigla (RF-12.19) queda fuera de ella. */}
+            <span id={titleId}>{place.name}</span>
+            {place.shortName && <span className="font-body text-sm font-normal text-muted"> · {place.shortName}</span>}
           </h2>
           <p className="text-sm text-muted">{categoryLabel}</p>
         </div>

@@ -17,7 +17,7 @@ describe('planRoute', () => {
   const graph = buildGraph({ features: [line(A, B), line(C, D)] })
 
   it('RF-28.12: nombre y coordenadas de un lugar salen de los lugares cargados', () => {
-    expect(pointLabel(place('fisi'))).toBe('Facultad de Ingeniería de Sistemas e Informática (FISI)')
+    expect(pointLabel(place('fisi'))).toBe('Facultad de Ingeniería de Sistemas e Informática')
     expect(pointCoordinates(place('fisi'))).toEqual([-77.0857217, -12.0535548])
     expect(pointLabel(place('no-existe'))).toBe('')
     expect(pointCoordinates(place('no-existe'))).toBeNull()
