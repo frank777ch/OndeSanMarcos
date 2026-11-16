@@ -205,7 +205,8 @@ coordenadas (`lat`, `lng`), palabras clave y los campos de la ficha (horario,
 teléfono, anexo, descripción, carreras, servicios, cómo llegar…). El `id` es un
 número autoincremental (migración `V6`) y el nombre estandarizado en minúsculas y con
 guiones vive aparte, en `slug` (`fisi`, `biblioteca-central`): único, estable (no cambia al
-renombrar el lugar) y generado del nombre en los lugares nuevos. `verified_at` vacío = dato sin confirmar con la
+renombrar el lugar) y generado del nombre en los lugares nuevos. La sigla (`FISI`, `FCA`…) es otro
+dato, opcional: `short_name` (migración `V10` y `places.json` la rellenan; el `name` no la repite). `verified_at` vacío = dato sin confirmar con la
 universidad (hoy todos). `is_published` permite ocultar un lugar sin borrarlo.
 
 ```bash

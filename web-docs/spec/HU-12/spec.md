@@ -47,6 +47,7 @@ La información existe para los lugares que el asistente ya conocía (en la app 
 | ID | Requisito |
 |---|---|
 | RF-12.9 | La ficha debe mostrar siempre el nombre y la categoría del lugar. |
+| RF-12.19 | Si el lugar tiene sigla (`short_name`, p. ej. FIC), la ficha debe mostrarla junto al nombre, una sola vez; si no la tiene, no cambia nada. |
 | RF-12.10 | La ficha debe mostrar las demás secciones solo si el lugar tiene el dato: horario, descripción, teléfono, anexo, carreras, servicios y uso. |
 | RF-12.11 | El horario detallado (por ejemplo el de la Biblioteca) debe mostrarse como lista de líneas. |
 | RF-12.12 | Las listas de carreras y servicios deben mostrarse una por línea. |
@@ -129,4 +130,5 @@ La información existe para los lugares que el asistente ya conocía (en la app 
 - 2026-10-23 · Borrador creado con preguntas abiertas.
 - 2026-10-23 · Preguntas resueltas. Se añadieron RF-12.3 «sin mover la cámara», RF-12.17 (logo y atribución de Mapbox, requisito de su licencia) y RF-12.18 (campo de búsqueda sincronizado). Spec aprobada.
 - 2026-10-23 · Implementada.
+- 2026-11-15 · RF-12.19: la ficha muestra la sigla del lugar junto al nombre (los datos iniciales llevan ahora las siglas en `short_name` y no dentro del nombre).
 - 2026-11-02 · RF-12.13 queda reemplazado por RF-13.31: la ficha ya tiene el botón «Cómo llegar» (HU-13).

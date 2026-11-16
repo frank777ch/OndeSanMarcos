@@ -135,3 +135,41 @@ def test_hu_39_category_ids_are_numbers_and_slugs_are_unique(conn):
         conn.execute("insert into place_categories (slug, label, color) values ('otra', 'Otra 2', '#111111')")
     with pytest.raises(psycopg.errors.CheckViolation):
         conn.execute("insert into place_categories (slug, label, color) values ('Mala Una', 'M', '#111111')")
+
+
+# --- V10: siglas en `short_name` ---------------------------------------------------------------
+
+from pathlib import Path  # noqa: E402
+
+V10 = Path(__file__).resolve().parents[2] / "db" / "migrations" / "V10__place_short_names.sql"
+
+
+def _aplicar_v10(conn):
+    conn.execute(V10.read_text(encoding="utf-8"))
+
+
+def test_v10_pone_la_sigla_y_limpia_el_nombre(conn):
+    _insert(conn, slug="fisi", name="Facultad de Ingeniería de Sistemas e Informática (FISI)")
+    _insert(conn, slug="facultad-de-ciencias-administrativas", name="Facultad de Ciencias Administrativas")
+    _aplicar_v10(conn)
+    rows = dict(
+        (slug, (name, short))
+        for slug, name, short in conn.execute("select slug, name, short_name from places").fetchall()
+    )
+    assert rows["fisi"] == ("Facultad de Ingeniería de Sistemas e Informática", "FISI")
+    assert rows["facultad-de-ciencias-administrativas"] == ("Facultad de Ciencias Administrativas", "FCA")
+
+
+def test_v10_respeta_lo_editado_desde_el_panel_y_es_idempotente(conn):
+    _insert(conn, slug="fisi", name="Sistemas (nombre propio)", short_name="Sis")
+    _aplicar_v10(conn)
+    _aplicar_v10(conn)
+    assert conn.execute("select name, short_name from places where slug = 'fisi'").fetchone() == (
+        "Sistemas (nombre propio)",
+        "Sis",
+    )
+
+
+def test_v10_no_hace_nada_en_una_base_vacia(conn):
+    _aplicar_v10(conn)
+    assert conn.execute("select count(*) from places").fetchone()[0] == 0

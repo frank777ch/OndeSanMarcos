@@ -30,6 +30,22 @@ describe('PlaceCard', () => {
     expect(within(dialog).getByText('Puertas')).toBeInTheDocument()
   })
 
+  it('RF-12.19: muestra la sigla junto al nombre, una sola vez', () => {
+    render(<PlaceCard />)
+    open('fisi')
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('heading', { level: 2 })).toHaveTextContent(
+      'Facultad de Ingeniería de Sistemas e Informática · FISI',
+    )
+    expect(dialog.textContent?.match(/FISI/g)).toHaveLength(1)
+  })
+
+  it('RF-12.19: sin sigla el título es solo el nombre', () => {
+    render(<PlaceCard />)
+    open('puerta-3')
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/^Puerta 3$/)
+  })
+
   it('RF-12.2 y RF-12.10: un lugar sin datos no muestra secciones', () => {
     render(<PlaceCard />)
     open('puerta-3') // Puerta 3
