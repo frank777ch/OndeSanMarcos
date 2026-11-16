@@ -180,7 +180,8 @@
     },
     {
       "slug": "fisi",
-      "name": "Facultad de Ingeniería de Sistemas e Informática (FISI)",
+      "name": "Facultad de Ingeniería de Sistemas e Informática",
+      "short_name": "FISI",
       "category_slug": "facultades",
       "lat": -12.0535548,
       "lng": -77.0857217,
@@ -250,6 +251,7 @@
     {
       "slug": "facultad-de-ingenieria-electronica-y-electrica",
       "name": "Facultad de Ingeniería Electrónica y Eléctrica",
+      "short_name": "FIEE",
       "category_slug": "facultades",
       "lat": -12.0552369,
       "lng": -77.0869915,
@@ -278,6 +280,7 @@
     {
       "slug": "facultad-de-ingenieria-civil",
       "name": "Facultad de Ingeniería Civil",
+      "short_name": "FIC",
       "category_slug": "facultades",
       "lat": -12.0558976,
       "lng": -77.087094,
@@ -375,6 +378,7 @@
     {
       "slug": "facultad-de-ingenieria-geologica-minera-y-metalurgica",
       "name": "Facultad de Ingeniería Geológica, Minera y Metalúrgica",
+      "short_name": "FIGMMG",
       "category_slug": "facultades",
       "lat": -12.0607884,
       "lng": -77.084739,
@@ -420,6 +424,7 @@
     {
       "slug": "facultad-de-quimica-e-ingenieria-quimica",
       "name": "Facultad de Química e Ingeniería Química",
+      "short_name": "FQIQ",
       "category_slug": "facultades",
       "lat": -12.060074,
       "lng": -77.0835806,
@@ -472,6 +477,7 @@
     {
       "slug": "facultad-de-ciencias-fisicas",
       "name": "Facultad de Ciencias Físicas",
+      "short_name": "FCF",
       "category_slug": "facultades",
       "lat": -12.0595585,
       "lng": -77.0818206,
@@ -497,6 +503,7 @@
     {
       "slug": "facultad-de-ciencias-matematicas",
       "name": "Facultad de Ciencias Matemáticas",
+      "short_name": "FCM",
       "category_slug": "facultades",
       "lat": -12.0605261,
       "lng": -77.0823088,
@@ -524,6 +531,7 @@
     {
       "slug": "facultad-de-ingenieria-industrial",
       "name": "Facultad de Ingeniería Industrial",
+      "short_name": "FII",
       "category_slug": "facultades",
       "lat": -12.0596003,
       "lng": -77.0804662,
@@ -548,6 +556,7 @@
     {
       "slug": "facultad-de-ciencias-administrativas",
       "name": "Facultad de Ciencias Administrativas",
+      "short_name": "FCA",
       "category_slug": "facultades",
       "lat": -12.0577069,
       "lng": -77.0813687,
@@ -574,6 +583,7 @@
     {
       "slug": "facultad-de-ciencias-sociales",
       "name": "Facultad de Ciencias Sociales",
+      "short_name": "FCCSS",
       "category_slug": "facultades",
       "lat": -12.0579798,
       "lng": -77.0816666,
@@ -627,6 +637,7 @@
     {
       "slug": "facultad-de-ciencias-contables",
       "name": "Facultad de Ciencias Contables",
+      "short_name": "FCC",
       "category_slug": "facultades",
       "lat": -12.0576735,
       "lng": -77.0804619,
@@ -651,6 +662,7 @@
     {
       "slug": "facultad-de-letras-y-ciencias-humanas",
       "name": "Facultad de Letras y Ciencias Humanas",
+      "short_name": "FLCH",
       "category_slug": "facultades",
       "lat": -12.0574376,
       "lng": -77.0814113,
@@ -711,6 +723,7 @@
     {
       "slug": "facultad-de-ciencias-economicas-nuevo",
       "name": "Facultad de Ciencias Economicas (Nuevo)",
+      "short_name": "FCE",
       "category_slug": "facultades",
       "lat": -12.0534471,
       "lng": -77.086256,
@@ -951,7 +964,8 @@
     },
     {
       "slug": "oca",
-      "name": "Oficina Central de Admisión (OCA)",
+      "name": "Oficina Central de Admisión",
+      "short_name": "OCA",
       "category_slug": "administracion",
       "lat": -12.05201,
       "lng": -77.085374,
@@ -976,6 +990,7 @@
     {
       "slug": "posgrado",
       "name": "Escuela de Posgrado UNMSM",
+      "short_name": "DGEP",
       "category_slug": "administracion",
       "lat": -12.052401,
       "lng": -77.085791,
@@ -998,7 +1013,8 @@
     },
     {
       "slug": "cepreunmsm",
-      "name": "Centro Preuniversitario UNMSM (CEPREUNMSM)",
+      "name": "Centro Preuniversitario UNMSM",
+      "short_name": "CEPREUNMSM",
       "category_slug": "administracion",
       "lat": -12.052116,
       "lng": -77.085392,
@@ -1285,6 +1301,7 @@
     {
       "slug": "derecho",
       "name": "Facultad de Derecho y Ciencia Política",
+      "short_name": "FDCP",
       "category_slug": "facultades",
       "lat": -12.058368,
       "lng": -77.080267,

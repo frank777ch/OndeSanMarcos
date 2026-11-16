@@ -20,6 +20,11 @@ from psycopg import sql
 from app.rag.db import Database
 
 MIGRATIONS_DIR = Path(__file__).resolve().parents[2] / "db" / "migrations"
+
+
+def _version(path: Path) -> int:
+    """Número de versión de `V<n>__nombre.sql`: Flyway ordena por número, no por texto (V10 va tras V9)."""
+    return int(path.name[1:].split("__", 1)[0])
 DIM = 768
 
 
@@ -53,7 +58,7 @@ def test_database_url() -> Iterator[str]:
 
         test_url = _with_database(base_url, test_name)
         with psycopg.connect(test_url, autocommit=True) as conn:
-            for migration in sorted(MIGRATIONS_DIR.glob("V*.sql")):
+            for migration in sorted(MIGRATIONS_DIR.glob("V*.sql"), key=_version):
                 conn.execute(migration.read_text(encoding="utf-8"))
         yield test_url
     finally:
