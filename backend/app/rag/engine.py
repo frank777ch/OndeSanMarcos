@@ -14,7 +14,8 @@ from __future__ import annotations
 from functools import lru_cache
 
 from app.config import Settings, get_settings
-from app.knowledge.places import CampusPlace, find_places, get_place_by_id
+from app.knowledge.places import CampusPlace
+from app.places.directory import PlaceDirectory, get_place_directory, seed_directory
 from app.rag import guardrails
 from app.rag.intent import wants_route
 from app.rag.llm import LLMProvider
@@ -38,20 +39,31 @@ class RAGEngine:
         *,
         top_k: int = 4,
         score_threshold: float = 0.55,
+        places: PlaceDirectory | None = None,
     ) -> None:
         self._retriever = retriever
         self._llm = llm
+        self._places = places if places is not None else seed_directory()
         self._top_k = top_k
         self._score_threshold = score_threshold
 
     def answer(self, query: str) -> ChatResponse:
         """Responde una consulta siguiendo el pipeline RAG."""
+        # Un lugar publicado que la consulta nombra es del dominio aunque su nombre no esté en el
+        # vocabulario de los guardrails (RF-29.14).
         verdict = guardrails.check(query)
-        if not verdict.allowed:
+        if not verdict.allowed and not self._places.find(query):
             return ChatResponse(answer=guardrails.OUT_OF_SCOPE_MESSAGE, locations=[])
 
         chunks = self._retriever.retrieve(query, self._top_k)
-        relevant = [c for c in chunks if c.score >= self._score_threshold]
+        # Los fragmentos de un lugar despublicado no se usan (RF-29.13).
+        published = self._places.published_slugs()
+        relevant = [
+            c
+            for c in chunks
+            if c.score >= self._score_threshold
+            and (c.document.place_id is None or c.document.place_id in published)
+        ]
         places = self._detect_places(query, relevant)
 
         if not relevant and not places:
@@ -64,7 +76,7 @@ class RAGEngine:
         answer_text = self._compose(body, places, draw_route)
 
         locations = [
-            LocationResult(id=place.id, name=place.name, schedule=place.schedule)
+            LocationResult(id=place.id, name=place.name, schedule=place.schedule or None)
             for place in places
         ]
         destination = (
@@ -97,7 +109,7 @@ class RAGEngine:
         ordered: list[CampusPlace] = []
         seen: set[str] = set()
 
-        for place in find_places(query):
+        for place in self._places.find(query):
             if place.id not in seen:
                 ordered.append(place)
                 seen.add(place.id)
@@ -105,7 +117,7 @@ class RAGEngine:
         if chunks:
             place_id = chunks[0].document.place_id
             if place_id and place_id not in seen:
-                place = get_place_by_id(place_id)
+                place = self._places.get(place_id)
                 if place is not None:
                     ordered.append(place)
                     seen.add(place_id)
@@ -121,7 +133,9 @@ class RAGEngine:
             parts.append(body)
         elif places:
             first = places[0]
-            parts.append(f"{first.name}. Horario: {first.schedule}.")
+            parts.append(
+                f"{first.name}. Horario: {first.schedule}." if first.schedule else f"{first.name}."
+            )
 
         if draw_route and places:
             parts.append(f"Te guío a {places[0].name}: trazo la ruta en el mapa.")
@@ -149,6 +163,7 @@ def build_engine(settings: Settings | None = None) -> RAGEngine:
         llm=build_llm_provider(settings),
         top_k=settings.rag_top_k,
         score_threshold=settings.rag_score_threshold,
+        places=get_place_directory(),
     )
 
 

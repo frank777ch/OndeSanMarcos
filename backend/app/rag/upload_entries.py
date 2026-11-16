@@ -25,7 +25,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from app.config import Settings, get_settings
+from app.config import get_settings
 from app.knowledge.entries import (
     DEFAULT_REVIEW_FILE,
     STATUS_APPROVED,
@@ -37,34 +37,9 @@ from app.knowledge.entries import (
 )
 from app.rag.db import Database, get_database
 from app.rag.errors import RagProviderError
-from app.rag.ingestion import split_document
+from app.rag.ingestion import document_rows, split_document
 from app.rag.providers import build_embedding_provider
 
-
-
-def _rows_for_document(document, embedding, settings: Settings) -> list[dict]:
-    """Trocea + embebe un documento y devuelve las filas para insertar."""
-    chunks = split_document(
-        document,
-        chunk_size=settings.rag_chunk_size,
-        overlap=settings.rag_chunk_overlap,
-    )
-    rows: list[dict] = []
-    for chunk in chunks:
-        vector = embedding.embed_document(f"{chunk.title}. {chunk.text}")
-        rows.append(
-            {
-                "content": chunk.text,
-                "metadata": {
-                    "document_id": chunk.document_id,
-                    "place_id": chunk.place_id,
-                    "title": chunk.title,
-                    "position": chunk.position,
-                },
-                "embedding": vector,
-            }
-        )
-    return rows
 
 
 def _uploadable(entry: dict, approve_all: bool) -> bool:
@@ -141,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
 
         # Primero se embebe (puede fallar por la cuota de Gemini); la base solo se
         # toca al final, en una transacción por lugar.
-        rows = _rows_for_document(document, embedding, settings)
+        rows = document_rows(document, embedding, settings, "entry")
         database.replace_place(place_id, rows)
         entry["status"] = STATUS_UPLOADED
         entry["uploaded_chunks"] = len(rows)

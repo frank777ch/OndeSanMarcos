@@ -13,7 +13,8 @@ from app.knowledge.entries import (
     save_entries_file,
 )
 from app.rag import upload_entries as ue
-from app.rag.upload_entries import _rows_for_document, _uploadable
+from app.rag.ingestion import document_rows
+from app.rag.upload_entries import _uploadable
 from tests.fake_db import FakeDatabase
 
 
@@ -46,7 +47,7 @@ def test_rows_for_document_shape():
         text="El gimnasio del campus ofrece pesas y clases.",
         place_id="gimnasio",
     )
-    rows = _rows_for_document(doc, _FakeEmbedding(), get_settings())
+    rows = document_rows(doc, _FakeEmbedding(), get_settings(), "entry")
 
     assert len(rows) >= 1
     first = rows[0]
@@ -57,7 +58,14 @@ def test_rows_for_document_shape():
         "title": "Gimnasio",
         "position": 0,
     }
+    assert (first["source_type"], first["source_id"]) == ("entry", "doc-gimnasio")
     assert first["embedding"] == [0.5, 0.5]
+
+
+def test_rf_29_16_la_ficha_se_identifica_por_el_slug_del_lugar():
+    doc = Document(id="place-gimnasio", title="Gimnasio", text="Gimnasio del campus.", place_id="gimnasio")
+    rows = document_rows(doc, _FakeEmbedding(), get_settings(), "place")
+    assert {(r["source_type"], r["source_id"]) for r in rows} == {("place", "gimnasio")}
 
 
 def _approved_file(tmp_path):

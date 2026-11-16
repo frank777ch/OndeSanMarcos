@@ -16,12 +16,16 @@ class FakeDatabase(FakePlacesAdminMixin):
         self.categories: dict[int, dict] = {}
         self.place_rows: dict[int, dict] = {}
         self.insert_calls = 0
+        self.sync_places: list[dict] = []  # filas de `places_for_sync`
 
     def count(self) -> int:
         return self.existing
 
     def replace_all(self, rows: list[dict]) -> None:
         self.replaced = list(rows)
+
+    def places_for_sync(self) -> list[dict]:
+        return list(self.sync_places)
 
     def count_place(self, place_id: str) -> int:
         return self.places.get(place_id, 0)

@@ -132,10 +132,12 @@ Desde la raíz del repo, con Docker:
 
 ```bash
 ./scripts/dev.sh                 # base de datos + migraciones (Docker) + backend + web (local)
-./scripts/dev.sh ingest          # embebe el corpus (55 fragmentos) y lo carga en la base
+./scripts/dev.sh ingest          # embebe el corpus general y la ficha de cada lugar, y los carga en la base
+./scripts/dev.sh reindex-places  # vuelve a sincronizar todos los lugares con el asistente (HU-29)
 ./scripts/dev.sh psql            # consola SQL
 ./scripts/dev.sh db-dump         # copia de seguridad de los vectores (backend/db/dumps/)
 ./scripts/dev.sh db-restore      # restaura el último dump, sin llamar a Gemini
+./scripts/dev.sh db-snapshot     # guarda los vectores como migración (R__documents_snapshot.sql) para versionarla
 ./scripts/dev.sh db-reset        # BORRA la base y la recrea vacía (pide confirmación)
 ```
 
@@ -161,6 +163,28 @@ otra, además de la que redacta la respuesta. Por eso:
 - Las consultas repetidas se resuelven desde una caché en memoria.
 - `db-dump` guarda los vectores en un archivo: sirve de respaldo y para
   restaurarlos sin gastar cuota.
+- `db-snapshot` guarda los vectores como **migración repetible de Flyway**
+  (`db/migrations/R__documents_snapshot.sql`), que sí se versiona en git: quien clone el repo
+  recibe los vectores al levantar la base, sin llamar a Gemini. Solo llena la tabla si está
+  **vacía**, así que nunca pisa las fichas de lugar creadas desde el panel. Hay que volver a
+  ejecutarlo (y hacer commit) tras un `ingest --force` o si cambia el modelo de embeddings.
+
+### Los lugares y el asistente (HU-29)
+
+La fuente de los lugares es la tabla `places`; `db/seed/places.json` es solo su punto de partida.
+El asistente conoce cada lugar por una **ficha** en `documents` (`source_type = 'place'`,
+`source_id` = el slug del lugar), armada con `app/places/document.py`. El corpus general
+(`app/knowledge/corpus.py`) solo tiene lo que no es un lugar: sedes, preguntas frecuentes,
+transporte.
+
+- Crear, editar o despublicar un lugar desde el panel actualiza su ficha al momento: una llamada
+  de embeddings por fragmento, no un reingreso completo (`app/places/sync.py`). Si el servicio de
+  embeddings falla, el cambio se guarda y `rag_sync` vale `failed`; `POST …/reindex` lo repite.
+- El motor detecta lugares con `app/places/directory.py` (tabla `places`, copia en memoria que
+  caduca a los 60 s y se refresca al sincronizar). La palabra clave debe coincidir como **palabra
+  completa**, y los lugares despublicados no se nombran ni aportan fragmentos.
+- Con `RAG_USE_MOCK=true` o sin `DATABASE_URL` el asistente lee `places.json` y `rag_sync` vale
+  `skipped`.
 
 ### Variables
 
@@ -200,8 +224,8 @@ universidad (hoy todos). `is_published` permite ocultar un lugar sin borrarlo.
   `places.ts`, `places.py` ni del corpus.
 - La semilla se generó una sola vez a partir de los datos que la web tenía en el código
   (ya retirados, HU-28); desde entonces la fuente de verdad es la base de datos y este JSON
-  es solo el punto de partida para un entorno nuevo. `app.tools.places.export_seed` queda
-  como registro de cómo se unieron esas fuentes (fusión de duplicados, slugs y mapa de ids).
+  es solo el punto de partida para un entorno nuevo. Desde HU-29 también absorbió la información
+  de los lugares que estaba en el corpus y en `CAMPUS_PLACES`: es la única fuente inicial.
 
 ### API pública de lugares (solo lectura, sin autenticación)
 
@@ -250,7 +274,7 @@ Los lugares **no se borran** (`DELETE` responde 405): se despublican.
 
 Campos obligatorios: `name`, `category_id`, `lat`, `lng` (dentro del área del campus: lat -12.070…-12.043, lng -77.096…-77.069). `verified: true` fija `verified_at` (si ya estaba, conserva la fecha); `false` la borra. Un campo desconocido, un `id` o `slug`, una categoría o un lugar contenedor inexistente, un correo mal escrito o una URL que no sea `http(s)` dan **422** con `detail: [{loc: ["body", "<campo>"], msg}]`.
 
-Las respuestas de crear, editar y reindexar traen `rag_sync`: `ok`, `skipped` (el asistente aún no se conecta a los lugares, HU-29) o `failed` (el cambio **sí** se guardó; se repite con `/reindex`). La conexión con el asistente vive en `app/places/sync.py`.
+Las respuestas de crear, editar y reindexar traen `rag_sync`: `ok` (la ficha del lugar ya está al día en el asistente), `skipped` (asistente en modo de prueba o sin base de datos) o `failed` (el cambio **sí** se guardó; se repite con `/reindex`). La conexión con el asistente vive en `app/places/sync.py`.
 
 ```bash
 TOKEN=$(curl -s localhost:8000/api/auth/login -H 'content-type: application/json' \

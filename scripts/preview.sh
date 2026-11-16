@@ -14,7 +14,7 @@
 #   clean       down + borra el volumen de node_modules de la web. NO borra la base de datos
 #   test        corre los tests del backend (incluye integración) y de la web, en contenedores
 #
-# Los comandos de la base de datos (ingest, seed-places, psql, db-dump, db-snapshot, db-restore, db-reset)
+# Los comandos de la base de datos (ingest, seed-places, reindex-places, psql, db-dump, db-snapshot, db-restore, db-reset)
 # están en ./scripts/dev.sh.
 set -euo pipefail
 

@@ -16,6 +16,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from app.config import Settings
 from app.knowledge.corpus import DOCUMENTS, Document
 from app.rag.embeddings import EmbeddingProvider
 from app.rag.vector_store import VectorRecord
@@ -105,6 +106,37 @@ def split_documents(
             split_document(document, chunk_size=chunk_size, overlap=overlap)
         )
     return chunks
+
+
+def document_rows(
+    document: Document, embedding, settings: Settings, source_type: str = "corpus"
+) -> list[dict]:
+    """Trocea y embebe un documento; devuelve las filas listas para insertar en `documents`.
+
+    `source_type` indica el origen: `corpus`, `entry` o `place`. El `source_id` es el slug del
+    lugar en las fichas (`place`) y el id del documento en el resto; así una ficha se reemplaza
+    por su slug (HU-29).
+    """
+    source_id = (document.place_id or document.id) if source_type == "place" else document.id
+    rows: list[dict] = []
+    for chunk in split_document(
+        document, chunk_size=settings.rag_chunk_size, overlap=settings.rag_chunk_overlap
+    ):
+        rows.append(
+            {
+                "content": chunk.text,
+                "metadata": {
+                    "document_id": chunk.document_id,
+                    "place_id": chunk.place_id,
+                    "title": chunk.title,
+                    "position": chunk.position,
+                },
+                "embedding": embedding.embed_document(f"{chunk.title}. {chunk.text}"),
+                "source_type": source_type,
+                "source_id": source_id,
+            }
+        )
+    return rows
 
 
 def ingest_chunks(chunks: Iterable[Chunk], embedding: EmbeddingProvider, store) -> int:

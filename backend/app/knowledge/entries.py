@@ -29,6 +29,8 @@ SCHEMA = "ondesanmarcos.knowledge-entries/v1"
 STATUS_DRAFT = "draft"
 STATUS_APPROVED = "approved"
 STATUS_UPLOADED = "uploaded"
+# Ya fusionada en `db/seed/places.json` (HU-29): la ficha del lugar sale de la tabla `places`.
+STATUS_INTEGRATED = "integrated"
 
 # app/knowledge/entries.py  ->  carpeta hermana `entries/`
 DEFAULT_ENTRIES_DIR = Path(__file__).resolve().parent / "entries"

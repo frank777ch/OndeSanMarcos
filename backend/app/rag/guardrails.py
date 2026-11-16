@@ -10,7 +10,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from app.knowledge.places import CAMPUS_PLACES, normalize
+from app.knowledge.places import normalize
+from app.places.directory import seed_places
 
 OUT_OF_SCOPE_MESSAGE = (
     "Solo puedo ayudarte con temas de la UNMSM: lugares, horarios y "
@@ -126,10 +127,11 @@ _CAMPUS_STEMS: set[str] = {
     "vacante",  # vacante, vacantes
 }
 
-# Se enriquece con todas las palabras clave de los lugares del campus.
+# Se enriquece con las palabras clave de los lugares de la semilla (`db/seed/places.json`). Los
+# lugares que se agreguen después los reconoce el motor con el directorio de lugares (HU-29).
 _SCOPE_TERMS: set[str] = {normalize(term) for term in _CAMPUS_VOCABULARY}
-for _place in CAMPUS_PLACES:
-    for _keyword in _place.keywords:
+for _place in seed_places():
+    for _keyword in _place.get("keywords") or []:
         _SCOPE_TERMS.add(normalize(_keyword))
 
 # Coincidencia por límite de palabra para evitar falsos positivos: así "aula"

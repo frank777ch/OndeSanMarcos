@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = ROOT / "script" / "dev.sh"
+SCRIPT = ROOT / "scripts" / "dev.sh"
 COMPOSE = ROOT / "docker-compose.yml"
 
 pytestmark = pytest.mark.skipif(
@@ -71,7 +71,9 @@ def test_compose_defines_db_migrate_and_waits_for_them():
     assert "pgvector/pgvector:pg16" in text
     assert "flyway/flyway" in text
     assert "pg_isready" in text
-    assert "service_completed_successfully" in text
+    # El backend (que espera a las migraciones) vive en el compose del preview, encima de este.
+    preview = (ROOT / "docker-compose.preview.yml").read_text(encoding="utf-8")
+    assert "service_completed_successfully" in text + preview
     assert "127.0.0.1:" in text  # RF-23.7: solo localhost
     assert "db_data:/var/lib/postgresql/data" in text
 
@@ -101,3 +103,15 @@ def test_rf_22_15_seed_places_command_runs_the_seed_module():
     match = re.search(r"^  seed-places\)(.*?)^    ;;", text, re.S | re.M)
     assert match, "No existe el comando seed-places en dev.sh"
     assert "app.places.seed" in match.group(1) and "ensure_db" in match.group(1)
+
+
+def test_rf_29_18_dev_script_tiene_reindex_places():
+    block = _block("reindex-places")
+    assert "app.places.reindex" in block
+
+
+def test_rf_29_17_el_snapshot_solo_llena_una_tabla_vacia():
+    """La migración repetible no puede pisar las fichas que se crean desde el panel."""
+    block = _block("db-snapshot")
+    assert "truncate" not in block.lower()
+    assert "where not exists (select 1 from documents)" in block

@@ -23,9 +23,9 @@ def test_chat_returns_contract_shape():
 
 
 def test_chat_navigation_returns_destination():
-    from app.knowledge.places import get_place_by_id
+    from app.places.directory import seed_directory
 
-    rectorado = get_place_by_id("rectorado")
+    rectorado = seed_directory().get("rectorado")
     response = client.post("/api/chat", json={"query": "cómo llego al rectorado"})
     assert response.status_code == 200
     body = response.json()

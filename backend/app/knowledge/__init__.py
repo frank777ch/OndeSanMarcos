@@ -1,21 +1,11 @@
-"""Base de conocimiento del campus: lugares y corpus de documentos."""
+"""Base de conocimiento del campus: tipos de lugar y corpus general de documentos."""
 
 from app.knowledge.corpus import DOCUMENTS, Document
-from app.knowledge.places import (
-    CAMPUS_PLACES,
-    CampusPlace,
-    Coordinate,
-    find_places,
-    get_place_by_id,
-    normalize,
-)
+from app.knowledge.places import CampusPlace, Coordinate, normalize
 
 __all__ = [
-    "CAMPUS_PLACES",
     "CampusPlace",
     "Coordinate",
-    "find_places",
-    "get_place_by_id",
     "normalize",
     "DOCUMENTS",
     "Document",

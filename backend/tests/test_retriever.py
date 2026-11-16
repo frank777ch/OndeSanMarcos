@@ -11,7 +11,7 @@ def test_indexes_the_whole_corpus():
 def test_retrieves_the_relevant_document_first():
     retriever = build_default_retriever()
     top = retriever.retrieve("horario de la biblioteca", top_k=1)
-    assert top[0].document.id == "doc-biblioteca"
+    assert top[0].document.id == "place-biblioteca-central"  # ficha generada desde places.json (HU-29)
     assert top[0].score > 0.0
 
 

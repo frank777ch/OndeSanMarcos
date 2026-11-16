@@ -36,7 +36,7 @@ def test_migrations_create_vector_extension_table_index_and_function(test_databa
         ).fetchone()[0]
 
     assert "vector" in extensions
-    assert set(columns) == {"id", "content", "metadata", "embedding"}
+    assert set(columns) == {"id", "content", "metadata", "embedding", "source_type", "source_id"}  # V9 (HU-29)
     assert columns["embedding"] == "vector"
     assert dims == 768
     assert index and "hnsw" in index[0] and "vector_cosine_ops" in index[0]
