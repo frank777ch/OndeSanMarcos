@@ -119,3 +119,48 @@ def test_main_returns_error_code_on_provider_error(monkeypatch, capsys):
     monkeypatch.setattr(ip, "ingest", _boom)
     assert ip.main([]) == 1
     assert "sin conexión" in capsys.readouterr().err
+
+
+# --- HU-29: los lugares salen de la tabla `places` -----------------------------------------------
+
+
+def _lugar(slug: str, name: str, published: bool = True) -> dict:
+    return {"slug": slug, "name": name, "description": f"Descripción de {name}.", "is_published": published}
+
+
+def test_rf_29_10_la_ingesta_usa_los_lugares_publicados_de_la_base(monkeypatch):
+    database = FakeDatabase()
+    database.sync_places = [_lugar("fisi", "FISI"), _lugar("oculto", "Lugar oculto", published=False)]
+    monkeypatch.setattr(ip, "build_embedding_provider", lambda settings: _FakeEmbedding())
+    monkeypatch.setattr(ip, "load_entry_documents", lambda: [])
+
+    ip.ingest(get_settings(), database=database)
+
+    rows = database.replaced
+    fichas = {(r["source_type"], r["source_id"]) for r in rows if r["source_type"] == "place"}
+    assert fichas == {("place", "fisi")}
+    assert not any(r["metadata"]["place_id"] == "oculto" for r in rows)
+
+
+def test_rf_29_10_el_corpus_general_no_trae_documentos_de_lugar(monkeypatch):
+    database = FakeDatabase()
+    monkeypatch.setattr(ip, "build_embedding_provider", lambda settings: _FakeEmbedding())
+    monkeypatch.setattr(ip, "load_entry_documents", lambda: [])
+
+    ip.ingest(get_settings(), database=database)
+
+    corpus = [r for r in database.replaced if r["source_type"] == "corpus"]
+    assert corpus and all(r["metadata"]["place_id"] is None for r in corpus)
+
+
+def test_rf_29_16_cada_fila_lleva_su_origen(monkeypatch):
+    database = FakeDatabase()
+    database.sync_places = [_lugar("fisi", "FISI")]
+    monkeypatch.setattr(ip, "build_embedding_provider", lambda settings: _FakeEmbedding())
+    monkeypatch.setattr(ip, "load_entry_documents", lambda: [_entry_doc()])
+
+    ip.ingest(get_settings(), database=database)
+
+    kinds = {r["source_type"] for r in database.replaced}
+    assert kinds == {"corpus", "entry", "place"}
+    assert all(r["source_id"] for r in database.replaced)

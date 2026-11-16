@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.knowledge.places import get_place_by_id
+from app.places.directory import seed_directory
 from app.rag.engine import build_engine
 from app.rag.intent import wants_route
 
@@ -27,7 +27,7 @@ def test_navigation_query_sets_draw_route_and_destination(engine):
     result = engine.answer("¿cómo llego al rectorado?")
     assert result.draw_route is True
     assert result.destination is not None
-    place = get_place_by_id("rectorado")
+    place = seed_directory().get("rectorado")
     assert result.destination.latitude == place.coordinate.latitude
     assert result.destination.longitude == place.coordinate.longitude
 

@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from app.knowledge.corpus import DOCUMENTS, Document
+from app.places.directory import seed_place_documents
 from app.rag.embeddings import (
     BagOfWordsEmbedding,
     EmbeddingProvider,
@@ -58,7 +59,7 @@ class Retriever:
         self._chunk_overlap = chunk_overlap
         self._store = InMemoryVectorStore()
         self._docs_by_id: dict[str, Document] = {}
-        source = DOCUMENTS if documents is None else documents
+        source = [*DOCUMENTS, *seed_place_documents()] if documents is None else documents
         for document in source:
             self.add_document(document)
 
@@ -107,6 +108,6 @@ def build_default_retriever(embedding: EmbeddingProvider | None = None) -> Retri
     vocabulario del corpus para que la recuperación sea exacta por léxico.
     """
     if embedding is None:
-        corpus_texts = [f"{doc.title}. {doc.text}" for doc in DOCUMENTS]
+        corpus_texts = [f"{doc.title}. {doc.text}" for doc in [*DOCUMENTS, *seed_place_documents()]]
         embedding = BagOfWordsEmbedding(build_vocabulary(corpus_texts))
     return Retriever(embedding)

@@ -17,11 +17,13 @@
 #
 # Base de datos (los vectores del asistente cuestan llamadas a Gemini: se cuidan):
 #   ingest [--force]   embebe el corpus y lo carga en la base. Se niega si ya hay datos
+#   reindex-places     vuelve a sincronizar todos los lugares con el asistente (una llamada a Gemini por lugar)
 #   seed-places        carga los lugares del campus (backend/db/seed/places.json). No pisa lo que ya existe
 #   psql               abre una consola SQL de la base
 #   db-dump            guarda los datos en backend/db/dumps/ (no llama a Gemini)
 #   db-snapshot        guarda los vectores como migración de Flyway (R__documents_snapshot.sql). Se versiona
-#                      en git: quien clone el repo los recibe al levantar la base, sin llamar a Gemini
+#                      en git: quien clone el repo los recibe al levantar la base, sin llamar a Gemini.
+#                      Solo llena una tabla vacía; para actualizar una base con datos usa db-restore o ingest --force
 #   db-restore [file]  restaura los datos desde un dump (por defecto, el último)
 #   db-reset [--yes]   BORRA la base de datos y la recrea vacía. Pide confirmación
 #
@@ -285,6 +287,11 @@ case "$cmd" in
     ensure_backend_deps
     (cd backend && "$VENV/bin/python" -m app.rag.ingest_pgvector "$@")
     ;;
+  reindex-places)
+    ensure_db
+    ensure_backend_deps
+    (cd backend && "$VENV/bin/python" -m app.places.reindex "$@")
+    ;;
   seed-places)
     ensure_db
     ensure_backend_deps
@@ -313,9 +320,9 @@ case "$cmd" in
     {
       echo "-- GENERADO por ./scripts/dev.sh db-snapshot ($count filas). No editar a mano."
       echo "-- Migración repetible: Flyway la vuelve a aplicar cuando cambia este archivo."
+      echo "-- Solo llena la tabla si está vacía (base nueva): nunca pisa las fichas de lugar que se crean desde el panel."
       echo "-- Embeddings de gemini-embedding-001 (768 dim): ya no hace falta llamar a Gemini en otra máquina."
-      echo "truncate documents restart identity;"
-      docker compose exec -T db psql -U "$DB_USER" -d "$DB_NAME" -At -c "select format(E'insert into documents (content, metadata, embedding) values\n%s;', string_agg(format('(%L, %L::jsonb, %L::vector)', content, metadata, embedding::text), E',\n' order by id)) from documents"
+      docker compose exec -T db psql -U "$DB_USER" -d "$DB_NAME" -At -c "select format(E'insert into documents (content, metadata, embedding, source_type, source_id)\nselect content, metadata, embedding, source_type, source_id from (values\n%s\n) as v(content, metadata, embedding, source_type, source_id)\nwhere not exists (select 1 from documents);', string_agg(format('(%L::text, %L::jsonb, %L::vector, %L::text, %L::text)', content, metadata, embedding::text, source_type, source_id), E',\n' order by id)) from documents"
     } > "$snapshot.tmp"
     mv "$snapshot.tmp" "$snapshot"
     echo "Guardado: $snapshot ($count filas, $(du -h "$snapshot" | cut -f1)). Haz commit de ese archivo."

@@ -12,9 +12,11 @@ os.environ["RAG_USE_MOCK"] = "true"
 os.environ["JWT_SECRET"] = "secreto-de-pruebas-con-mas-de-32-caracteres"
 
 from app.config import get_settings  # noqa: E402
+from app.places.directory import get_place_directory  # noqa: E402
 from app.rag.engine import get_engine  # noqa: E402
 
 # Descarta cualquier configuración/motor cacheado que se hubiera construido
 # leyendo el `.env` antes de fijar la variable de entorno.
 get_settings.cache_clear()
 get_engine.cache_clear()
+get_place_directory.cache_clear()

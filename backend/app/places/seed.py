@@ -1,8 +1,7 @@
 """Carga de los lugares y categorías del campus a Postgres desde `places.json`.
 
-La semilla (`backend/db/seed/places.json`) la genera una sola vez
-`app.tools.places.export_seed`; esta carga **solo lee ese JSON** y no depende de
-`places.ts`, `places.py` ni del corpus (que se retirarán más adelante).
+La semilla (`backend/db/seed/places.json`) es la fuente inicial de los lugares (HU-22 y HU-29);
+esta carga **solo lee ese JSON**.
 
 - Valida todo ANTES de escribir: si un lugar no es válido, no se escribe nada y
   el error nombra el lugar y el motivo.

@@ -29,5 +29,5 @@
 - [ ] Commit `feat(backend): HU-30 …` con spec, plan, task y código
 
 ## Pendiente / notas
-- Conectar `PlaceSync` con `reindex_place` y la caché del asistente cuando exista HU-29 (un solo archivo: `app/places/sync.py`).
+- ~~Conectar `PlaceSync` con el asistente~~ Hecho en HU-29 (`app/places/sync.py`: `RagPlaceSync`).
 - La pantalla que usa estos endpoints es HU-31.

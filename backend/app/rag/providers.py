@@ -95,9 +95,10 @@ def build_retriever(settings: Settings) -> SupportsRetrieve:
 def _build_local_retriever(settings: Settings) -> Retriever:
     """Retriever local (bag-of-words + en memoria) sobre los documentos fuente."""
     from app.rag.embeddings import BagOfWordsEmbedding, build_vocabulary
+    from app.places.directory import seed_place_documents
     from app.rag.ingestion import load_documents
 
-    documents = load_documents(settings.knowledge_sources_dir)
+    documents = load_documents(settings.knowledge_sources_dir) + seed_place_documents()
     vocabulary = build_vocabulary([f"{d.title}. {d.text}" for d in documents])
     embedding = BagOfWordsEmbedding(vocabulary)
     return Retriever(

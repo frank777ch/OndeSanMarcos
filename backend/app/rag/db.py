@@ -319,6 +319,22 @@ class Database:
         with self.connection() as conn:
             return conn.execute(query, (place_id,)).fetchone()
 
+    _SYNC_PLACE_SELECT = (
+        "select p.*, c.label as category_label, parent.name as parent_name "
+        "from places p join place_categories c on c.id = p.category_id "
+        "left join places parent on parent.id = p.parent_place_id"
+    )
+
+    def place_for_sync(self, place_id: int) -> dict | None:
+        """Fila de un lugar (publicado o no) con la etiqueta de su categoría y el nombre de su contenedor."""
+        with self.connection() as conn:
+            return conn.execute(self._SYNC_PLACE_SELECT + " where p.id = %s", (place_id,)).fetchone()
+
+    def places_for_sync(self) -> list[dict]:
+        """Todos los lugares (publicados o no) en el formato de `place_for_sync`, por id."""
+        with self.connection() as conn:
+            return list(conn.execute(self._SYNC_PLACE_SELECT + " order by p.id").fetchall())
+
     def category_exists(self, category_id: int) -> bool:
         with self.connection() as conn:
             row = conn.execute("select 1 as x from place_categories where id = %s", (category_id,)).fetchone()
@@ -530,7 +546,8 @@ class Database:
 
     def _insert(self, conn: psycopg.Connection[Any], rows: list[dict]) -> None:
         query = sql.SQL(
-            "insert into {t} (content, metadata, embedding) values (%s, %s, %s::vector)"
+            "insert into {t} (content, metadata, embedding, source_type, source_id) "
+            "values (%s, %s, %s::vector, %s, %s)"
         ).format(t=self._table)
         for start in range(0, len(rows), _BATCH):
             batch = rows[start : start + _BATCH]
@@ -538,7 +555,13 @@ class Database:
                 cur.executemany(
                     query,
                     [
-                        (r["content"], Jsonb(r["metadata"]), vector_literal(r["embedding"]))
+                        (
+                            r["content"],
+                            Jsonb(r["metadata"]),
+                            vector_literal(r["embedding"]),
+                            r.get("source_type"),
+                            r.get("source_id"),
+                        )
                         for r in batch
                     ],
                 )
@@ -551,26 +574,52 @@ class Database:
                 self._insert(conn, rows)
 
     def count_place(self, place_id: str) -> int:
+        """Fragmentos de un lugar en el corpus, sin contar su ficha (`source_type = 'place'`)."""
         with self.connection() as conn:
             row = conn.execute(
-                sql.SQL("select count(*) as n from {t} where metadata->>'place_id' = %s").format(
-                    t=self._table
-                ),
+                sql.SQL(
+                    "select count(*) as n from {t} where metadata->>'place_id' = %s "
+                    "and source_type is distinct from 'place'"
+                ).format(t=self._table),
                 (place_id,),
             ).fetchone()
         return int(row["n"]) if row else 0
 
     def replace_place(self, place_id: str, rows: list[dict]) -> None:
-        """Borra los fragmentos del lugar e inserta los nuevos, en una transacción."""
+        """Borra los fragmentos del lugar e inserta los nuevos, en una transacción.
+
+        No toca la ficha del lugar (`source_type = 'place'`): esa se reemplaza con `replace_source`.
+        """
         with self.connection() as conn:
             with conn.transaction():
                 conn.execute(
-                    sql.SQL("delete from {t} where metadata->>'place_id' = %s").format(
-                        t=self._table
-                    ),
+                    sql.SQL(
+                        "delete from {t} where metadata->>'place_id' = %s "
+                        "and source_type is distinct from 'place'"
+                    ).format(t=self._table),
                     (place_id,),
                 )
                 self._insert(conn, rows)
+
+    def replace_source(self, source_type: str, source_id: str, rows: list[dict]) -> None:
+        """Reemplaza los fragmentos de un origen (p. ej. la ficha de un lugar), en una transacción."""
+        with self.connection() as conn:
+            with conn.transaction():
+                self._delete_source(conn, source_type, source_id)
+                self._insert(conn, rows)
+
+    def delete_source(self, source_type: str, source_id: str) -> int:
+        """Borra los fragmentos de un origen; devuelve cuántos había."""
+        with self.connection() as conn:
+            with conn.transaction():
+                return self._delete_source(conn, source_type, source_id)
+
+    def _delete_source(self, conn: psycopg.Connection[Any], source_type: str, source_id: str) -> int:
+        cur = conn.execute(
+            sql.SQL("delete from {t} where source_type = %s and source_id = %s").format(t=self._table),
+            (source_type, source_id),
+        )
+        return cur.rowcount
 
     def insert_rows(self, rows: list[dict]) -> None:
         with self.connection() as conn:

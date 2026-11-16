@@ -2,11 +2,11 @@
   "schema": "ondesanmarcos.knowledge-entries/v1",
   "source": "frontend/src/features/map/constants/unmsm.ts",
   "model": "gemini-2.5-flash",
-  "note": "Borradores generados por Gemini y anclados a unmsm.ts. Revisar la veracidad y ajustar 'status' a 'approved' antes de subir con upload_entries.",
+  "note": "Borradores generados por Gemini y anclados a unmsm.ts. Revisar la veracidad y ajustar 'status' a 'approved' antes de subir con upload_entries. Las entradas con status='integrated' ya se fusionaron en db/seed/places.json (HU-29): el asistente arma la ficha de esos lugares desde la tabla places y la ingesta ya no las carga.",
   "entries": [
     {
       "place_id": "rectorado",
-      "status": "uploaded",
+      "status": "integrated",
       "grounding": "low",
       "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
       "model": "assistant-reasoning (grounded, manual, one-off)",
@@ -39,7 +39,7 @@
     },
     {
       "place_id": "clinica-odontologia",
-      "status": "uploaded",
+      "status": "integrated",
       "grounding": "high",
       "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
       "model": "gemini-2.5-flash",
@@ -72,15 +72,15 @@
       "uploaded_chunks": 1
     },
     {
-      "place_id": "cafeteria-fqiq",
-      "status": "uploaded",
+      "place_id": "cafeteria-de-la-facultad-de-quimica-e-ingenieria-quimica",
+      "status": "integrated",
       "grounding": "high",
       "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
       "model": "assistant-reasoning (grounded, manual, one-off)",
       "document": {
         "id": "doc-cafeteria-fqiq",
         "title": "Cafetería de la Facultad de Química e Ingeniería Química",
-        "place_id": "cafeteria-fqiq",
+        "place_id": "cafeteria-de-la-facultad-de-quimica-e-ingenieria-quimica",
         "text": "La Cafetería de la Facultad de Química e Ingeniería Química es la cafetería principal de dicha facultad. Ofrece venta de alimentos, snacks, bebidas y postres. Atiende de lunes a sábado de 9:00 a 20:00."
       },
       "source_fields": {
@@ -111,15 +111,15 @@
       "uploaded_chunks": 1
     },
     {
-      "place_id": "cafeteria-civil",
-      "status": "uploaded",
+      "place_id": "cafeteria-de-la-facultad-de-ingenieria-civil",
+      "status": "integrated",
       "grounding": "high",
       "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
       "model": "assistant-reasoning (grounded, manual, one-off)",
       "document": {
         "id": "doc-cafeteria-civil",
         "title": "Cafetería de la Facultad de Ingeniería Civil",
-        "place_id": "cafeteria-civil",
+        "place_id": "cafeteria-de-la-facultad-de-ingenieria-civil",
         "text": "La Cafetería de la Facultad de Ingeniería Civil es la cafetería principal de dicha facultad. Ofrece venta de alimentos, snacks y bebidas. Atiende de lunes a sábado de 9:00 a 20:00."
       },
       "source_fields": {
@@ -148,15 +148,15 @@
       "uploaded_chunks": 1
     },
     {
-      "place_id": "cafeteria-odontologia",
-      "status": "uploaded",
+      "place_id": "cafeteria-de-la-facultad-de-odontologia",
+      "status": "integrated",
       "grounding": "high",
       "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
       "model": "assistant-reasoning (grounded, manual, one-off)",
       "document": {
         "id": "doc-cafeteria-odontologia",
         "title": "Cafetería de la Facultad de Odontología",
-        "place_id": "cafeteria-odontologia",
+        "place_id": "cafeteria-de-la-facultad-de-odontologia",
         "text": "La Cafetería de la Facultad de Odontología es la cafetería principal de dicha facultad. Ofrece venta de alimentos, snacks y bebidas. Atiende de lunes a sábado de 9:00 a 20:00."
       },
       "source_fields": {
@@ -186,7 +186,7 @@
     },
     {
       "place_id": "cafeteria-clinica-universitaria",
-      "status": "uploaded",
+      "status": "integrated",
       "grounding": "high",
       "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
       "model": "gemini-2.5-flash",
@@ -224,7 +224,7 @@
     },
     {
       "place_id": "cafeteria-industrial",
-      "status": "uploaded",
+      "status": "integrated",
       "grounding": "high",
       "review_note": "UNVERIFIED — revisar veracidad antes de aprobar.",
       "model": "assistant-reasoning (grounded, manual, one-off)",
