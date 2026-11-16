@@ -5,7 +5,7 @@
 # máquina (Python, Node). Requiere solo Docker con `docker compose`.
 #
 # Uso: ./scripts/preview.sh [comando] [args]
-#   up          (por defecto) construye y levanta todo en primer plano (Ctrl+C detiene).
+#   up          (por defecto) carga los lugares y categorías, construye y levanta todo en primer plano (Ctrl+C detiene).
 #               Escucha en 0.0.0.0: abre http://<IP-de-tu-Mac>:5173 desde el celular (misma wifi)
 #   up -d       levanta en segundo plano
 #   down        detiene y elimina los contenedores (la base de datos se conserva)
@@ -51,6 +51,13 @@ ensure_db() {
   compose run --rm migrate >/dev/null
 }
 
+# Carga los lugares y categorías del campus (db/seed/places.json) para que el mapa no salga vacío.
+# Es idempotente: no pisa lo que ya existe en la base.
+seed_places() {
+  ensure_db
+  compose run --rm --no-deps backend python -m app.places.seed
+}
+
 # IP de la red local, para abrir la web desde el celular (vacía si no se detecta).
 lan_ip() {
   ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null \
@@ -70,6 +77,7 @@ case "$cmd" in
       export LAN_API_URL="http://$ip:8000"
       echo "Celular (misma red wifi): http://$ip:5173"
     fi
+    seed_places
     compose up --build "$@"
     ;;
   down) compose down "$@" ;;
