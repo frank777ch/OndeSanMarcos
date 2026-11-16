@@ -18,6 +18,6 @@ __pycache__/
 # Datos de índices generados localmente
 .rag_cache/
 
-# Copias de seguridad de la base de datos (./script/dev.sh db-dump). Contienen los
-# vectores del asistente; se pueden versionar a propósito si el equipo lo decide.
+# Copias locales de la base de datos (./scripts/dev.sh db-dump). Lo que se versiona para
+# otras máquinas es la migración db/migrations/R__documents_snapshot.sql (db-snapshot).
 db/dumps/

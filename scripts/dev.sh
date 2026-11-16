@@ -20,6 +20,8 @@
 #   seed-places        carga los lugares del campus (backend/db/seed/places.json). No pisa lo que ya existe
 #   psql               abre una consola SQL de la base
 #   db-dump            guarda los datos en backend/db/dumps/ (no llama a Gemini)
+#   db-snapshot        guarda los vectores como migración de Flyway (R__documents_snapshot.sql). Se versiona
+#                      en git: quien clone el repo los recibe al levantar la base, sin llamar a Gemini
 #   db-restore [file]  restaura los datos desde un dump (por defecto, el último)
 #   db-reset [--yes]   BORRA la base de datos y la recrea vacía. Pide confirmación
 #
@@ -299,6 +301,24 @@ case "$cmd" in
     docker compose exec -T db pg_dump -U "$DB_USER" -d "$DB_NAME" --data-only --table=documents -Fc > "$file"
     cp "$file" "$DUMP_DIR/documents-latest.dump"
     echo "Guardado: $file (filas en la base: $(rows_in_db))"
+    ;;
+  db-snapshot)
+    docker compose up -d --wait db >/dev/null
+    count="$(rows_in_db)"
+    if [ "${count:-0}" = "0" ]; then
+      echo "La tabla documents está vacía: no se sobrescribe el snapshot. Corre ./scripts/dev.sh ingest primero." >&2
+      exit 1
+    fi
+    snapshot="backend/db/migrations/R__documents_snapshot.sql"
+    {
+      echo "-- GENERADO por ./scripts/dev.sh db-snapshot ($count filas). No editar a mano."
+      echo "-- Migración repetible: Flyway la vuelve a aplicar cuando cambia este archivo."
+      echo "-- Embeddings de gemini-embedding-001 (768 dim): ya no hace falta llamar a Gemini en otra máquina."
+      echo "truncate documents restart identity;"
+      docker compose exec -T db psql -U "$DB_USER" -d "$DB_NAME" -At -c "select format(E'insert into documents (content, metadata, embedding) values\n%s;', string_agg(format('(%L, %L::jsonb, %L::vector)', content, metadata, embedding::text), E',\n' order by id)) from documents"
+    } > "$snapshot.tmp"
+    mv "$snapshot.tmp" "$snapshot"
+    echo "Guardado: $snapshot ($count filas, $(du -h "$snapshot" | cut -f1)). Haz commit de ese archivo."
     ;;
   db-restore)
     file="${1:-$DUMP_DIR/documents-latest.dump}"
