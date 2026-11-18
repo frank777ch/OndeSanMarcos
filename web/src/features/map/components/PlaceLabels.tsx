@@ -53,6 +53,7 @@ export function PlaceLabels() {
           }}
         >
           {p.name}
+          {p.eventCount ? ` · ${p.eventCount} ${p.eventCount === 1 ? 'evento' : 'eventos'}` : ''}
         </div>
       ))}
     </div>

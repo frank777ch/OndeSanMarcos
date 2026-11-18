@@ -1,12 +1,17 @@
 import { useMemo } from 'react'
-import { LayoutGrid } from 'lucide-react'
+import { CalendarDays, LayoutGrid } from 'lucide-react'
 import { getCategoryIcon } from '../categoryIcons'
 import { useMapStore } from '../store/useMapStore'
 import { selectVisibleCategories, usePlacesStore } from '../store/usePlacesStore'
+import { selectUpcoming, useEventsStore } from '@/features/events/store/useEventsStore'
 import { cn } from '@/lib/cn'
 
 export function CategoryChips() {
   const activeCategory = useMapStore((s) => s.activeCategory)
+  const eventsMode = useMapStore((s) => s.eventsMode)
+  const toggleEventsMode = useMapStore((s) => s.toggleEventsMode)
+  const events = useEventsStore((s) => s.events)
+  const upcomingCount = useMemo(() => selectUpcoming(events).length, [events])
   const toggleCategory = useMapStore((s) => s.toggleCategory)
   const clearCategory = useMapStore((s) => s.clearCategory)
   const status = usePlacesStore((s) => s.status)
@@ -22,12 +27,30 @@ export function CategoryChips() {
 
   return (
     <div className="flex w-full min-w-0 gap-2 overflow-x-auto [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden" role="group" aria-label="Filtrar lugares por categoría">
+      {upcomingCount > 0 && (
+        <>
+          <button
+            type="button"
+            aria-pressed={eventsMode}
+            className={cn(
+              'inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition-colors',
+              eventsMode ? 'border-primary bg-primary text-on-primary' : 'border-border bg-bg text-ink hover:bg-surface',
+            )}
+            onClick={toggleEventsMode}
+          >
+            <CalendarDays size={16} aria-hidden="true" />
+            Eventos
+            <span className="rounded-full bg-black/10 px-1.5 text-xs">{upcomingCount}</span>
+          </button>
+          <span role="separator" aria-orientation="vertical" className="my-1 w-px flex-none bg-border" />
+        </>
+      )}
       <button
         type="button"
-        aria-pressed={activeCategory === null}
+        aria-pressed={activeCategory === null && !eventsMode}
         className={cn(
           'inline-flex flex-none items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition-colors',
-          activeCategory === null
+          activeCategory === null && !eventsMode
             ? 'border-primary bg-primary text-on-primary'
             : 'border-border bg-bg text-ink hover:bg-surface',
         )}

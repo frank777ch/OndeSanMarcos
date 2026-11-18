@@ -3,6 +3,8 @@ import { Route, X } from 'lucide-react'
 import { Button } from '@/components/Button/Button'
 import { IconButton } from '@/components/IconButton/IconButton'
 import { useRouteStore } from '@/features/routing/store/useRouteStore'
+import { groupByPlace, useUpcomingEvents } from '@/features/events/store/useEventsStore'
+import { EVENT_STATUS_LABELS, formatEventWhen } from '@/features/events/utils/eventTime'
 import { useMapActive } from '../MapActiveContext'
 import { useMapStore } from '../store/useMapStore'
 import { usePlacesStore } from '../store/usePlacesStore'
@@ -50,6 +52,8 @@ export function PlaceCard() {
   const selectedPlaceId = useMapStore((s) => s.selectedPlaceId)
   const clearSelection = useMapStore((s) => s.clearSelection)
   const place = usePlacesStore((s) => (selectedPlaceId ? s.byId[selectedPlaceId] : undefined)) ?? null
+  const upcoming = useUpcomingEvents()
+  const placeEvents = (selectedPlaceId ? groupByPlace(upcoming).get(selectedPlaceId) : undefined) ?? []
   const categoryLabel = usePlacesStore((s) => s.categories.find((c) => c.id === place?.category)?.label)
   const isOpen = place !== null
   const active = useMapActive()
@@ -114,6 +118,26 @@ export function PlaceCard() {
       >
         Cómo llegar
       </Button>
+
+      {placeEvents.length > 0 && (
+        <Section title="Próximos eventos">
+          <ul className="m-0 flex list-none flex-col gap-3 p-0">
+            {placeEvents.map((e) => (
+              <li key={e.id}>
+                <p className="font-medium">{e.title}</p>
+                <p className="text-muted">{formatEventWhen(e)}</p>
+                {e.locationDetail && <p className="text-muted">{e.locationDetail}</p>}
+                {e.status !== 'scheduled' && (
+                  <p className="font-medium text-danger">
+                    {EVENT_STATUS_LABELS[e.status]}
+                    {e.statusNote ? `: ${e.statusNote}` : ''}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       {place.schedule && (
         <Section title="Horario">

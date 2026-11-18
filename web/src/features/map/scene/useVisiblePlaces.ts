@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { groupByPlace, useUpcomingEvents } from '@/features/events/store/useEventsStore'
 import { useMapStore } from '../store/useMapStore'
 import { usePlacesStore } from '../store/usePlacesStore'
 import { filterPlaces } from '../utils/places'
@@ -12,6 +13,8 @@ export interface VisiblePlace {
   /** Posición en el mundo (metros): un metro sobre el suelo. */
   position: [number, number, number]
   color: string
+  /** Eventos próximos del lugar (solo en el modo «Eventos»). */
+  eventCount?: number
 }
 
 /** Lugares a dibujar: los de la categoría activa, con su color; vacío mientras no hay datos (RF-28.3). */
@@ -20,13 +23,20 @@ export function useVisiblePlaces(): VisiblePlace[] {
   const places = usePlacesStore((s) => s.places)
   const categories = usePlacesStore((s) => s.categories)
   const activeCategory = useMapStore((s) => s.activeCategory)
+  const eventsMode = useMapStore((s) => s.eventsMode)
+  const upcoming = useUpcomingEvents()
 
   return useMemo(() => {
     if (status !== 'ready') return []
     const colorByCategory = new Map(categories.map((c) => [c.id, c.color]))
-    return filterPlaces(places, activeCategory).map((p) => {
+    const byPlace = groupByPlace(upcoming)
+    const base = eventsMode ? places.filter((p) => byPlace.has(p.id)) : filterPlaces(places, activeCategory)
+    return base.map((p) => {
       const [x, z] = toLocal(p.coordinates)
-      return { id: p.id, name: p.name, position: [x, 1, z], color: colorByCategory.get(p.category) ?? FALLBACK_COLOR }
+      const color = colorByCategory.get(p.category) ?? FALLBACK_COLOR
+      return eventsMode
+        ? { id: p.id, name: p.name, position: [x, 1, z] as [number, number, number], color, eventCount: byPlace.get(p.id)!.length }
+        : { id: p.id, name: p.name, position: [x, 1, z] as [number, number, number], color }
     })
-  }, [status, places, categories, activeCategory])
+  }, [status, places, categories, activeCategory, eventsMode, upcoming])
 }
