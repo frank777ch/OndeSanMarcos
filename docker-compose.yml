@@ -21,6 +21,19 @@ services:
       timeout: 3s
       retries: 20
 
+  # Almacén S3 de las portadas de los lugares. Un solo nodo, solo desarrollo.
+  # La imagen no trae shell: el bucket y la llave los crea scripts/place-images.sh con `exec garage ...`.
+  garage:
+    image: dxflrs/garage:v2.1.0
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    ports:
+      # API S3 (subida): solo localhost. Web pública (lectura): también por la red local, para el celular.
+      - "127.0.0.1:${GARAGE_S3_PORT:-3900}:3900"
+      - "0.0.0.0:${GARAGE_WEB_PORT:-3902}:3902"
+
   migrate:
     image: flyway/flyway:11
     command: migrate
@@ -36,3 +49,5 @@ services:
 
 volumes:
   db_data:
+  garage_meta:
+  garage_data:

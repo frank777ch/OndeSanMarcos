@@ -9,7 +9,11 @@ services:
     env_file:
       - path: ./backend/.env
         required: false
+      # Credenciales de desarrollo del almacén de imágenes (Garage).
+      - ./infra/garage/dev.env
     environment:
+      # Dentro de Docker Garage está en el host `garage` (tiene prioridad sobre dev.env).
+      S3_ENDPOINT_URL: http://garage:3900
       # Dentro de Docker la base está en el host `db` (tiene prioridad sobre .env).
       DATABASE_URL: postgresql://ondesanmarcos:ondesanmarcos@db:5432/ondesanmarcos
     # --reload recarga el servidor al editar el código montado en /app.

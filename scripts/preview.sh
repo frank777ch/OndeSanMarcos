@@ -5,7 +5,7 @@
 # máquina (Python, Node). Requiere solo Docker con `docker compose`.
 #
 # Uso: ./scripts/preview.sh [comando] [args]
-#   up          (por defecto) carga los lugares y categorías, construye y levanta todo en primer plano (Ctrl+C detiene).
+#   up          (por defecto) carga los lugares, categorías y portadas, construye y levanta todo en primer plano (Ctrl+C detiene).
 #               Escucha en 0.0.0.0: abre http://<IP-de-tu-Mac>:5173 desde el celular (misma wifi)
 #   up -d       levanta en segundo plano
 #   down        detiene y elimina los contenedores (la base de datos se conserva)
@@ -78,6 +78,8 @@ case "$cmd" in
       echo "Celular (misma red wifi): http://$ip:5173"
     fi
     seed_places
+    # Las portadas son opcionales: si Garage falla, el resto del entorno sigue arrancando.
+    ./scripts/place-images.sh || echo "Aviso: no se pudieron cargar las portadas de los lugares." >&2
     compose up --build "$@"
     ;;
   down) compose down "$@" ;;

@@ -19,6 +19,8 @@
 #   ingest [--force]   embebe el corpus y lo carga en la base. Se niega si ya hay datos
 #   reindex-places     vuelve a sincronizar todos los lugares con el asistente (una llamada a Gemini por lugar)
 #   seed-places        carga los lugares del campus (backend/db/seed/places.json). No pisa lo que ya existe
+#   place-images       sube las portadas de los lugares a Garage (almacén S3 en Docker) y las enlaza en la base.
+#                      También se ejecuta al hacer `up`. No pisa un image_url ya puesto
 #   psql               abre una consola SQL de la base
 #   db-dump            guarda los datos en backend/db/dumps/ (no llama a Gemini)
 #   db-snapshot        guarda los vectores como migración de Flyway (R__documents_snapshot.sql). Se versiona
@@ -47,6 +49,12 @@ fi
 # El backend y los scripts de la base usan siempre la base de Docker publicada en localhost.
 # La variable de entorno tiene prioridad sobre backend/.env.
 export DATABASE_URL="postgresql://$DB_USER:$DB_USER@localhost:${DB_PORT:-5432}/$DB_NAME"
+
+# Almacén de imágenes de los lugares (Garage, en Docker): el backend sube ahí las portadas desde el panel.
+set -a
+# shellcheck disable=SC1091
+. infra/garage/dev.env
+set +a
 
 # Crea los .env desde los ejemplos si no existen.
 # El backend arranca en modo mock (RAG_USE_MOCK=true): no necesita llaves.
@@ -232,6 +240,8 @@ case "$cmd" in
       esac
     done
     prepare_local
+    # Las portadas son opcionales: si Garage falla, el resto del entorno sigue arrancando.
+    ./scripts/place-images.sh || echo "Aviso: no se pudieron cargar las portadas de los lugares." >&2
     announce
     start_backend
     start_web
@@ -296,6 +306,10 @@ case "$cmd" in
     ensure_db
     ensure_backend_deps
     (cd backend && "$VENV/bin/python" -m app.places.seed "$@")
+    ;;
+  place-images)
+    ensure_db
+    ./scripts/place-images.sh
     ;;
   psql)
     docker compose up -d db >/dev/null
