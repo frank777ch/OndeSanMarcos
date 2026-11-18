@@ -121,6 +121,41 @@ describe('PlaceCard', () => {
     })
   })
 
+  describe('portada', () => {
+    const withCover = {
+      id: 9002,
+      slug: 'con-portada',
+      name: 'Lugar con portada',
+      category: catId('servicios'),
+      coordinates: [-77.08, -12.05] as [number, number],
+      keywords: [],
+      imageUrl: 'http://localhost:3902/con-portada.jpg',
+    }
+
+    it('con imagen la muestra', () => {
+      seedPlaces([withCover])
+      const { container } = render(<PlaceCard />)
+      open(withCover.id)
+      expect(container.querySelector('img')).toHaveAttribute('src', withCover.imageUrl)
+    })
+
+    it('sin imagen no se muestra nada: ni mock ni icono', () => {
+      const { container } = render(<PlaceCard />)
+      open('puerta-3')
+      expect(container.querySelector('img')).toBeNull()
+    })
+
+    it('si la imagen no carga, se quita en vez de dejar el icono roto', () => {
+      seedPlaces([withCover])
+      const { container } = render(<PlaceCard />)
+      open(withCover.id)
+      act(() => {
+        container.querySelector('img')!.dispatchEvent(new Event('error'))
+      })
+      expect(container.querySelector('img')).toBeNull()
+    })
+  })
+
   it('RF-12.10: los auditorios muestran su uso', () => {
     render(<PlaceCard />)
     open('auditorio-rosa-alarco-larraburre')

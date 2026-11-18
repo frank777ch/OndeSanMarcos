@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Route, X } from 'lucide-react'
 import { Button } from '@/components/Button/Button'
 import { IconButton } from '@/components/IconButton/IconButton'
@@ -15,6 +15,13 @@ function isHttpUrl(value: string): boolean {
   } catch {
     return false
   }
+}
+
+/** Portada del lugar. Si falla la carga (p. ej. el almacén de imágenes está apagado) no deja ni el icono roto. */
+function Cover({ url }: { url: string }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) return null
+  return <img src={url} alt="" onError={() => setFailed(true)} className="h-32 w-24 shrink-0 rounded-md object-cover" />
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -78,20 +85,25 @@ export function PlaceCard() {
   const website = place.website ?? null
 
   return (
-    <aside role="dialog" aria-labelledby={titleId} className="mt-auto min-h-0 w-[min(24rem,100%)] flex-[0_1_auto] overflow-y-auto rounded-lg border border-border bg-bg px-6 py-4 shadow-lg">
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg">
-            {/* La etiqueta del diálogo es solo el nombre (RF-12.16); la sigla (RF-12.19) queda fuera de ella. */}
-            <span id={titleId}>{place.name}</span>
-            {place.shortName && <span className="font-body text-sm font-normal text-muted"> · {place.shortName}</span>}
-          </h2>
-          <p className="text-sm text-muted">{categoryLabel}</p>
-        </div>
-        <IconButton ref={closeRef} label="Cerrar" onClick={clearSelection}>
-          <X size={18} />
-        </IconButton>
-      </header>
+    <aside role="dialog" aria-labelledby={titleId} className="mt-auto flex min-h-0 w-[min(24rem,100%)] flex-[0_1_auto] flex-col overflow-hidden rounded-lg border border-border bg-bg shadow-lg">
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 [scrollbar-gutter:stable]">
+      <div className="flex gap-4">
+        {/* `key` reinicia el estado de error al cambiar de lugar. Sin imagen no se muestra nada. */}
+        {place.imageUrl && <Cover key={place.imageUrl} url={place.imageUrl} />}
+        <header className="flex min-w-0 flex-1 items-start justify-between gap-2">
+          <div>
+            <h2 className="text-lg leading-snug">
+              {/* La etiqueta del diálogo es solo el nombre (RF-12.16); la sigla (RF-12.19) queda fuera de ella. */}
+              <span id={titleId}>{place.name}</span>
+              {place.shortName && <span className="font-body text-sm font-normal text-muted"> · {place.shortName}</span>}
+            </h2>
+            <p className="text-sm text-muted">{categoryLabel}</p>
+          </div>
+          <IconButton ref={closeRef} label="Cerrar" onClick={clearSelection}>
+            <X size={18} />
+          </IconButton>
+        </header>
+      </div>
 
       <Button
         size="sm"
@@ -157,6 +169,7 @@ export function PlaceCard() {
           <List items={place.services} />
         </Section>
       )}
+      </div>
     </aside>
   )
 }
