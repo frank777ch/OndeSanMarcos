@@ -170,6 +170,16 @@ export async function reindexAdminPlace(id: number): Promise<SavedPlace> {
   return toSaved(await adminClient.post<RawPlace>(endpoint, {}), endpoint)
 }
 
+/** Sube la imagen de portada de un lugar y devuelve su dirección pública (para `imageUrl`). */
+export async function uploadPlaceImage(file: File): Promise<string> {
+  const endpoint = '/api/admin/place-images'
+  const form = new FormData()
+  form.append('file', file)
+  const raw = await adminClient.postForm<{ url?: unknown }>(endpoint, form)
+  if (typeof raw?.url !== 'string' || raw.url === '') throw invalid(endpoint, 'la respuesta no trae la dirección de la imagen')
+  return raw.url
+}
+
 /** Borra el lugar; `ragSync` dice si su ficha ya se quitó del asistente. */
 export async function deleteAdminPlace(id: number): Promise<RagSync> {
   const raw = await adminClient.delete<{ rag_sync?: unknown }>(`/api/admin/places/${id}`)

@@ -53,6 +53,8 @@ function logFailure(error: ApiError): void {
 
 interface RequestOptions {
   body?: unknown
+  /** Cuerpo `multipart/form-data` (subida de archivos). El navegador fija el `Content-Type` con su frontera. */
+  form?: FormData
   /** Cabeceras extra (p. ej. `Authorization`). Solo las añade `adminClient`. */
   headers?: Record<string, string>
   /** Pide al servidor revalidar aunque el navegador tenga una copia vigente (`Cache-Control: no-cache`). */
@@ -91,10 +93,10 @@ async function request<T>(method: Method, endpoint: string, options: RequestOpti
       response = await fetch(url, {
         method,
         headers: {
-          ...(SENDS_BODY.includes(method) ? { 'Content-Type': 'application/json' } : {}),
+          ...(SENDS_BODY.includes(method) && !options.form ? { 'Content-Type': 'application/json' } : {}),
           ...options.headers,
         },
-        body: SENDS_BODY.includes(method) ? JSON.stringify(options.body) : undefined,
+        body: options.form ?? (SENDS_BODY.includes(method) ? JSON.stringify(options.body) : undefined),
         cache: options.fresh ? 'no-cache' : undefined,
         signal: controller.signal,
       })
@@ -143,6 +145,8 @@ export const apiClient = {
     request<T>('POST', endpoint, { body, headers }),
   put: <T>(endpoint: string, body: unknown, headers?: Record<string, string>) =>
     request<T>('PUT', endpoint, { body, headers }),
+  postForm: <T>(endpoint: string, form: FormData, headers?: Record<string, string>) =>
+    request<T>('POST', endpoint, { form, headers }),
   delete: <T>(endpoint: string, headers?: Record<string, string>) =>
     request<T>('DELETE', endpoint, { headers }),
   get: <T>(endpoint: string, headers?: Record<string, string>, options?: { fresh?: boolean; signal?: AbortSignal }) =>

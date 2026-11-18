@@ -24,6 +24,8 @@ export const adminClient = {
     authenticated((headers) => apiClient.post<T>(endpoint, body, headers)),
   put: <T>(endpoint: string, body: unknown) =>
     authenticated((headers) => apiClient.put<T>(endpoint, body, headers)),
+  postForm: <T>(endpoint: string, form: FormData) =>
+    authenticated((headers) => apiClient.postForm<T>(endpoint, form, headers)),
   delete: <T>(endpoint: string) => authenticated((headers) => apiClient.delete<T>(endpoint, headers)),
 }
 

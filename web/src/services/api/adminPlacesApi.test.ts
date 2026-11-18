@@ -10,6 +10,7 @@ import {
   saveAdminPlace,
   toAdminPlace,
   toInput,
+  uploadPlaceImage,
 } from './adminPlacesApi'
 import { ApiError } from './client'
 import { catId } from '@/test/fixtures/places'
@@ -165,5 +166,41 @@ describe('parseFieldErrors · RF-31.17', () => {
     expect(parseFieldErrors(err([{ loc: ['body'], msg: 'Value error, raro' }])).general).toBe('raro')
     expect(parseFieldErrors(new ApiError('network', 'x'))).toEqual({ fields: {} })
     expect(parseFieldErrors(new Error('x'))).toEqual({ fields: {} })
+  })
+})
+
+describe('uploadPlaceImage', () => {
+  const image = () => new File(['abc'], 'foto.jpg', { type: 'image/jpeg' })
+
+  it('envía el archivo como multipart con el token, sin forzar Content-Type JSON, y devuelve la dirección', async () => {
+    fetchMock.mockImplementation(() => json({ url: 'http://localhost:3902/uploads/a.jpg' }, 201))
+    const file = image()
+    await expect(uploadPlaceImage(file)).resolves.toBe('http://localhost:3902/uploads/a.jpg')
+    const [url, init] = lastCall()
+    expect(url).toMatch(/\/api\/admin\/place-images$/)
+    expect(init.method).toBe('POST')
+    const headers = init.headers as Record<string, string>
+    expect(headers.Authorization).toBe('Bearer tok')
+    expect(headers['Content-Type']).toBeUndefined() // lo fija el navegador, con la frontera del multipart
+    expect(init.body).toBeInstanceOf(FormData)
+    expect((init.body as FormData).get('file')).toBe(file)
+  })
+
+  it('una respuesta sin dirección es un error «invalid»', async () => {
+    fetchMock.mockImplementation(() => json({ otra: 'cosa' }, 201))
+    await expect(uploadPlaceImage(image())).rejects.toMatchObject({ kind: 'invalid' })
+  })
+
+  it('el rechazo del servidor llega como ApiError con su detalle', async () => {
+    fetchMock.mockImplementation(() => json({ detail: 'La imagen pesa más de 5 MB.' }, 413))
+    const error = await uploadPlaceImage(image()).catch((e) => e)
+    expect(error).toBeInstanceOf(ApiError)
+    expect(parseFieldErrors(error).general).toBe('La imagen pesa más de 5 MB.')
+  })
+
+  it('un 401 cierra la sesión', async () => {
+    fetchMock.mockImplementation(() => json({ detail: 'no' }, 401))
+    await uploadPlaceImage(image()).catch(() => undefined)
+    expect(useAuthStore.getState().session).toBeNull()
   })
 })

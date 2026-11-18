@@ -10,7 +10,7 @@ import { EMPTY_FILTERS } from '../utils/filters'
 import { PlaceFormDialog } from './PlaceFormDialog'
 import { catId } from '@/test/fixtures/places'
 
-const api = vi.hoisted(() => ({ saveAdminPlace: vi.fn(), listAdminCategories: vi.fn() }))
+const api = vi.hoisted(() => ({ saveAdminPlace: vi.fn(), listAdminCategories: vi.fn(), uploadPlaceImage: vi.fn() }))
 vi.mock('@/services/api/adminPlacesApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/api/adminPlacesApi')>()),
   ...api,
@@ -47,6 +47,7 @@ const save = () => screen.getByRole('button', { name: /^Guardar|Guardando/ })
 beforeEach(() => {
   onClose.mockReset()
   api.saveAdminPlace.mockReset()
+  api.uploadPlaceImage.mockReset()
   api.listAdminCategories.mockResolvedValue(ADMIN_CATEGORIES)
   useToastStore.setState({ toasts: [] })
   usePlacesStore.setState({ refresh: vi.fn() })
@@ -93,7 +94,7 @@ describe('PlaceFormDialog · diálogo (RF-31.11, RF-31.12)', () => {
     for (const label of [
       /^Nombre \*/, 'Nombre corto o sigla', 'Latitud *', 'Longitud *', 'Horario (resumen)', 'Detalle del horario',
       'Teléfono', 'Anexo', 'Correo', 'Página web', 'Descripción', 'Cómo encontrarlo', 'Para qué se usa',
-      'Palabras clave', 'Carreras', 'Servicios',
+      'Imagen de portada', 'Palabras clave', 'Carreras', 'Servicios',
     ]) {
       expect(screen.getByLabelText(label)).toBeInTheDocument()
     }
@@ -191,6 +192,41 @@ describe('PlaceFormDialog · guardar (RF-31.16 a RF-31.18)', () => {
     }))
     expect(useToastStore.getState().toasts.map((t) => t.message)).toContain('Lugar guardado')
     expect(useAdminPlacesStore.getState().places.map((p) => p.id)).toContain(adminId('laboratorio'))
+  })
+
+  it('la imagen elegida se sube y su dirección viaja como imageUrl al guardar', async () => {
+    api.uploadPlaceImage.mockResolvedValue('http://localhost:3902/uploads/a.jpg')
+    api.saveAdminPlace.mockResolvedValue({ place: adminPlace('laboratorio', { name: 'Laboratorio' }), ragSync: 'ok' })
+    await renderDialog()
+    await fillRequired()
+    await userEvent.upload(screen.getByLabelText('Imagen de portada'), new File(['x'], 'foto.jpg', { type: 'image/jpeg' }))
+    expect(await screen.findByRole('img', { name: 'Vista previa de la portada' })).toHaveAttribute('src', 'http://localhost:3902/uploads/a.jpg')
+    await userEvent.click(save())
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
+    expect(api.saveAdminPlace).toHaveBeenCalledWith(null, expect.objectContaining({ imageUrl: 'http://localhost:3902/uploads/a.jpg' }))
+  })
+
+  it('sin tocar la imagen se guarda sin ella (es opcional) y «Quitar» la deja vacía', async () => {
+    api.saveAdminPlace.mockResolvedValue({ place: adminPlace('laboratorio', { name: 'Laboratorio' }), ragSync: 'ok' })
+    await renderDialog(adminPlace('fisi', { imageUrl: 'http://x/y.jpg' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Quitar' }))
+    expect(screen.queryByRole('img', { name: 'Vista previa de la portada' })).not.toBeInTheDocument()
+    await userEvent.click(save())
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
+    expect(api.saveAdminPlace).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ imageUrl: null }))
+  })
+
+  it('mientras sube la imagen no se puede guardar', async () => {
+    let finish!: (url: string) => void
+    api.uploadPlaceImage.mockReturnValue(new Promise<string>((r) => (finish = r)))
+    await renderDialog()
+    await fillRequired()
+    expect(save()).toBeEnabled()
+    await userEvent.upload(screen.getByLabelText('Imagen de portada'), new File(['x'], 'foto.jpg', { type: 'image/jpeg' }))
+    expect(save()).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Subiendo…' })).toBeDisabled()
+    await act(async () => finish('http://x/ok.jpg'))
+    await waitFor(() => expect(save()).toBeEnabled())
   })
 
   it('RF-31.16: editar reemplaza con PUT al id del lugar', async () => {

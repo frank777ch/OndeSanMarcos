@@ -11,6 +11,7 @@ import { useAdminCategoriesStore } from '../../categories/store/useAdminCategori
 import { useAdminPlacesStore } from '../store/useAdminPlacesStore'
 import type { AdminPlace } from '../types'
 import { inPlaceArea } from '../utils/bounds'
+import { PlaceImageField } from './PlaceImageField'
 import {
   canSubmit,
   coordinateErrors,
@@ -36,7 +37,7 @@ interface PlaceFormDialogProps {
 /** Orden de los campos: el foco va al primero con error (RF-31.17). */
 const FIELD_ORDER: (keyof PlaceForm)[] = [
   'name', 'shortName', 'categoryId', 'lat', 'lng', 'schedule', 'detailedSchedule', 'phone', 'annex',
-  'email', 'website', 'description', 'accessHint', 'usage', 'keywords', 'careers', 'services',
+  'email', 'website', 'description', 'accessHint', 'usage', 'imageUrl', 'keywords', 'careers', 'services',
   'parentPlaceId',
 ]
 
@@ -70,6 +71,7 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [general, setGeneral] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
 
   const categories = useAdminCategoriesStore((s) => s.categories)
@@ -113,7 +115,7 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    if (saving || !canSubmit(form)) return
+    if (saving || uploading || !canSubmit(form)) return
     setSaving(true)
     setErrors({})
     setGeneral(null)
@@ -217,6 +219,16 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
               <Textarea label="Descripción" rows={4} maxLength={5000} {...text('description')} />
               <Textarea label="Cómo encontrarlo" rows={2} maxLength={300} {...text('accessHint')} />
               <Input label="Para qué se usa" maxLength={300} {...text('usage')} />
+              <PlaceImageField
+                id={fieldId('imageUrl')}
+                value={form.imageUrl}
+                error={errors.imageUrl}
+                onChange={(url) => {
+                  set('imageUrl')(url)
+                  if (errors.imageUrl) setErrors((prev) => ({ ...prev, imageUrl: '' }))
+                }}
+                onBusyChange={setUploading}
+              />
             </Section>
 
             <Section title="Listas">
@@ -243,7 +255,7 @@ export function PlaceFormDialog({ place, onClose }: PlaceFormDialogProps) {
             <Button variant="secondary" onClick={requestClose} disabled={saving}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!canSubmit(form) || saving} aria-busy={saving}>
+            <Button type="submit" disabled={!canSubmit(form) || saving || uploading} aria-busy={saving}>
               {saving ? 'Guardando…' : 'Guardar'}
             </Button>
           </div>
