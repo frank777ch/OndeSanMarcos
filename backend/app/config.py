@@ -65,6 +65,16 @@ class Settings(BaseSettings):
     # Caché en disco de los embeddings de documentos (evita gastar cuota de Gemini).
     embedding_cache_path: str = ".rag_cache/embeddings.jsonl"
 
+    # --- Imágenes de los lugares (Garage u otro almacén compatible con S3) ---
+    # Vacío `s3_endpoint_url` = sin almacén: la subida de imágenes responde 503.
+    s3_endpoint_url: str = ""
+    s3_access_key: str = ""
+    s3_secret_key: str = ""
+    s3_bucket: str = "lugares"
+    s3_region: str = "garage"
+    # Dirección pública desde la que el navegador lee las imágenes (sin barra final).
+    place_images_public_url: str = "http://localhost:3902"
+
     # --- Administrador inicial (se crea al arrancar si no existe) ---
     # Cambia la contraseña fuera de desarrollo. Vacío = no crear ninguno.
     admin_username: str = ""

@@ -217,6 +217,18 @@ dato, opcional: `short_name` (migración `V10` y `places.json` la rellenan; el `
   nada y el error nombra el lugar.
 - Tras `db-reset` hay que volver a correr `seed-places` (las migraciones crean las
   tablas vacías). Para rehacer un lugar, bórralo con `psql` y vuelve a cargar.
+- **Portadas.** Las fotos de la ficha (`db/seed/place-images/<slug>.jpg`, con autor y licencia en
+  `credits.json`) viven en Garage, un almacén S3 en Docker (`docker-compose.yml`, solo desarrollo).
+  `./scripts/dev.sh place-images` (y `up`) las sube y rellena `image_url` con
+  `http://localhost:3902/<slug>.jpg` solo donde esté vacío, así que no pisa lo editado desde el panel.
+  Un lugar sin foto no muestra nada en la ficha.
+  Desde el panel, el formulario del lugar sube la imagen con `POST /api/admin/place-images` (JPG, PNG o
+  WebP de hasta 5 MB; el tipo se valida por los bytes): la guarda en `uploads/` del mismo bucket y devuelve
+  la dirección pública que queda en `image_url`. Necesita `S3_ENDPOINT_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`,
+  `S3_BUCKET`, `S3_REGION` y `PLACE_IMAGES_PUBLIC_URL`; en desarrollo salen de `infra/garage/dev.env` (llave
+  fija y pública, solo para el Garage local). Sin ellas el endpoint responde 503. Una imagen que se sube y luego
+  no se guarda (o se reemplaza) queda huérfana en el bucket: no se borra sola. Desde el celular por la IP de la red local las fotos
+  no cargan (Garage no admite una IP como nombre de bucket) y la ficha las oculta.
 - `db/seed/places.json` es la semilla versionada; `db/seed/place_id_map.json` traduce
   los ids antiguos de la web (`"8"`) a los slugs (`fisi`). La semilla identifica cada lugar
   por `slug` (y su padre por `parent_slug`); el `id` lo asigna la base, así que una segunda

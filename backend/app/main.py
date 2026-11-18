@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app import __version__
+from app.api.admin_images import router as admin_images_router
 from app.api.admin_places import categories_router as admin_categories_router
 from app.api.admin_places import places_router as admin_places_router
 from app.api.auth import router as auth_router
@@ -111,6 +112,7 @@ def create_app() -> FastAPI:
     app.include_router(places_router)
     app.include_router(admin_places_router)
     app.include_router(admin_categories_router)
+    app.include_router(admin_images_router)
     return app
 
 
