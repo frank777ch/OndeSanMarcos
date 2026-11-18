@@ -161,7 +161,7 @@ def update_place(
     responses={
         **_DB,
         404: {"description": "No existe."},
-        409: {"description": "Otros lugares lo tienen como contenedor."},
+        409: {"description": "Otros lugares lo tienen como contenedor o hay eventos en él."},
     },
     summary="Borrar un lugar",
 )
@@ -171,7 +171,7 @@ def delete_place(
     store: AdminPlacesStore = Depends(get_admin_places_store),
     sync: PlaceSync = Depends(get_place_sync),
 ) -> PlaceDeletedOut:
-    """Borra el lugar y su ficha del asistente. Si contiene otros lugares no se puede (409)."""
+    """Borra el lugar y su ficha del asistente. Si contiene otros lugares o hay eventos en él, no se puede (409)."""
     pid = _pid(place_id)
     result, detail = store.delete_place(pid)
     if result == "not_found":
@@ -180,6 +180,12 @@ def delete_place(
         noun = "lugar" if detail == 1 else "lugares"
         raise HTTPException(
             status_code=409, detail=f"No se puede borrar: contiene {detail} {noun}. Muévelos o bórralos antes."
+        )
+    if result == "has_events":
+        noun = "evento" if detail == 1 else "eventos"
+        raise HTTPException(
+            status_code=409,
+            detail=f"No se puede borrar: tiene {detail} {noun}. Bórralos o cámbialos de lugar antes.",
         )
     logger.info("lugar borrado id=%s por=%s", pid, admin)
     return PlaceDeletedOut(rag_sync=safe_remove(sync, str(detail)))

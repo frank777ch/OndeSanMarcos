@@ -18,6 +18,7 @@
 # Base de datos (los vectores del asistente cuestan llamadas a Gemini: se cuidan):
 #   ingest [--force]   embebe el corpus y lo carga en la base. Se niega si ya hay datos
 #   reindex-places     vuelve a sincronizar todos los lugares con el asistente (una llamada a Gemini por lugar)
+#   reindex-events     vuelve a sincronizar todos los eventos con el asistente (una llamada a Gemini por fragmento)
 #   seed-places        carga los lugares del campus (backend/db/seed/places.json). No pisa lo que ya existe
 #   place-images       sube las portadas de los lugares a Garage (almacén S3 en Docker) y las enlaza en la base.
 #                      También se ejecuta al hacer `up`. No pisa un image_url ya puesto
@@ -301,6 +302,11 @@ case "$cmd" in
     ensure_db
     ensure_backend_deps
     (cd backend && "$VENV/bin/python" -m app.places.reindex "$@")
+    ;;
+  reindex-events)
+    ensure_db
+    ensure_backend_deps
+    (cd backend && "$VENV/bin/python" -m app.events.reindex "$@")
     ;;
   seed-places)
     ensure_db

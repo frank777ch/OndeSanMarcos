@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from tests.fake_events import FakeEventsMixin
 from tests.fake_places_admin import FakePlacesAdminMixin
 
 
-class FakeDatabase(FakePlacesAdminMixin):
+class FakeDatabase(FakePlacesAdminMixin, FakeEventsMixin):
     """Misma interfaz que `app.rag.db.Database`, en memoria."""
 
     def __init__(self, existing: int = 0, places: dict[str, int] | None = None):
@@ -15,6 +16,7 @@ class FakeDatabase(FakePlacesAdminMixin):
         self.place_replacements: dict[str, list[dict]] = {}
         self.categories: dict[int, dict] = {}
         self.place_rows: dict[int, dict] = {}
+        self.event_rows: dict[int, dict] = {}
         self.insert_calls = 0
         self.sync_places: list[dict] = []  # filas de `places_for_sync`
 

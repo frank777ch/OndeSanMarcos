@@ -297,6 +297,15 @@ curl -s localhost:8000/api/admin/places -H "Authorization: Bearer $TOKEN" \
   -d '{"name":"Laboratorio de Redes","category_id":1,"lat":-12.0535,"lng":-77.0857}'
 ```
 
+## 📅 Eventos del campus (tabla `events`)
+
+Charlas, ferias, campeonatos… Cada fecha es un evento aparte (no hay recurrencia). Se administran desde el panel (pestaña «Eventos») y el asistente los conoce.
+
+- **Público:** `GET /api/events` (sin autenticación, cacheable 60 s): eventos publicados, no cancelados y que aún no terminaron, por fecha de inicio. Un evento sin `place_id` (virtual) también sale; el mapa solo dibuja los que tienen lugar.
+- **Administración** (sesión de administrador): `GET/POST /api/admin/events`, `GET/PUT/DELETE /api/admin/events/{id}`, `POST /api/admin/events/{id}/reindex`. Igual que en lugares, `PUT` reemplaza todos los campos y la respuesta trae `rag_sync` (`ok`, `skipped` o `failed`). Un lugar con eventos no se puede borrar (409).
+- **Horas:** se guardan en UTC y se escriben siempre en hora de Lima (UTC-5). Una fecha sin zona se toma como hora de Lima. Sin `ends_at`, el evento termina a la medianoche de Lima del día de inicio.
+- **Asistente:** cada evento publicado y vigente es un documento `source_type='event'` con `metadata.expires_at`; `match_documents` (V13) deja de devolverlo al terminar, sin tareas programadas. Despublicar o borrar quita el documento; cancelar lo mantiene diciendo «CANCELADO». El prompt incluye «Hoy es …» para que compare fechas. Para rehacer todos: `./scripts/dev.sh reindex-events`.
+
 ## 🔐 Login de administrador
 
 - `POST /api/auth/login` con `{ "username", "password" }` → `{ "access_token", "token_type": "bearer", "expires_in" }`. Credenciales incorrectas: 401 (mismo mensaje exista o no el usuario). Tras 5 intentos fallidos seguidos de un usuario: 429 con `Retry-After` durante 15 minutos (contador en memoria: pensado para una sola instancia).

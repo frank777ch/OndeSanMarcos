@@ -109,19 +109,30 @@ def split_documents(
 
 
 def document_rows(
-    document: Document, embedding, settings: Settings, source_type: str = "corpus"
+    document: Document,
+    embedding,
+    settings: Settings,
+    source_type: str = "corpus",
+    *,
+    source_id: str | None = None,
+    expires_at: str | None = None,
+    single_chunk: bool = False,
 ) -> list[dict]:
     """Trocea y embebe un documento; devuelve las filas listas para insertar en `documents`.
 
     `source_type` indica el origen: `corpus`, `entry` o `place`. El `source_id` es el slug del
     lugar en las fichas (`place`) y el id del documento en el resto; así una ficha se reemplaza
-    por su slug (HU-29).
+    por su slug (HU-29). `source_id` lo fija quien llama cuando el documento no se identifica por su
+    id (los eventos, cuyo `place_id` es el lugar donde ocurren). `expires_at` (fecha ISO con zona)
+    hace que el fragmento deje de recuperarse pasada esa fecha (V13). Con `single_chunk` el documento
+    no se parte (los eventos son cortos): un trozo suelto («Aula 203. Organiza…») no dice de qué
+    evento habla y el asistente lo confunde con otro.
     """
-    source_id = (document.place_id or document.id) if source_type == "place" else document.id
+    if source_id is None:
+        source_id = (document.place_id or document.id) if source_type == "place" else document.id
     rows: list[dict] = []
-    for chunk in split_document(
-        document, chunk_size=settings.rag_chunk_size, overlap=settings.rag_chunk_overlap
-    ):
+    size, overlap = (10_000, 0) if single_chunk else (settings.rag_chunk_size, settings.rag_chunk_overlap)
+    for chunk in split_document(document, chunk_size=size, overlap=overlap):
         rows.append(
             {
                 "content": chunk.text,
@@ -130,6 +141,7 @@ def document_rows(
                     "place_id": chunk.place_id,
                     "title": chunk.title,
                     "position": chunk.position,
+                    **({"expires_at": expires_at} if expires_at else {}),
                 },
                 "embedding": embedding.embed_document(f"{chunk.title}. {chunk.text}"),
                 "source_type": source_type,

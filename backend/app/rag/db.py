@@ -26,6 +26,7 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool, PoolTimeout
 
 from app.config import Settings
+from app.events.timeutil import as_lima
 from app.places.text import MAX_SLUG_LENGTH, slugify
 from app.rag.errors import RagProviderError
 
@@ -34,6 +35,7 @@ _BATCH = 100
 # Clave del bloqueo de aviso (advisory lock) que serializa la creación de lugares.
 _PLACE_SLUG_LOCK = 38_0001
 _CATEGORY_SLUG_LOCK = 39_0001
+_EVENT_SLUG_LOCK = 40_0001
 
 # Columnas de `places` que trae la semilla (el resto tiene valor por defecto).
 # Columnas públicas de `places` (sin `created_at` ni `updated_by`): lista explícita
@@ -66,12 +68,44 @@ EDITABLE_PLACE_COLUMNS = (
 )
 
 
+# Eventos (V12). Públicas: lo que ve el mapa; administración: más los campos internos.
+PUBLIC_EVENT_COLUMNS = (
+    "id", "slug", "title", "description", "image_url", "starts_at", "ends_at", "place_id",
+    "location_detail", "category", "organizer", "status", "status_note", "is_free", "price_note",
+    "audience", "registration_url", "registration_note", "modality", "online_url", "agenda",
+    "website", "email", "phone",
+)
+ADMIN_EVENT_COLUMNS = PUBLIC_EVENT_COLUMNS + ("keywords", "is_published", "created_at", "updated_at", "updated_by")
+EDITABLE_EVENT_COLUMNS = (
+    "title", "description", "image_url", "starts_at", "ends_at", "place_id", "location_detail",
+    "category", "organizer", "status", "status_note", "is_free", "price_note", "audience",
+    "registration_url", "registration_note", "modality", "online_url", "agenda", "keywords",
+    "website", "email", "phone", "is_published",
+)
+# Cuándo termina un evento: su `ends_at`, o el fin del día de inicio en hora de Lima si no tiene.
+# Debe coincidir con `app.events.timeutil.expires_at`.
+_EVENT_ENDS_SQL = (
+    "coalesce(ends_at, (date_trunc('day', starts_at at time zone 'America/Lima') + interval '1 day')"
+    " at time zone 'America/Lima')"
+)
+
+
 class DuplicateError(Exception):
     """Ya existe una fila con ese id."""
 
 
 def _admin_columns() -> sql.Composed:
     return sql.SQL(", ").join(sql.Identifier(c) for c in ADMIN_PLACE_COLUMNS)
+
+
+def event_slug(title: str, starts_at: Any) -> str:
+    """Slug de un evento: título + fecha de inicio (`charla-de-ia-2026-11-22`), para distinguir repeticiones."""
+    day = as_lima(starts_at).strftime("%Y-%m-%d")
+    return f"{slugify(title, 'evento')[: MAX_SLUG_LENGTH - len(day) - 1].strip('-')}-{day}"
+
+
+def _event_columns(columns: Sequence[str]) -> sql.Composed:
+    return sql.SQL(", ").join(sql.Identifier(c) for c in columns)
 
 
 def _public_columns() -> sql.Composed:
@@ -151,7 +185,7 @@ class Database:
             rows = conn.execute(
                 sql.SQL(
                     "select distinct metadata->>'place_id' as place_id from {t} "
-                    "where metadata->>'place_id' is not null"
+                    "where metadata->>'place_id' is not null and source_type is distinct from 'event'"
                 ).format(t=self._table)
             ).fetchall()
         return {row["place_id"] for row in rows}
@@ -377,12 +411,13 @@ class Database:
             return conn.execute(query, params).fetchone()  # type: ignore[return-value]
 
     @staticmethod
-    def _free_slug(conn: psycopg.Connection[Any], base: str) -> str:
-        """`base`, o `base-2`, `base-3`… si ya hay un lugar con ese slug (la restricción única lo respalda)."""
+    def _free_slug(conn: psycopg.Connection[Any], base: str, table: str = "places") -> str:
+        """`base`, o `base-2`, `base-3`… si ya hay una fila con ese slug (la restricción única lo respalda)."""
         taken = {
             row["slug"]
             for row in conn.execute(
-                "select slug from places where slug = %s or slug like %s", (base, f"{base}-%")
+                sql.SQL("select slug from {t} where slug = %s or slug like %s").format(t=sql.Identifier(table)),
+                (base, f"{base}-%"),
             ).fetchall()
         }
         if base not in taken:
@@ -409,7 +444,8 @@ class Database:
             return conn.execute(query, params).fetchone()
 
     def delete_place(self, place_id: int) -> tuple[str, str | int]:
-        """`("deleted", slug)`, `("not_found", 0)` o `("has_children", n)` si otros lugares lo contienen."""
+        """`("deleted", slug)`, `("not_found", 0)`, `("has_children", n)` si otros lugares lo contienen
+        o `("has_events", n)` si hay eventos que ocurren en él."""
         with self.connection() as conn, conn.transaction():
             row = conn.execute("select slug from places where id = %s for update", (place_id,)).fetchone()
             if row is None:
@@ -419,8 +455,100 @@ class Database:
             ).fetchone()["n"]  # type: ignore[index]
             if n:
                 return ("has_children", n)
+            events = conn.execute(
+                "select count(*)::int as n from events where place_id = %s", (place_id,)
+            ).fetchone()["n"]  # type: ignore[index]
+            if events:
+                return ("has_events", events)
             conn.execute("delete from places where id = %s", (place_id,))
             return ("deleted", row["slug"])
+
+    # --- eventos (V12) --------------------------------------------------------
+
+    def upcoming_events(self) -> list[dict]:
+        """Eventos que ve el público: publicados, no cancelados y que aún no terminaron, por fecha."""
+        query = sql.SQL(
+            "select {cols} from events where is_published and status <> 'cancelled' "
+            "and " + _EVENT_ENDS_SQL + " > now() order by starts_at, id"
+        ).format(cols=_event_columns(PUBLIC_EVENT_COLUMNS))
+        with self.connection() as conn:
+            return list(conn.execute(query).fetchall())
+
+    def admin_list_events(self, place_id: int | None = None, published: bool | None = None) -> list[dict]:
+        """Todos los eventos (publicados o no, pasados o futuros), el más reciente primero."""
+        query = sql.SQL(
+            "select {cols} from events where "
+            "(%(place)s::bigint is null or place_id = %(place)s) "
+            "and (%(published)s::boolean is null or is_published = %(published)s) "
+            "order by starts_at desc, id desc"
+        ).format(cols=_event_columns(ADMIN_EVENT_COLUMNS))
+        with self.connection() as conn:
+            return list(conn.execute(query, {"place": place_id, "published": published}).fetchall())
+
+    def admin_get_event(self, event_id: int) -> dict | None:
+        query = sql.SQL("select {cols} from events where id = %s").format(cols=_event_columns(ADMIN_EVENT_COLUMNS))
+        with self.connection() as conn:
+            return conn.execute(query, (event_id,)).fetchone()
+
+    def event_exists(self, event_id: int) -> bool:
+        with self.connection() as conn:
+            return conn.execute("select 1 as x from events where id = %s", (event_id,)).fetchone() is not None
+
+    _SYNC_EVENT_SELECT = (
+        "select e.*, p.name as place_name, p.slug as place_slug, parent.name as parent_name "
+        "from events e left join places p on p.id = e.place_id "
+        "left join places parent on parent.id = p.parent_place_id"
+    )
+
+    def event_for_sync(self, event_id: int) -> dict | None:
+        """Fila de un evento (publicado o no) con el nombre y slug de su lugar y el nombre de su contenedor."""
+        with self.connection() as conn:
+            return conn.execute(self._SYNC_EVENT_SELECT + " where e.id = %s", (event_id,)).fetchone()
+
+    def events_for_sync(self) -> list[dict]:
+        """Todos los eventos en el formato de `event_for_sync`, por id."""
+        with self.connection() as conn:
+            return list(conn.execute(self._SYNC_EVENT_SELECT + " order by e.id").fetchall())
+
+    def create_event(self, data: dict, username: str) -> dict:
+        """Crea un evento (el id lo asigna la base; el slug sale del título y la fecha) y devuelve la fila."""
+        cols = EDITABLE_EVENT_COLUMNS
+        query = sql.SQL(
+            "insert into events (slug, {cols}, updated_by) values (%(slug)s, {marks}, %(user)s) returning {out}"
+        ).format(
+            cols=sql.SQL(", ").join(sql.Identifier(c) for c in cols),
+            marks=sql.SQL(", ").join(sql.Placeholder(c) for c in cols),
+            out=_event_columns(ADMIN_EVENT_COLUMNS),
+        )
+        with self.connection() as conn, conn.transaction():
+            conn.execute("select pg_advisory_xact_lock(%s)", (_EVENT_SLUG_LOCK,))
+            params = {
+                **{c: data.get(c) for c in cols},
+                "user": username,
+                "slug": self._free_slug(conn, event_slug(data["title"], data["starts_at"]), "events"),
+            }
+            return conn.execute(query, params).fetchone()  # type: ignore[return-value]
+
+    def update_event(self, event_id: int, data: dict, username: str) -> dict | None:
+        """Reemplaza los campos editables; `None` si el evento no existe. El slug no cambia."""
+        cols = EDITABLE_EVENT_COLUMNS
+        query = sql.SQL(
+            "update events set {sets}, updated_at = now(), updated_by = %(user)s where id = %(id)s returning {out}"
+        ).format(
+            sets=sql.SQL(", ").join(
+                sql.SQL("{} = {}").format(sql.Identifier(c), sql.Placeholder(c)) for c in cols
+            ),
+            out=_event_columns(ADMIN_EVENT_COLUMNS),
+        )
+        params = {**{c: data.get(c) for c in cols}, "user": username, "id": event_id}
+        with self.connection() as conn:
+            return conn.execute(query, params).fetchone()
+
+    def delete_event(self, event_id: int) -> tuple[str, str | int]:
+        """`("deleted", slug)` o `("not_found", 0)`."""
+        with self.connection() as conn, conn.transaction():
+            row = conn.execute("delete from events where id = %s returning slug", (event_id,)).fetchone()
+        return ("not_found", 0) if row is None else ("deleted", row["slug"])
 
     def admin_list_categories(self) -> list[dict]:
         with self.connection() as conn:

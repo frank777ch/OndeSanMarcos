@@ -98,6 +98,9 @@ class FakePlacesAdminMixin:
         n = sum(1 for p in self.place_rows.values() if p.get("parent_place_id") == place_id)
         if n:
             return ("has_children", n)
+        events = sum(1 for e in getattr(self, "event_rows", {}).values() if e.get("place_id") == place_id)
+        if events:
+            return ("has_events", events)
         del self.place_rows[place_id]
         return ("deleted", row["slug"])
 
