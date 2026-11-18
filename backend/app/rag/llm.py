@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from app.events.timeutil import describe_today
+
 # System prompt compartido por los proveedores reales. Refuerza, del lado del
 # LLM, el principio del RAG y los guardrails (§3.6): responder SOLO con el
 # contexto recuperado, en español y sin inventar.
@@ -19,15 +21,24 @@ SYSTEM_PROMPT = (
     "(UNMSM). Responde de forma breve, clara y en español, usando ÚNICAMENTE "
     "la información del contexto proporcionado. Si el contexto no contiene la "
     "respuesta, di explícitamente que no tienes esa información oficial. No "
-    "inventes horarios, oficinas ni datos que no estén en el contexto."
+    "inventes horarios, oficinas ni datos que no estén en el contexto. Si el "
+    "contexto describe un evento, compara su fecha con la de hoy para decir si "
+    "es hoy, falta poco o ya pasó, y si está cancelado o reprogramado, dilo. "
+    "Escribe en texto plano: sin Markdown, sin asteriscos ni negritas; para "
+    "enumerar usa un guion al inicio de cada línea."
 )
 
 
-def build_prompt(query: str, contexts: list[str]) -> str:
-    """Arma el mensaje de usuario: contexto recuperado + consulta."""
+def build_prompt(query: str, contexts: list[str], today: str | None = None) -> str:
+    """Arma el mensaje de usuario: contexto recuperado + fecha de hoy + consulta.
+
+    `today` es la fecha en español (hora de Lima); por defecto, la de hoy. Sin ella el asistente no
+    puede decir si un evento ya pasó o es esta semana.
+    """
     joined = "\n\n".join(f"- {text.strip()}" for text in contexts if text.strip())
     return (
         f"Contexto oficial de la UNMSM:\n{joined}\n\n"
+        f"Hoy es {today or describe_today()} (hora de Lima).\n\n"
         f"Pregunta del usuario: {query}\n\n"
         "Responde solo con el contexto anterior."
     )
@@ -142,6 +153,8 @@ class GeminiLLM:
                 system_instruction=SYSTEM_PROMPT,
                 temperature=0.2,
                 max_output_tokens=600,
+                # Sin «thinking»: en gemini-2.5-flash consume el tope de salida y la respuesta sale cortada.
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
             ),
         )
         return (response.text or "").strip()
