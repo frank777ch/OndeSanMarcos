@@ -1,5 +1,5 @@
 import type { MouseEvent } from 'react'
-import { LogOut, MapPin, Moon, Sun, Tags, UserRound, type LucideIcon } from 'lucide-react'
+import { CalendarDays, LogOut, MapPin, Moon, Sun, Tags, UserRound, type LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/features/admin/store/useAuthStore'
 import { useThemeStore } from '@/features/theme/useThemeStore'
 import { cn } from '@/lib/cn'
@@ -7,6 +7,7 @@ import { SidebarShell, type SidebarLink } from './SidebarShell'
 
 const links: SidebarLink[] = [
   { to: '/admin/lugares', label: 'Lugares', icon: MapPin },
+  { to: '/admin/eventos', label: 'Eventos', icon: CalendarDays },
   { to: '/admin/categorias', label: 'Categorías', icon: Tags },
   { to: '/admin/perfil', label: 'Perfil', icon: UserRound },
 ]

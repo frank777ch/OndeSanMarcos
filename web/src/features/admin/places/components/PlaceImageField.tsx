@@ -20,10 +20,12 @@ interface PlaceImageFieldProps {
   onChange: (url: string) => void
   /** Avisa mientras se sube, para que el formulario no se guarde a medias. */
   onBusyChange?: (busy: boolean) => void
+  /** Texto de la etiqueta; por defecto «Imagen de portada». */
+  label?: string
 }
 
 /** Imagen de portada de un lugar: se elige un archivo y se sube al almacén al instante. Es opcional. */
-export function PlaceImageField({ id, value, error, onChange, onBusyChange }: PlaceImageFieldProps) {
+export function PlaceImageField({ id, value, error, onChange, onBusyChange, label = 'Imagen de portada' }: PlaceImageFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -59,7 +61,7 @@ export function PlaceImageField({ id, value, error, onChange, onBusyChange }: Pl
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-sm font-medium">
-        Imagen de portada
+        {label}
       </label>
       <input
         ref={inputRef}

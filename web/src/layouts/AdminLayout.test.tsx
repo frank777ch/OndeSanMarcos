@@ -26,7 +26,7 @@ describe('AdminLayout', () => {
   it('RF-26.15 y RF-31.1: pestañas Lugares, Categorías y Perfil (activa), sin Mapa ni Asistente', () => {
     renderLayout()
     const nav = screen.getByRole('navigation', { name: 'Administración' })
-    expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Lugares', 'Categorías', 'Perfil'])
+    expect(screen.getAllByRole('link').map((l) => l.textContent)).toEqual(['Lugares', 'Eventos', 'Categorías', 'Perfil'])
     expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Lugares' })).toHaveAttribute('href', '/admin/lugares')
     expect(screen.getByRole('link', { name: 'Categorías' })).toHaveAttribute('href', '/admin/categorias')

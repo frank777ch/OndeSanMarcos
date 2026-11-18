@@ -4,6 +4,7 @@ import { AdminLayout } from '@/layouts/AdminLayout'
 import { AppLayout } from '@/layouts/AppLayout'
 import { AdminCategoriesPage } from '@/pages/AdminCategoriesPage'
 import { AdminLoginPage } from '@/pages/AdminLoginPage'
+import { AdminEventsPage } from '@/pages/AdminEventsPage'
 import { AdminPlacesPage } from '@/pages/AdminPlacesPage'
 import { AdminProfilePage } from '@/pages/AdminProfilePage'
 import { ChatPage } from '@/pages/ChatPage'
@@ -22,6 +23,7 @@ export const routes: RouteObject[] = [
           // Tras iniciar sesión se abre la primera pestaña del menú.
           { index: true, element: <Navigate to="lugares" replace /> },
           { path: 'lugares', element: <AdminPlacesPage /> },
+          { path: 'eventos', element: <AdminEventsPage /> },
           { path: 'categorias', element: <AdminCategoriesPage /> },
           { path: 'perfil', element: <AdminProfilePage /> },
         ],
