@@ -137,7 +137,7 @@ ensure_backend_deps() {
     echo "Creando backend/.venv con $("$py" --version)..."
     "$py" -m venv "$VENV"
   fi
-  hash="$(cat "${files[@]}" | shasum | cut -d' ' -f1)"
+  hash="$("$VENV/bin/python" -c 'import hashlib,sys; print(hashlib.sha1(b"".join(open(f,"rb").read() for f in sys.argv[1:])).hexdigest())' "${files[@]}")"
   if [ "$(cat "$VENV/.requirements-hash" 2>/dev/null || true)" != "$hash" ]; then
     echo "Instalando dependencias del backend..."
     "$VENV/bin/python" -m pip install --quiet --disable-pip-version-check \
