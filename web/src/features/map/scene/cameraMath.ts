@@ -1,3 +1,4 @@
+import { Vector3, type Camera } from 'three'
 import { CAMPUS, type LngLat } from '../constants/campus'
 import { campusOsm } from '../data/campusData'
 import { toLocal, type Local } from '../utils/projection'
@@ -23,6 +24,17 @@ export const LABEL_MAX_DISTANCE = 900
 export const TILT_3D_DEG = 50
 
 export const deg = (d: number) => (d * Math.PI) / 180
+
+/**
+ * Punto del suelo (y = 0) que se ve en la posición `ndc` de la pantalla (−1 a 1, con y hacia arriba).
+ * `null` si ese punto del cielo no toca el suelo (se mira por encima del horizonte).
+ */
+export function groundPointAt(camera: Camera, ndcX: number, ndcY: number): Vector3 | null {
+  camera.updateMatrixWorld()
+  const direction = new Vector3(ndcX, ndcY, 0.5).unproject(camera).sub(camera.position)
+  if (direction.y >= -1e-6) return null
+  return camera.position.clone().addScaledVector(direction, -camera.position.y / direction.y)
+}
 
 /** Zoom estilo Mapbox → distancia de la cámara (m); cada zoom duplica o reduce a la mitad la distancia. */
 export function zoomToDistance(zoom: number): number {

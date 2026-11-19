@@ -1,3 +1,4 @@
+import { PerspectiveCamera } from 'three'
 import { campusOsm } from '../data/campusData'
 import { fromLocal } from '../utils/projection'
 import {
@@ -7,6 +8,7 @@ import {
   cameraPosition,
   clampToBox,
   fitCamera,
+  groundPointAt,
   MAX_DISTANCE,
   MIN_DISTANCE,
   zoomToDistance,
@@ -71,6 +73,36 @@ describe('cameraMath', () => {
       expect(small.distance).toBeGreaterThanOrEqual(MIN_DISTANCE)
       expect(big.distance).toBeLessThanOrEqual(MAX_DISTANCE)
       expect(campus).toBeDefined()
+    })
+  })
+
+  describe('groundPointAt', () => {
+    const camera = () => {
+      const c = new PerspectiveCamera(40, 1, 5, 9000)
+      c.position.set(30, 500, 380)
+      c.lookAt(30, 0, 80)
+      return c
+    }
+
+    it('el centro de la pantalla apunta al punto del suelo que mira la cámara inclinada', () => {
+      const p = groundPointAt(camera(), 0, 0)!
+      expect(p.x).toBeCloseTo(30, 3)
+      expect(p.y).toBeCloseTo(0, 6)
+      expect(p.z).toBeCloseTo(80, 3)
+    })
+
+    it('un punto a un lado de la pantalla cae en el suelo a un lado del centro', () => {
+      const left = groundPointAt(camera(), -0.5, 0)!
+      const right = groundPointAt(camera(), 0.5, 0)!
+      expect(left.y).toBeCloseTo(0, 6)
+      expect(right.x).toBeGreaterThan(left.x)
+    })
+
+    it('devuelve null si el punto está por encima del horizonte', () => {
+      const c = new PerspectiveCamera(40, 1, 5, 9000)
+      c.position.set(0, 100, 0)
+      c.lookAt(0, 100, -100)
+      expect(groundPointAt(c, 0, 0.9)).toBeNull()
     })
   })
 })
