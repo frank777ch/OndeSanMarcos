@@ -19,7 +19,9 @@
 #   ingest [--force]   embebe el corpus y lo carga en la base. Se niega si ya hay datos
 #   reindex-places     vuelve a sincronizar todos los lugares con el asistente (una llamada a Gemini por lugar)
 #   reindex-events     vuelve a sincronizar todos los eventos con el asistente (una llamada a Gemini por fragmento)
-#   seed-places        carga los lugares del campus (backend/db/seed/places.json). No pisa lo que ya existe
+#   seed-places        carga los lugares del campus (backend/db/seed/places.json). No pisa lo que ya existe.
+#                      `up` lo ejecuta solo si la tabla places está vacía (base nueva): así no vuelve a crear
+#                      un lugar que borraste desde el panel
 #   place-images       sube las portadas de los lugares a Garage (almacén S3 en Docker) y las enlaza en la base.
 #                      También se ejecuta al hacer `up`. No pisa un image_url ya puesto
 #   psql               abre una consola SQL de la base
@@ -84,6 +86,24 @@ confirm() {
 # Cuántas filas tiene la tabla documents (vacío si la base no responde).
 rows_in_db() {
   docker compose exec -T db psql -U "$DB_USER" -d "$DB_NAME" -Atc "select count(*) from documents" 2>/dev/null || true
+}
+
+# Cuántos lugares hay en la tabla places (vacío si la base no responde).
+places_in_db() {
+  docker compose exec -T db psql -U "$DB_USER" -d "$DB_NAME" -Atc "select count(*) from places" 2>/dev/null || true
+}
+
+# Carga los lugares del campus solo en una base nueva (places vacía), para que el mapa no salga vacío.
+# Con lugares ya cargados no hace nada: respeta lo que se editó o borró desde el panel.
+# Es opcional: si falla, el resto del entorno sigue arrancando.
+seed_places_if_empty() {
+  local count
+  count="$(places_in_db)"
+  if [ "$count" = "0" ]; then
+    echo "Base nueva: cargando los lugares del campus..."
+    (cd backend && "$VENV/bin/python" -m app.places.seed) \
+      || echo "Aviso: no se pudieron cargar los lugares. Reintenta con ./scripts/dev.sh seed-places" >&2
+  fi
 }
 
 # Levanta solo la base y espera a que las migraciones terminen.
@@ -241,6 +261,7 @@ case "$cmd" in
       esac
     done
     prepare_local
+    seed_places_if_empty
     # Las portadas son opcionales: si Garage falla, el resto del entorno sigue arrancando.
     ./scripts/place-images.sh || echo "Aviso: no se pudieron cargar las portadas de los lugares." >&2
     announce
