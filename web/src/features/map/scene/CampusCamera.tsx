@@ -9,6 +9,7 @@ import {
   clampToBox,
   deg,
   FLAT_POLAR_DEG,
+  groundPointAt,
   LABEL_MAX_DISTANCE,
   MAX_DISTANCE,
   MAX_POLAR_DEG,
@@ -40,6 +41,7 @@ export function CampusCamera() {
   const camera = useThree((s) => s.camera)
   const size = useThree((s) => s.size)
   const invalidate = useThree((s) => s.invalidate)
+  const gl = useThree((s) => s.gl)
   const animation = useRef<Animation | null>(null)
   const sizeRef = useRef(size)
   sizeRef.current = size
@@ -134,6 +136,79 @@ export function CampusCamera() {
     }
   }, [camera])
 
+  // Pellizco en pantallas táctiles: el punto del suelo bajo los dedos se queda bajo los dedos (zoom localizado).
+  // La rueda del ratón ya lo hace con `zoomToCursor`; la librería no lo aplica al pellizco.
+  useEffect(() => {
+    const c = controls.current
+    const el = gl.domElement
+    if (!c) return
+    const touches = new Map<number, { x: number; y: number }>()
+    let anchor: Vector3 | null = null
+    let adjusting = false
+
+    const midpointNdc = () => {
+      const [a, b] = [...touches.values()]
+      const rect = el.getBoundingClientRect()
+      return {
+        x: (((a.x + b.x) / 2 - rect.left) / rect.width) * 2 - 1,
+        y: -((((a.y + b.y) / 2 - rect.top) / rect.height) * 2 - 1),
+      }
+    }
+    const setAnchor = () => {
+      anchor = null
+      if (touches.size !== 2) return
+      const m = midpointNdc()
+      anchor = groundPointAt(camera, m.x, m.y)
+    }
+
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      setAnchor()
+    }
+    const onMove = (e: PointerEvent) => {
+      const t = touches.get(e.pointerId)
+      if (t) {
+        t.x = e.clientX
+        t.y = e.clientY
+      }
+    }
+    const onUp = (e: PointerEvent) => {
+      if (!touches.delete(e.pointerId)) return
+      setAnchor()
+    }
+    const onChange = () => {
+      if (adjusting || !anchor || touches.size !== 2) return
+      const m = midpointNdc()
+      const now = groundPointAt(camera, m.x, m.y)
+      if (!now) return
+      const dx = anchor.x - now.x
+      const dz = anchor.z - now.z
+      if (Math.abs(dx) < 1e-4 && Math.abs(dz) < 1e-4) return
+      adjusting = true
+      camera.position.x += dx
+      camera.position.z += dz
+      c.target.x += dx
+      c.target.z += dz
+      c.update()
+      adjusting = false
+    }
+
+    // `capture`: se anota la posición de los dedos antes de que la lea el control.
+    el.addEventListener('pointerdown', onDown, true)
+    el.addEventListener('pointermove', onMove, true)
+    el.addEventListener('pointerup', onUp, true)
+    el.addEventListener('pointercancel', onUp, true)
+    c.addEventListener('change', onChange)
+    return () => {
+      el.removeEventListener('pointerdown', onDown, true)
+      el.removeEventListener('pointermove', onMove, true)
+      el.removeEventListener('pointerup', onUp, true)
+      el.removeEventListener('pointercancel', onUp, true)
+      c.removeEventListener('change', onChange)
+    }
+  }, [camera, gl])
+
   useFrame(() => {
     const a = animation.current
     if (!a) {
@@ -163,6 +238,8 @@ export function CampusCamera() {
       ref={controls}
       makeDefault
       enableDamping={false}
+      // La rueda hace zoom hacia el punto bajo el cursor, no hacia el centro de la vista.
+      zoomToCursor
       minDistance={MIN_DISTANCE}
       maxDistance={MAX_DISTANCE}
       minPolarAngle={0}
