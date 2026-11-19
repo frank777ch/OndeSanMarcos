@@ -72,3 +72,17 @@ export function readPosition(): Promise<UserPosition> {
     )
   })
 }
+
+/** Sigue la ubicación del dispositivo. Devuelve cómo dejar de seguirla. */
+export function watchPosition(onPosition: (position: UserPosition) => void, onError: (error: LocationError) => void): () => void {
+  if (!hasGeolocation()) {
+    onError(new LocationError(false, 'Geolocalización no disponible'))
+    return () => {}
+  }
+  const id = navigator.geolocation.watchPosition(
+    (p) => onPosition({ coordinates: [p.coords.longitude, p.coords.latitude], accuracy: p.coords.accuracy }),
+    (e) => onError(new LocationError(e.code === PERMISSION_DENIED, e.message)),
+    { enableHighAccuracy: true, timeout: 15_000, maximumAge: 1_000 },
+  )
+  return () => navigator.geolocation.clearWatch(id)
+}

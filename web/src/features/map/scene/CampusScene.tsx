@@ -4,6 +4,7 @@ import { CampusCamera } from './CampusCamera'
 import { FOV } from './cameraMath'
 import { RouteRemoveButton } from '@/features/routing/components/RouteRemoveButton'
 import { PlaceMarkers } from './PlaceMarkers'
+import { RouteAvatar } from './RouteAvatar'
 import { RouteLine } from './RouteLine'
 import { UserLocation } from './UserLocation'
 import { Boundary, Buildings, GreenAreas, Ground, Paths, Roads } from './layers'
@@ -35,6 +36,7 @@ export function CampusScene() {
       <Buildings colors={colors} />
       <PlaceMarkers />
       <RouteLine />
+      <RouteAvatar />
       <RouteRemoveButton />
       <UserLocation />
     </Canvas>

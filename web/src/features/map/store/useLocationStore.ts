@@ -5,6 +5,7 @@ import {
   queryPermission,
   readPosition,
   watchPermissionChange,
+  watchPosition,
   type UserPosition,
 } from '../utils/geolocation'
 
@@ -42,7 +43,13 @@ interface LocationState {
   allow: () => Promise<void>
   /** Lee la ubicación y la guarda. `null` si no se pudo. */
   locate: () => Promise<UserPosition | null>
+  /** Sigue la ubicación y la guarda en `position` a cada lectura. Devuelve cómo dejar de seguirla. */
+  startWatching: () => () => void
 }
+
+/** Cuántos seguimientos hay activos; el del navegador se comparte entre ellos. */
+let watchers = 0
+let stopBrowserWatch: (() => void) | null = null
 
 export const useLocationStore = create<LocationState>((set, get) => ({
   permission: 'unknown',
@@ -99,6 +106,26 @@ export const useLocationStore = create<LocationState>((set, get) => ({
       return null
     } finally {
       set({ locating: false })
+    }
+  },
+
+  startWatching: () => {
+    if (watchers++ === 0) {
+      stopBrowserWatch = watchPosition(
+        (position) => set({ position, permission: 'granted' }),
+        (e) => {
+          if (e instanceof LocationError && e.denied) set({ permission: 'denied' })
+        },
+      )
+    }
+    let stopped = false
+    return () => {
+      if (stopped) return
+      stopped = true
+      if (--watchers === 0) {
+        stopBrowserWatch?.()
+        stopBrowserWatch = null
+      }
     }
   },
 }))
