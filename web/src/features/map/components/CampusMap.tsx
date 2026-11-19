@@ -1,12 +1,16 @@
 import { useEffect, useRef } from 'react'
-import { Box, LoaderCircle, LocateFixed, Map as MapIcon, Moon, Route, Sun } from 'lucide-react'
+import { Box, CircleOff, LoaderCircle, LocateFixed, Map as MapIcon, Moon, PersonStanding, Route, Sun } from 'lucide-react'
 import { useToastStore } from '@/components/Toast/toastStore'
 import { useRouteStore } from '@/features/routing/store/useRouteStore'
 import { FlyToRoute } from '@/features/routing/components/FlyToRoute'
 import { RouteDialog } from '@/features/routing/components/RouteDialog'
+import { AVATARS } from '@/features/avatar/avatars'
+import { useAvatarStore } from '@/features/avatar/useAvatarStore'
+import { useAvatarTracking } from '@/features/avatar/useAvatarTracking'
 import { useThemeStore } from '@/features/theme/useThemeStore'
 import { useLocationStore } from '../store/useLocationStore'
 import { CampusScene } from '../scene/CampusScene'
+import { preloadAvatar } from '../scene/preloadAvatar'
 import { useCameraStore } from '../scene/cameraStore'
 import { viewPadding } from '../utils/viewPadding'
 import { CampusPointer } from './CampusPointer'
@@ -26,6 +30,8 @@ export function CampusMap() {
   const permission = useLocationStore((s) => s.permission)
   const position = useLocationStore((s) => s.position)
   const locating = useLocationStore((s) => s.locating)
+  const avatarId = useAvatarStore((s) => s.avatarId)
+  useAvatarTracking()
   // «Volver al campus» solo cuando no hay forma de ubicar al usuario; con el permiso pendiente, pedirlo.
   const hasLocationAccess = permission !== 'denied' && permission !== 'unsupported'
 
@@ -109,6 +115,27 @@ export function CampusMap() {
             onClick: () => useRouteStore.getState().openDialog(),
           },
           { label: flat ? 'Vista 3D' : 'Vista 2D', icon: flat ? <Box size={20} /> : <MapIcon size={20} />, onClick: toggleView },
+          {
+            label: 'Avatar',
+            icon: <PersonStanding size={20} />,
+            children: [
+              {
+                label: 'Sin avatar',
+                icon: <CircleOff size={20} />,
+                selected: avatarId === null,
+                onClick: () => useAvatarStore.getState().setAvatar(null),
+              },
+              ...AVATARS.map((avatar) => ({
+                label: avatar.label,
+                icon: <span className="text-lg leading-none">{avatar.icon}</span>,
+                selected: avatarId === avatar.id,
+                onClick: () => {
+                  preloadAvatar(avatar.url)
+                  useAvatarStore.getState().setAvatar(avatar.id)
+                },
+              })),
+            ],
+          },
           {
             label: dark ? 'Tema claro' : 'Tema oscuro',
             icon: dark ? <Sun size={20} /> : <Moon size={20} />,
