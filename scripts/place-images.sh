@@ -11,6 +11,14 @@
 # Variables opcionales:
 #   PLACE_IMAGES_BASE_URL  base pública de las portadas (por defecto PLACE_IMAGES_PUBLIC_URL de dev.env)
 #   GARAGE_S3_PORT         puerto de la API S3 en tu máquina (por defecto 3900)
+#   GARAGE_ENV_FILE        archivo KEY=VALUE con las credenciales S3 (por defecto infra/garage/dev.env;
+#                          en producción lo pasa scripts/deploy.sh con .env.prod)
+#   PLACE_IMAGES_ALIAS     dominio con el que se sirve el bucket (por defecto localhost; en producción
+#                          img.ondesanmarcos.site)
+#   PLACE_IMAGES_DIR       carpeta con las portadas (por defecto backend/db/seed/place-images). Una carpeta
+#                          vacía solo deja listo Garage (layout, llave, bucket y alias), sin subir nada
+#   GARAGE_CAPACITY        capacidad del nodo al crear el layout (por defecto 1G)
+#   COMPOSE_FILE / COMPOSE_ENV_FILES  hacen que `docker compose` use otro compose (producción)
 #
 # Limitación: Garage sirve el bucket según el nombre del host y no admite una IP como nombre,
 # así que `localhost` funciona en tu máquina pero no desde el celular por la IP de la red local.
@@ -22,12 +30,13 @@ cd "$(dirname "$0")/.."
 # Credenciales y bucket de desarrollo, compartidos con el backend.
 set -a
 # shellcheck disable=SC1091
-. infra/garage/dev.env
+. "${GARAGE_ENV_FILE:-infra/garage/dev.env}"
 set +a
 
 BUCKET="$S3_BUCKET"
 KEY_NAME=ondesanmarcos-app
-IMAGES_DIR=backend/db/seed/place-images
+ALIAS="${PLACE_IMAGES_ALIAS:-localhost}"
+IMAGES_DIR="${PLACE_IMAGES_DIR:-backend/db/seed/place-images}"
 S3_URL="http://127.0.0.1:${GARAGE_S3_PORT:-3900}"
 BASE_URL="${PLACE_IMAGES_BASE_URL:-$PLACE_IMAGES_PUBLIC_URL}"
 BASE_URL="${BASE_URL%/}"
@@ -60,7 +69,7 @@ fi
 # Un nodo nuevo no tiene rol: sin él Garage no guarda datos.
 if garage status 2>/dev/null | grep -q "NO ROLE ASSIGNED"; then
   node="$(garage status 2>/dev/null | awk '/^[0-9a-f]{16}/{print $1; exit}')"
-  garage layout assign -z dc1 -c 1G "$node" >/dev/null
+  garage layout assign -z dc1 -c "${GARAGE_CAPACITY:-1G}" "$node" >/dev/null
   garage layout apply --version 1 >/dev/null
 fi
 
@@ -71,8 +80,8 @@ garage bucket info "$BUCKET" >/dev/null 2>&1 || garage bucket create "$BUCKET" >
 garage bucket allow --read --write --owner "$BUCKET" --key "$S3_ACCESS_KEY" >/dev/null
 # «website» abre la lectura pública sin credenciales: es lo que usa el navegador.
 garage bucket website --allow "$BUCKET" >/dev/null
-# El alias `localhost` hace que http://localhost:3902/<archivo> llegue a este bucket.
-garage bucket info "$BUCKET" 2>/dev/null | grep -qw localhost || garage bucket alias "$BUCKET" localhost >/dev/null
+# El alias (localhost en desarrollo) hace que las peticiones con ese Host lleguen a este bucket.
+garage bucket info "$BUCKET" 2>/dev/null | grep -Fqw "$ALIAS" || garage bucket alias "$BUCKET" "$ALIAS" >/dev/null
 
 if [ ${#files[@]} -eq 0 ]; then
   echo "Garage listo. No hay portadas en $IMAGES_DIR: nada que subir."

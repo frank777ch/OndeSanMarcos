@@ -56,3 +56,6 @@ htmlcov/
 .expo/
 # Logs y PID de ./scripts/dev.sh
 .dev/
+
+# Despliegue en el VPS
+.env.prod

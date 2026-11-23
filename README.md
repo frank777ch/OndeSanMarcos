@@ -127,3 +127,26 @@ Para respuestas reales (no mock) hacen falta `LLM_API_KEY` (Gemini) y `DATABASE_
 - Cada historia tiene una carpeta `web-docs/spec/HU-XX/` con `spec.md` (qué), `plan.md` (cómo) y `task.md` (tareas).
 - Los tests citan el requisito que cubren, por ejemplo `RF-11.7`. Para encontrarlos: `grep -rn "RF-11.7" web/src web-docs`.
 - Los datos de los lugares (horarios, teléfonos, carreras) vienen de la app anterior y están **sin verificar** con la universidad.
+
+## Despliegue en el VPS
+
+Producción corre en un VPS con Docker, detrás del Traefik del servidor (red `proxy`):
+`ondesanmarcos.site` (web), `api.ondesanmarcos.site` (backend) e `img.ondesanmarcos.site` (portadas, en Garage).
+Usa `docker-compose.prod.yml` y `scripts/deploy.sh`; el desarrollo sigue con `scripts/dev.sh`.
+
+```bash
+# En el VPS (usuario con acceso a Docker), primera vez:
+mkdir -p ~/deploys && git clone https://github.com/frank777ch/OndeSanMarcos.git ~/deploys/ondesanmarcos
+cd ~/deploys/ondesanmarcos
+# Copia backend/.env y web/.env (los mismos de desarrollo; con LLM_API_KEY, JWT_SECRET, ADMIN_PASSWORD y el token de Mapbox)
+./scripts/deploy.sh init      # crea .env.prod con secretos aleatorios y revisa los .env
+./scripts/deploy.sh up        # pull + build + levanta todo
+
+# Llevar tus datos locales (lugares, eventos, vectores, portadas) a producción:
+./scripts/export-data.sh      # en tu máquina, con ./scripts/dev.sh up -d encendido
+scp -r .dev/export/<fecha> mi-vps:deploys/imports/ondesanmarcos/
+./scripts/deploy.sh restore ~/deploys/imports/ondesanmarcos/<fecha>   # en el VPS
+```
+
+Para actualizar: `./scripts/deploy.sh` (las migraciones de Flyway corren solas). Respaldos: `./scripts/deploy.sh backup`
+(base e imágenes, en `~/deploys/backups/ondesanmarcos/`). Más comandos: `./scripts/deploy.sh --help`.

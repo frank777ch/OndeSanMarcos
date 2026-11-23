@@ -1,0 +1,143 @@
+# Producción en el VPS: db (Postgres + pgvector), migraciones (Flyway), Garage (portadas), backend (FastAPI)
+# y web (nginx con el build de Vite), detrás del Traefik que ya corre en el servidor (red `proxy`,
+# entrypoint `websecure`, certresolver `letsencrypt`).
+#
+# No se usa a mano: ./scripts/deploy.sh lo invoca con `--env-file .env.prod`.
+# Para desarrollo local usa docker-compose.yml + ./scripts/dev.sh.
+name: ondesanmarcos
+
+x-traefik: &traefik-common
+  traefik.enable: "true"
+  traefik.docker.network: proxy
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ondesanmarcos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD en .env.prod}
+      POSTGRES_DB: ondesanmarcos
+    volumes:
+      # Aquí viven los vectores del asistente y todo el contenido: respáldalo con ./scripts/deploy.sh backup.
+      - db_data:/var/lib/postgresql/data
+    networks:
+      internal:
+        # Alias único: el backend también está en la red `proxy`, compartida con otros proyectos.
+        aliases: [osm-db]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ondesanmarcos -d ondesanmarcos"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    image: flyway/flyway:11
+    command: migrate
+    environment:
+      FLYWAY_URL: jdbc:postgresql://osm-db:5432/ondesanmarcos
+      FLYWAY_USER: ondesanmarcos
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./backend/db/migrations:/flyway/sql:ro
+    networks: [internal]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Almacén S3 de las portadas. La imagen no trae shell: el bucket y la llave los crea
+  # scripts/place-images.sh con `exec garage ...`.
+  garage:
+    image: dxflrs/garage:v2.1.0
+    restart: unless-stopped
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?define GARAGE_RPC_SECRET en .env.prod}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:?define GARAGE_ADMIN_TOKEN en .env.prod}
+    volumes:
+      - ./infra/garage/garage.prod.toml:/etc/garage.toml:ro
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+    ports:
+      # API S3 solo en localhost del VPS: la usan los scripts (portadas, restore). El navegador
+      # lee las imágenes por https://img.ondesanmarcos.site (puerto 3902, vía Traefik).
+      - "127.0.0.1:${GARAGE_S3_PORT:-3910}:3900"
+    networks:
+      internal:
+        # Alias único: la red `proxy` la comparten otros proyectos que también tienen un `garage`.
+        aliases: [osm-garage]
+      proxy:
+    labels:
+      <<: *traefik-common
+      traefik.http.routers.osm-img.rule: Host(`img.ondesanmarcos.site`)
+      traefik.http.routers.osm-img.entrypoints: websecure
+      traefik.http.routers.osm-img.tls.certresolver: letsencrypt
+      traefik.http.services.osm-img.loadbalancer.server.port: "3902"
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    # Mismas variables que en desarrollo (LLM, admin, JWT...). Lo propio de producción va abajo y las pisa.
+    env_file:
+      - ./backend/.env
+    environment:
+      APP_ENV: production
+      CORS_ORIGINS: https://ondesanmarcos.site
+      DATABASE_URL: postgresql://ondesanmarcos:${POSTGRES_PASSWORD}@osm-db:5432/ondesanmarcos
+      S3_ENDPOINT_URL: http://osm-garage:3900
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?define S3_ACCESS_KEY en .env.prod}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?define S3_SECRET_KEY en .env.prod}
+      S3_BUCKET: ${S3_BUCKET:-lugares}
+      S3_REGION: ${S3_REGION:-garage}
+      PLACE_IMAGES_PUBLIC_URL: https://img.ondesanmarcos.site
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      --proxy-headers --forwarded-allow-ips=*
+    volumes:
+      - rag_cache:/app/.rag_cache
+    networks: [internal, proxy]
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      garage:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+    labels:
+      <<: *traefik-common
+      traefik.http.routers.osm-api.rule: Host(`api.ondesanmarcos.site`)
+      traefik.http.routers.osm-api.entrypoints: websecure
+      traefik.http.routers.osm-api.tls.certresolver: letsencrypt
+      traefik.http.routers.osm-api.middlewares: secure-headers@file
+      traefik.http.services.osm-api.loadbalancer.server.port: "8000"
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_API_URL: https://api.ondesanmarcos.site
+    restart: unless-stopped
+    networks: [proxy]
+    labels:
+      <<: *traefik-common
+      traefik.http.routers.osm-web.rule: Host(`ondesanmarcos.site`)
+      traefik.http.routers.osm-web.entrypoints: websecure
+      traefik.http.routers.osm-web.tls.certresolver: letsencrypt
+      traefik.http.routers.osm-web.middlewares: secure-headers@file
+      traefik.http.services.osm-web.loadbalancer.server.port: "80"
+
+networks:
+  internal:
+  proxy:
+    external: true
+
+volumes:
+  db_data:
+  garage_meta:
+  garage_data:
+  rag_cache:
