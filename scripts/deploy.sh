@@ -213,7 +213,7 @@ case "$cmd" in
     echo "Comparando con lo exportado:"
     ok=1
     while read -r table expected; do
-      [ "$table" = "images" ] && { actual="$n"; } || actual="$(psql_db -Atc "select count(*) from $table")"
+      [ "$table" = "images" ] && { actual="$n"; } || actual="$(psql_db -Atc "select count(*) from $table" < /dev/null)"
       if [ "$actual" = "$expected" ]; then echo "  OK    $table: $actual"; else echo "  DIFF  $table: esperado $expected, hay $actual"; ok=0; fi
     done < "$dir/counts.txt"
     [ "$ok" = 1 ] || die "los conteos no coinciden."
