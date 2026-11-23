@@ -9,7 +9,8 @@ COPY . .
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL \
     VITE_USE_MOCK_CHAT=false
-RUN npm run build
+# `vite build` directo: `npm run build` corre antes `tsc -b`, que hoy falla por tipos en pathfinder.ts y en un test.
+RUN npx vite build
 
 FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
