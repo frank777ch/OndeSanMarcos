@@ -192,7 +192,7 @@ case "$cmd" in
     n=0
     while IFS=$'\t' read -r key ctype; do
       [ -n "$key" ] || continue
-      [[ "$key" =~ ^[A-Za-z0-9._-]+$ ]] || die "nombre de imagen no válido: $key"
+      [[ "$key" =~ ^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$ && "$key" != *..* ]] || die "nombre de imagen no válido: $key"
       curl --silent --show-error --fail --output /dev/null \
         --aws-sigv4 "aws:amz:garage:s3" --user "$S3_ACCESS_KEY:$S3_SECRET_KEY" \
         -H "Content-Type: $ctype" -H "Cache-Control: public, max-age=86400" \
